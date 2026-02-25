@@ -19,7 +19,7 @@ import time
 import warnings
 from collections import defaultdict
 from contextlib import AbstractContextManager, contextmanager, nullcontext
-from typing import Any, Iterator, Optional, TypeVar, cast
+from typing import Any, Iterator, Optional, TypeVar, cast, AsyncGenerator
 
 import ray
 import torch
@@ -39,6 +39,7 @@ from megatron.core.distributed import DistributedDataParallel
 from megatron.core.distributed.fsdp.mcore_fsdp_adapter import (
     FullyShardedDataParallel as custom_FSDP,
 )
+from megatron.core.inference.sampling_params import SamplingParams
 from megatron.core.inference.config import InferenceConfig, KVCacheManagementMode
 from megatron.core.optimizer import ChainedOptimizer
 from megatron.core.parallel_state import (
@@ -876,39 +877,11 @@ class MegatronPolicyWorker(AbstractPolicyWorker, ColocatablePolicyInterface):
         await self.dynamic_inference_engine.running.wait()
         self.dynamic_inference_engine.resume()
 
-
-    @wrap_with_nvtx_name("megatron_policy_worker/generate")
-    def generate(
-        self, *, data: BatchedDataDict[GenerationDatumSpec], greedy: bool = False
-    ) -> BatchedDataDict[GenerationOutputSpec]:
-        """Generate a batch of data using Megatron Core inference with coordinator.
-
-        This method uses the coordinator-based inference pattern from Megatron Core,
-        which enables better parallelism across data-parallel ranks through a central
-        coordinator that routes requests to available engines.
-
-        The inference engine is created once and reused across generate() calls.
-        The engine is paused between generate() calls to free GPU memory for training.
-
-        For coordinator-based inference:
-        - Only DP rank 0 receives actual data and submits requests to the coordinator
-        - Other DP ranks receive data=None but still participate in the inference engine loop
-        - The coordinator distributes work across all DP engines
-        - Results are broadcast from rank 0 to all ranks
-
-        Args:
-            data: BatchedDataDict containing input_ids and input_lengths tensors,
-                  or None for non-DP-0 workers (they participate in engine loop only)
-            BatchedDataDict conforming to GenerationOutputSpec:
-                - output_ids: input + generated token IDs
-                - logprobs: Log probabilities for each token
-                - generation_lengths: Lengths of each response
-        """
-        from megatron.core.inference.sampling_params import SamplingParams
-        
+    def _prepare_for_generation(
+        self, data: BatchedDataDict[GenerationDatumSpec], greedy: bool = False
+    ) -> tuple[torch.Tensor, torch.Tensor, SamplingParams]:
         dist_rank = torch.distributed.get_rank()
         is_request_submitter = (dist_rank == 0)
-        
         # For non-rank-0 workers, data may be None (they participate in engine loop only)
         if data is not None:
             # Verify input is right padded
@@ -955,32 +928,12 @@ class MegatronPolicyWorker(AbstractPolicyWorker, ColocatablePolicyInterface):
                 prompt_tokens_tensor = torch.empty(0, dtype=torch.long, device="cuda")
                 prompt_lengths_tensor = torch.empty(0, dtype=torch.long, device="cuda")
 
-            # Run the coordinator-based generation using the persistent engine
-            # Rank 0 submits requests, other ranks participate in engine loop
-            # Results are broadcast to all ranks inside this method
-            result = self._run_async_generation_with_persistent_engine(
-                prompt_tokens_tensor,
-                prompt_lengths_tensor,
-                sampling_params,
-            )
+            return prompt_tokens_tensor, prompt_lengths_tensor, sampling_params
 
-        self.model.config.flash_decode = False
-
-        # Context manager has exited - CUDA graphs are now disabled, model is back in train mode
-
-        # Only rank 0 needs to format and return results
-        # Other ranks return None (their results are ignored due to output_is_replicated)
-        if not is_request_submitter:
-            # Return empty result for non-submitter ranks
-            # Use BatchedDataDict directly instead of from_batches to avoid padding issues with empty tensors
-            return BatchedDataDict({
-                "output_ids": torch.empty(0, 0, dtype=torch.long),
-                "logprobs": torch.empty(0, 0, dtype=torch.float),
-                "generation_lengths": torch.empty(0, dtype=torch.long),
-                "unpadded_sequence_lengths": torch.empty(0, dtype=torch.long),
-            }).to("cpu")
+    def _parse_result_to_batched_data_dict(self, data:BatchedDataDict[GenerationDatumSpec], result: list) -> BatchedDataDict[GenerationOutputSpec]:
 
         input_lengths = data["input_lengths"]
+        input_ids = data["input_ids"]
         batch_size = data["input_ids"].size(0)
         max_gen_seq_len = max([len(x.generated_tokens) for x in result])
         padded_input_length = input_ids.size(1)
@@ -1029,6 +982,87 @@ class MegatronPolicyWorker(AbstractPolicyWorker, ColocatablePolicyInterface):
         }
 
         return BatchedDataDict.from_batches([out_dict]).to("cpu")
+
+    async def generate_async(
+        self, data: BatchedDataDict[GenerationDatumSpec], greedy: bool = False
+    ) -> AsyncGenerator[tuple[int, BatchedDataDict[GenerationOutputSpec]], None]:
+        async def _generate_single_item(
+            index:int
+        ) -> BatchedDataDict[GenerationOutputSpec]:
+            datum = data.get_batch(index, 1)
+            with torch.no_grad():
+                prompt_tokens_tensor, prompt_lengths_tensor, sampling_params = self._prepare_for_generation(datum, greedy)
+                result = await self._generate_with_persistent_engine(
+                    prompt_tokens_tensor,
+                    prompt_lengths_tensor,
+                    sampling_params,
+                )
+                return (index, self._parse_result_to_batched_data_dict(datum, result))
+        
+        async for original_idx, single_item_output in asyncio.as_completed(
+            [_generate_single_item(index) for index in range(data.size)]
+        ):
+            yield original_idx, single_item_output
+
+
+    @wrap_with_nvtx_name("megatron_policy_worker/generate")
+    def generate(
+        self, *, data: BatchedDataDict[GenerationDatumSpec], greedy: bool = False
+    ) -> BatchedDataDict[GenerationOutputSpec]:
+        """Generate a batch of data using Megatron Core inference with coordinator.
+
+        This method uses the coordinator-based inference pattern from Megatron Core,
+        which enables better parallelism across data-parallel ranks through a central
+        coordinator that routes requests to available engines.
+
+        The inference engine is created once and reused across generate() calls.
+        The engine is paused between generate() calls to free GPU memory for training.
+
+        For coordinator-based inference:
+        - Only DP rank 0 receives actual data and submits requests to the coordinator
+        - Other DP ranks receive data=None but still participate in the inference engine loop
+        - The coordinator distributes work across all DP engines
+        - Results are broadcast from rank 0 to all ranks
+
+        Args:
+            data: BatchedDataDict containing input_ids and input_lengths tensors,
+                  or None for non-DP-0 workers (they participate in engine loop only)
+            BatchedDataDict conforming to GenerationOutputSpec:
+                - output_ids: input + generated token IDs
+                - logprobs: Log probabilities for each token
+                - generation_lengths: Lengths of each response
+        """
+        
+        
+        dist_rank = torch.distributed.get_rank()
+        is_request_submitter = (dist_rank == 0)
+        
+        with torch.no_grad():
+
+            prompt_tokens_tensor, prompt_lengths_tensor, sampling_params = self._prepare_for_generation(data, greedy)
+
+            # Run the coordinator-based generation using the persistent engine
+            # Rank 0 submits requests, other ranks participate in engine loop
+            # Results are broadcast to all ranks inside this method
+            result = self._run_async_generation_with_persistent_engine(
+                prompt_tokens_tensor,
+                prompt_lengths_tensor,
+                sampling_params,
+            )
+
+        # Only rank 0 needs to format and return results
+        # Other ranks return None (their results are ignored due to output_is_replicated)
+        if not is_request_submitter:
+            # Return empty result for non-submitter ranks
+            # Use BatchedDataDict directly instead of from_batches to avoid padding issues with empty tensors
+            return BatchedDataDict({
+                "output_ids": torch.empty(0, 0, dtype=torch.long),
+                "logprobs": torch.empty(0, 0, dtype=torch.float),
+                "generation_lengths": torch.empty(0, dtype=torch.long),
+                "unpadded_sequence_lengths": torch.empty(0, dtype=torch.long),
+            }).to("cpu")
+
+        return self._parse_result_to_batched_data_dict(data, result)
 
     def _start_inference_loop_thread(self):
         """Start a background thread with a persistent event loop for inference.

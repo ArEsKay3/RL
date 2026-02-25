@@ -22,7 +22,7 @@ separate GPU clusters, with weights synchronized via Megatron's
 swap_model_weights resharding API.
 """
 
-from typing import Any, Optional
+from typing import Any, Optional, AsyncGenerator
 
 import ray
 from transformers import AutoProcessor
@@ -157,6 +157,11 @@ class MegatronGeneration(GenerationInterface):
             BatchedDataDict conforming to GenerationOutputSpec.
         """
         return self._policy.generate(data, greedy=greedy)
+
+    async def generate_async(
+        self, data: BatchedDataDict[GenerationDatumSpec], greedy: bool = False
+    ) -> AsyncGenerator[tuple[int, BatchedDataDict[GenerationOutputSpec]], None]:
+        return self._policy.generate_async(data, greedy=greedy)
 
     def prepare_for_generation(self, *args: Any, **kwargs: Any) -> bool:
         """Prepare the inference workers for generation.

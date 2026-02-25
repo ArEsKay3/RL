@@ -876,104 +876,6 @@ class MegatronPolicyWorker(AbstractPolicyWorker, ColocatablePolicyInterface):
         await self.dynamic_inference_engine.running.wait()
         self.dynamic_inference_engine.resume()
 
-    @contextmanager
-    def inference_mode(self, mcore_generation_config: dict):
-        """Context manager for inference mode, following Megatron RL's pattern.
-
-        This mirrors megatron_rl_inference_mode from megatron/rl/rl_utils.py
-
-        ENTER order:
-        1. Put model in eval mode
-        2. Clear rotary cache
-        3. Toggle CUDA graphs ON
-        4. Initialize inference engine (first time only)
-        5. Resume engine (reallocates KV cache, recreates CUDA graphs as needed)
-
-        EXIT order:
-        1. Suspend engine (deallocates KV cache and GPU state)
-        2. Toggle CUDA graphs OFF
-        3. Clear rotary cache
-        4. Put model back in train mode
-
-        In non-colocated mode, the engine is NOT suspended/resumed between
-        iterations because training happens on separate GPUs. Only weight values
-        change (via swap_weights_via_reshard), not the compute graph structure,
-        so CUDA graphs remain valid and do not need to be rebuilt.
-
-        KV cache lifecycle is managed by the engine's suspend/resume mechanism
-        via KVCacheManagementMode in InferenceConfig.
-
-        Yields:
-            The dynamic inference engine for use during inference.
-        """
-        # Get the language module (unwrap from precision wrappers if needed)
-        lang_module = self._get_lang_module()
-
-        # Get config settings
-        cuda_graph_impl = mcore_generation_config.get("cuda_graph_impl", "local")
-
-        # In non-colocated mode, we don't need to suspend/resume the engine
-        # between iterations since training runs on separate GPUs. The CUDA
-        # graphs and KV cache can stay allocated. Only weight values change.
-        needs_suspend_resume = self.is_generation_colocated
-
-        # Save training state
-        was_training = lang_module.training
-
-        # === ENTER INFERENCE MODE ===
-
-        # 1. Put model in eval mode
-        lang_module.eval()
-
-        # 2. Clear rotary position embedding caches (Megatron RL does this)
-        rotary_module = getattr(lang_module, "rotary_pos_emb", None)
-        has_lru_cache = rotary_module is not None and hasattr(rotary_module.forward, "cache_parameters")
-        if has_lru_cache:
-            rotary_module.forward.cache_clear()
-
-        if cuda_graph_impl != "none":
-            toggle_cuda_graphs(lang_module, set_to=cuda_graph_impl)
-
-        # 4. Initialize inference engine if not already done
-        if not self._inference_engine_initialized:
-            self._initialize_inference_engine(mcore_generation_config)
-            # Start the coordinator and engine loop (first time only)
-            coordinator_port = self.cfg["generation"].get(
-                "inference_coordinator_port", 5995
-            )
-            self._run_async_coordinator_start(coordinator_port)
-
-        if self._inference_engine_alseep:
-            self._wake()
-
-        try:
-            # Yield the inference engine for use
-            yield self.dynamic_inference_engine
-
-        finally:
-
-            # 1. pause the inference engine (skip in non-colocated mode to
-            #    avoid deleting and recreating CUDA graphs unnecessarily)
-            if needs_suspend_resume and self._inference_engine_initialized and not self._inference_engine_alseep:
-                self._sleep()
-
-            # 2. Toggle CUDA graphs OFF (skip in non-colocated mode to keep them alive)
-            if needs_suspend_resume and cuda_graph_impl != "none":
-                toggle_cuda_graphs(lang_module, set_to="none")
-
-            # 3. Clear rotary embedding cache again (Megatron RL does this on exit too)
-            if has_lru_cache:
-                rotary_module.forward.cache_clear()
-
-            # 4. Restore training state (skip in non-colocated mode - model stays in eval)
-            if needs_suspend_resume and was_training:
-                lang_module.train()
-
-            # 5. Force garbage collection and CUDA memory cleanup
-            if needs_suspend_resume:
-                gc.collect()
-                torch.cuda.empty_cache()
-
 
     @wrap_with_nvtx_name("megatron_policy_worker/generate")
     def generate(
@@ -1003,12 +905,6 @@ class MegatronPolicyWorker(AbstractPolicyWorker, ColocatablePolicyInterface):
                 - generation_lengths: Lengths of each response
         """
         from megatron.core.inference.sampling_params import SamplingParams
-
-        self.model.config.flash_decode = False
-        if self.should_disable_forward_pre_hook:
-            self.model = self.move_model(
-                self.model, "cuda", move_params=True, move_grads=False
-            )
         
         dist_rank = torch.distributed.get_rank()
         is_request_submitter = (dist_rank == 0)
@@ -1027,11 +923,7 @@ class MegatronPolicyWorker(AbstractPolicyWorker, ColocatablePolicyInterface):
                     f"Input to Megatron Generation worker is not properly right-padded: {error_msg}"
                 )
         
-
-        mcore_generation_config = self.cfg["generation"]["mcore_generation_config"]
-        # Use inference_mode context manager (mirrors megatron_rl_inference_mode from Megatron RL)
-        # This handles: eval mode, CUDA graph toggle, engine init/resume, and cleanup
-        with torch.no_grad(), self.inference_mode(mcore_generation_config) as inference_engine:
+        with torch.no_grad():
             # Handle None values for top_k - convert to integer as required by Megatron
             top_k_cfg = self.cfg["generation"]["top_k"]
             top_k_val = 1 if greedy else (int(top_k_cfg) if top_k_cfg is not None else 0)
@@ -1542,6 +1434,90 @@ class MegatronPolicyWorker(AbstractPolicyWorker, ColocatablePolicyInterface):
             dst_rank_offset=dst_rank_offset,
         )
         return True
+
+    def prepare_for_generation(self) -> None:
+        print(f"[Rank {self.rank}] preparing for generation", flush=True)
+        # Get the generation config
+        mcore_generation_config = self.cfg["generation"]["mcore_generation_config"]
+
+        self.model.config.flash_decode = False
+        if self.should_disable_forward_pre_hook:
+            self.model = self.move_model(
+                self.model, "cuda", move_params=True, move_grads=False
+            )
+
+        # Get the language module (unwrap from precision wrappers if needed)
+        lang_module = self._get_lang_module()
+
+        # Get config settings
+        cuda_graph_impl = mcore_generation_config.get("cuda_graph_impl", "local")
+
+        # === ENTER INFERENCE MODE ===
+
+        # 1. Put model in eval mode
+        lang_module.eval()
+
+        # 2. Clear rotary position embedding caches (Megatron RL does this)
+        rotary_module = getattr(lang_module, "rotary_pos_emb", None)
+        has_lru_cache = rotary_module is not None and hasattr(rotary_module.forward, "cache_parameters")
+        if has_lru_cache:
+            rotary_module.forward.cache_clear()
+
+        if cuda_graph_impl != "none":
+            toggle_cuda_graphs(lang_module, set_to=cuda_graph_impl)
+
+        # 4. Initialize inference engine if not already done
+        if not self._inference_engine_initialized:
+            self._initialize_inference_engine(mcore_generation_config)
+            # Start the coordinator and engine loop (first time only)
+            coordinator_port = self.cfg["generation"].get(
+                "inference_coordinator_port", 5995
+            )
+            self._run_async_coordinator_start(coordinator_port)
+
+        if self._inference_engine_alseep:
+            self._wake()
+
+    def finish_generation(self) -> None:
+        print(f"[Rank {self.rank}] finishing generation", flush=True)
+        # Get the generation config
+        mcore_generation_config = self.cfg["generation"]["mcore_generation_config"]  
+
+        # Get the language module (unwrap from precision wrappers if needed)
+        lang_module = self._get_lang_module()
+        
+        # Get config settings
+        cuda_graph_impl = mcore_generation_config.get("cuda_graph_impl", "local")
+
+        # In non-colocated mode, we don't need to suspend/resume the engine
+        # between iterations since training runs on separate GPUs. The CUDA
+        # graphs and KV cache can stay allocated. Only weight values change.
+        needs_suspend_resume = self.is_generation_colocated
+
+        # 1. pause the inference engine (skip in non-colocated mode to
+        #    avoid deleting and recreating CUDA graphs unnecessarily)
+        if needs_suspend_resume and self._inference_engine_initialized and not self._inference_engine_alseep:
+            self._sleep()
+
+        # 2. Toggle CUDA graphs OFF (skip in non-colocated mode to keep them alive)
+        if needs_suspend_resume and cuda_graph_impl != "none":
+            toggle_cuda_graphs(lang_module, set_to="none")
+
+        # 3. Clear rotary embedding cache again (Megatron RL does this on exit too)
+        rotary_module = getattr(lang_module, "rotary_pos_emb", None)
+        has_lru_cache = rotary_module is not None and hasattr(rotary_module.forward, "cache_parameters")
+        if has_lru_cache:
+            rotary_module.forward.cache_clear()   
+
+        # RKIRBY - Remove, it's covered in prepare_for_training
+        # 4. Restore training state (skip in non-colocated mode - model stays in eval)
+        # if needs_suspend_resume and was_training:
+        #     lang_module.train()
+
+        # 5. Force garbage collection and CUDA memory cleanup
+        if needs_suspend_resume:
+            gc.collect()
+            torch.cuda.empty_cache()
 
     def prepare_for_lp_inference(self):
         self.model = self.move_model(self.model, "cuda", move_grads=False)

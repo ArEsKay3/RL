@@ -771,9 +771,9 @@ class Policy(ColocatablePolicyInterface, GenerationInterface):
 
         return result
 
-    def prepare_for_generation(self, *args: Any, **kwargs: Any) -> bool:
-        # We don't need to do anything here
-        return True
+    def prepare_for_generation(self, *args: Any, **kwargs: Any) -> None:
+        futures = self.worker_group.run_all_workers_single_data("prepare_for_generation")
+        ray.get(futures)
 
     def prepare_for_training(self, *args: Any, **kwargs: Any) -> None:
         # onload everything to the GPU
@@ -787,8 +787,8 @@ class Policy(ColocatablePolicyInterface, GenerationInterface):
         ray.get(futures)
 
     def finish_generation(self, *args: Any, **kwargs: Any) -> bool:
-        # We don't need to do anything here
-        return True
+        futures = self.worker_group.run_all_workers_single_data("finish_generation")
+        ray.get(futures)
 
     def invalidate_kv_cache(self, *args: Any, **kwargs: Any) -> bool:
         # We don't need to do anything here

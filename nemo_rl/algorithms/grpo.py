@@ -1103,7 +1103,7 @@ def refit_policy_generation(
     """
     if colocated_inference:
         policy.offload_before_refit()
-        policy_generation.prepare_for_generation(tags=["weights"])
+    policy_generation.prepare_for_generation(tags=["weights"])
 
     # Create a context manager that does nothing when timer is None
     timer_context = (
@@ -1176,7 +1176,7 @@ def refit_policy_generation(
 
     if colocated_inference:
         policy.offload_after_refit()
-        policy_generation.prepare_for_generation(tags=["kv_cache"])
+    policy_generation.prepare_for_generation(tags=["kv_cache"])
 
 
 def _log_mixed_rewards_and_advantages_information(
@@ -1461,6 +1461,7 @@ def grpo_train(
                                 calibration_data, include_q=True
                             )["layers"]
 
+                        print("▶ Refitting policy generation...", flush=True)
                         refit_policy_generation(
                             policy,
                             policy_generation,
@@ -1472,6 +1473,7 @@ def grpo_train(
                     else:
                         if colocated_inference:
                             policy.offload_after_refit()  # unload optimizer to make space for generation
+                        print("▶ Preparing for generation...", flush=True)
                         policy_generation.prepare_for_generation()
 
                 dynamic_sampling_num_gen_batches += 1

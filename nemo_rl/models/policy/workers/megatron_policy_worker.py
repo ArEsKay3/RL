@@ -992,11 +992,15 @@ class MegatronPolicyWorker(AbstractPolicyWorker, ColocatablePolicyInterface):
             datum = data.get_batch(index, 1)
             with torch.no_grad():
                 prompt_tokens_tensor, prompt_lengths_tensor, sampling_params = self._prepare_for_generation(datum, greedy)
-                result = await self._generate_with_persistent_engine(
-                    prompt_tokens_tensor,
-                    prompt_lengths_tensor,
-                    sampling_params,
+                future = asyncio.run_coroutine_threadsafe(
+                    self._generate_with_persistent_engine(
+                        prompt_tokens_tensor,
+                        prompt_lengths_tensor,
+                        sampling_params,
+                    ),
+                    self._inference_loop
                 )
+                result = await asyncio.wrap_future(future)
                 return (index, self._parse_result_to_batched_data_dict(datum, result))
         
         async for original_idx, single_item_output in asyncio.as_completed(

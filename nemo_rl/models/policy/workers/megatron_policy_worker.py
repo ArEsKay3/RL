@@ -877,7 +877,7 @@ class MegatronPolicyWorker(AbstractPolicyWorker, ColocatablePolicyInterface):
         await self.dynamic_inference_engine.running.wait()
         self.dynamic_inference_engine.resume()
 
-    def _prepare_for_generation(
+    def _prepare_data_for_generation(
         self, data: BatchedDataDict[GenerationDatumSpec], greedy: bool = False
     ) -> tuple[torch.Tensor, torch.Tensor, SamplingParams]:
         dist_rank = torch.distributed.get_rank()
@@ -986,12 +986,15 @@ class MegatronPolicyWorker(AbstractPolicyWorker, ColocatablePolicyInterface):
     async def generate_async(
         self, data: BatchedDataDict[GenerationDatumSpec], greedy: bool = False
     ) -> AsyncGenerator[tuple[int, BatchedDataDict[GenerationOutputSpec]], None]:
+        if self._inference_loop is None:
+            raise RuntimeError("Inference loop not initialized. Call prepare_for_generation() first.")
+
         async def _generate_single_item(
             index:int
-        ) -> BatchedDataDict[GenerationOutputSpec]:
+        ) -> tuple[int, BatchedDataDict[GenerationOutputSpec]]:
             datum = data.get_batch(index, 1)
             with torch.no_grad():
-                prompt_tokens_tensor, prompt_lengths_tensor, sampling_params = self._prepare_for_generation(datum, greedy)
+                prompt_tokens_tensor, prompt_lengths_tensor, sampling_params = self._prepare_data_for_generation(datum, greedy)
                 future = asyncio.run_coroutine_threadsafe(
                     self._generate_with_persistent_engine(
                         prompt_tokens_tensor,
@@ -1003,11 +1006,9 @@ class MegatronPolicyWorker(AbstractPolicyWorker, ColocatablePolicyInterface):
                 result = await asyncio.wrap_future(future)
                 return (index, self._parse_result_to_batched_data_dict(datum, result))
         
-        async for original_idx, single_item_output in asyncio.as_completed(
-            [_generate_single_item(index) for index in range(data.size)]
-        ):
-            yield original_idx, single_item_output
-
+        tasks = [asyncio.create_task(_generate_single_item(index)) for index in range(data.size)]
+        for result in asyncio.as_completed(tasks):
+            yield await result
 
     @wrap_with_nvtx_name("megatron_policy_worker/generate")
     def generate(
@@ -1043,7 +1044,7 @@ class MegatronPolicyWorker(AbstractPolicyWorker, ColocatablePolicyInterface):
         
         with torch.no_grad():
 
-            prompt_tokens_tensor, prompt_lengths_tensor, sampling_params = self._prepare_for_generation(data, greedy)
+            prompt_tokens_tensor, prompt_lengths_tensor, sampling_params = self._prepare_data_for_generation(data, greedy)
 
             # Run the coordinator-based generation using the persistent engine
             # Rank 0 submits requests, other ranks participate in engine loop
@@ -1123,7 +1124,7 @@ class MegatronPolicyWorker(AbstractPolicyWorker, ColocatablePolicyInterface):
         The async operation runs in the persistent inference loop.
         """
         if self._inference_loop is None:
-            raise RuntimeError("Inference loop not initialized. Call generate() first.")
+            raise RuntimeError("Inference loop not initialized. Call prepare_for_generation() first.")
         
         # Schedule the generation in the inference loop
         future = asyncio.run_coroutine_threadsafe(

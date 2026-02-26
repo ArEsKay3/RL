@@ -974,13 +974,16 @@ def _should_use_async_rollouts(master_config: MasterConfig) -> bool:
     generation_config = master_config["policy"]["generation"]
     if generation_config is None:
         return False
-
     backend = generation_config.get("backend", "")
-    if backend != "vllm":
-        return False
 
-    vllm_cfg = generation_config.get("vllm_cfg", {})
-    return vllm_cfg.get("async_engine", False)
+    if backend == "vllm":
+        vllm_cfg = generation_config.get("vllm_cfg", {})
+        return vllm_cfg.get("async_engine", False)
+    elif backend == "megatron":
+        mcore_cfg = generation_config.get("mcore_generation_config", {})
+        return mcore_cfg.get("async_engine", False)
+    else:
+        return False
 
 
 def _should_use_nemo_gym(master_config: MasterConfig) -> bool:

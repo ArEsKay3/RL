@@ -142,16 +142,32 @@ async def generate_responses_async(
         # Ensure the key exists even if it's None, matching GenerationDatumSpec
         generation_input_data["stop_strings"] = [None] * len(input_lengths)
 
+    generation_config = getattr(policy_generation, "cfg", None)
+    
+    # When using megatron backend the generation config is a PolicyConfig
+    #  so we need to reach one level deeper to get the generation config
+    if generation_config is not None and 'generation' in generation_config:
+        generation_config = generation_config["generation"]
+
     # Check if this is vLLM with async_engine enabled
     use_async_generation = (
-        hasattr(policy_generation, "cfg")
-        and "vllm_cfg" in policy_generation.cfg
-        and policy_generation.cfg["vllm_cfg"]["async_engine"]
-        and hasattr(policy_generation, "generate_async")
+        generation_config is not None
+        and (
+            (
+                generation_config["backend"] == "vllm"
+                and generation_config["vllm_cfg"]["async_engine"]
+                and hasattr(policy_generation, "generate_async")
+            ) or
+            (
+                generation_config["backend"] == "megatron"
+                and generation_config["mcore_generation_config"]["async_engine"]
+                and hasattr(policy_generation, "generate_async")
+            )
+        )
     )
 
     assert use_async_generation, (
-        "Async generation is not enabled. Please enable async generation by setting async_engine=True in the vllm_cfg section of the policy config."
+        "Async generation is not enabled. Please enable async generation by setting async_engine=True in the vllm_cfg or mcore_generation_config section of the policy config."
     )
 
     # Use async generation with per-sample streaming

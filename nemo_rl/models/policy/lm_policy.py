@@ -15,7 +15,7 @@ import os
 import warnings
 from collections import defaultdict
 from contextlib import nullcontext
-from typing import Any, Optional, Union
+from typing import Any, Optional, Union, AsyncGenerator
 
 import numpy as np
 import ray
@@ -652,6 +652,59 @@ class Policy(ColocatablePolicyInterface, GenerationInterface):
         aggregated_results["all_mb_metrics"] = dict(all_mb_metrics)
 
         return aggregated_results
+
+    async def generate_async(
+        self, data: BatchedDataDict[GenerationDatumSpec], greedy: bool = False
+    ) -> AsyncGenerator[tuple[int, BatchedDataDict[GenerationOutputSpec]], None]:
+        """Generate a batch of data using the policy asynchronously."""
+        # Verify input data is right-padded
+        assert isinstance(data, BatchedDataDict), (
+            f"data must be a BatchedDataDict, got type: {type(data)}"
+        )
+        assert "input_ids" in data and "input_lengths" in data, (
+            "Missing required input fields"
+        )
+
+        if self.cfg["generation"]['backend'] == "vllm":
+            assert "VLLM Backend is not supported for PolicyWorker async generation."
+        elif self.cfg["generation"]['backend'] == "megatron":
+            worker_idx = 0
+        else:
+            raise ValueError(f"Invalid generation backend: {self.cfg['generation']['backend']}, expected 'vllm' or 'megatron'")    
+
+        #futures = self.worker_group.run_single_worker_single_data(
+        #    method_name="generate_async",
+        #    worker_idx=worker_idx,
+        #    data=data,
+        #    greedy=greedy,
+        #)
+
+        # Need to force streaming mode because right now the Policy runtime does not have access to the 
+        # definition of the MegatronPolicyWorker so it can't see that this is a generator.
+        # If it can't tell it's a generator it returns a ray.ObjectRef instead of a ray.ObjectRefGenerator.
+        worker = self.worker_group.workers[worker_idx]
+        method = getattr(worker, "generate_async")
+        futures = method.options(num_returns="streaming").remote(data=data, greedy=greedy)
+
+        async for result_ref in futures:
+            result : tuple[int, BatchedDataDict[GenerationOutputSpec]] = await result_ref
+
+            result_batch = result[1]
+            result_batch["gen_leader_worker_idx"] = [int(worker_idx)]
+            # Verify the output has all required fields
+            required_keys = [
+                "output_ids",
+                "generation_lengths",
+                "unpadded_sequence_lengths",
+                "logprobs",
+            ]
+            missing_keys = [key for key in required_keys if key not in result_batch]
+            if missing_keys:
+                raise ValueError(
+                    f"Missing required keys for GenerationOutputSpec: {missing_keys}"
+                )
+            
+            yield result
 
     def generate(
         self, data: BatchedDataDict[GenerationDatumSpec], greedy: bool = False

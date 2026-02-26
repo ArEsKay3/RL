@@ -161,7 +161,8 @@ class MegatronGeneration(GenerationInterface):
     async def generate_async(
         self, data: BatchedDataDict[GenerationDatumSpec], greedy: bool = False
     ) -> AsyncGenerator[tuple[int, BatchedDataDict[GenerationOutputSpec]], None]:
-        return self._policy.generate_async(data, greedy=greedy)
+        async for result in self._policy.generate_async(data, greedy=greedy):
+            yield result
 
     def prepare_for_generation(self, *args: Any, **kwargs: Any) -> bool:
         """Prepare the inference workers for generation.

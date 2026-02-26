@@ -666,8 +666,9 @@ class Policy(ColocatablePolicyInterface, GenerationInterface):
         )
 
         if self.cfg["generation"]['backend'] == "vllm":
-            assert "VLLM Backend is not supported for PolicyWorker async generation."
+            assert "VLLM Backend is not supported for PolicyWorker based async generation."
         elif self.cfg["generation"]['backend'] == "megatron":
+            # We just need to make sure this is rank 0
             worker_idx = 0
         else:
             raise ValueError(f"Invalid generation backend: {self.cfg['generation']['backend']}, expected 'vllm' or 'megatron'")    
@@ -725,6 +726,7 @@ class Policy(ColocatablePolicyInterface, GenerationInterface):
         )
 
         if self.cfg["generation"]['backend'] == "vllm":
+            # VLLM backend needs us to shard over DP ranks
             dp_size = self.sharding_annotations.get_axis_size("data_parallel")
             data = data.shard_by_batch_size(dp_size, batch_size=None)
             in_sharded_axes = ["data_parallel"]
@@ -732,37 +734,32 @@ class Policy(ColocatablePolicyInterface, GenerationInterface):
                 "tensor_parallel",
                 "pipeline_parallel",
             ]
+            futures = self.worker_group.run_all_workers_sharded_data(
+                "generate",
+                data=data,  # Full data goes to DP=0 only (free axis behavior)
+                in_sharded_axes=in_sharded_axes,
+                replicate_on_axes=["tensor_parallel", "pipeline_parallel"],
+                output_is_replicated=output_is_replicated,
+                make_dummy_calls_to_free_axes=True,  # Call all DP ranks, but only DP=0 gets data
+                common_kwargs={"greedy": greedy},
+            )
+            assert self.cfg["generation"] is not None, "Generation config is not set"
+            result: BatchedDataDict[GenerationOutputSpec] = BatchedDataDict.from_batches(
+                self.worker_group.get_all_worker_results(futures),
+                pad_value_dict={"output_ids": self.cfg["generation"]["_pad_token_id"]},
+            )
         elif self.cfg["generation"]['backend'] == "megatron":
-        # For coordinator-based inference: send ALL data to DP rank 0 only.
-        # Other DP ranks are called with data=None but still participate in the
-        # inference engine loop. The coordinator handles load balancing across DP ranks.
-        # 
-        # With in_sharded_axes=[] and data_parallel not in replicate_on_axes,
-        # data_parallel becomes a "free axis". Only workers at DP coord 0 receive data,
-        # while workers at other DP coords get None (via make_dummy_calls_to_free_axes).
-            in_sharded_axes = []
-            output_is_replicated = [
-                "data_parallel",
-                "tensor_parallel",
-                "pipeline_parallel",
-            ]
+            # Megatron coordinator handles all DP ranks, so we submit everything to worker 0
+            worker_idx = 0
+            future = self.worker_group.run_single_worker_single_data(
+                method_name="generate",
+                worker_idx=worker_idx,
+                data=data,
+                greedy=greedy,
+            )
+            result = ray.get(future)
         else:
             raise ValueError(f"Invalid generation backend: {self.cfg['generation']['backend']}, expected 'vllm' or 'megatron'")
-
-        futures = self.worker_group.run_all_workers_sharded_data(
-            "generate",
-            data=data,  # Full data goes to DP=0 only (free axis behavior)
-            in_sharded_axes=in_sharded_axes,
-            replicate_on_axes=["tensor_parallel", "pipeline_parallel"],
-            output_is_replicated=output_is_replicated,
-            make_dummy_calls_to_free_axes=True,  # Call all DP ranks, but only DP=0 gets data
-            common_kwargs={"greedy": greedy},
-        )
-        assert self.cfg["generation"] is not None, "Generation config is not set"
-        result: BatchedDataDict[GenerationOutputSpec] = BatchedDataDict.from_batches(
-            self.worker_group.get_all_worker_results(futures),
-            pad_value_dict={"output_ids": self.cfg["generation"]["_pad_token_id"]},
-        )
 
         # Verify the output has all required fields
         required_keys = [

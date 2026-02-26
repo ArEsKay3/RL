@@ -892,8 +892,6 @@ class MegatronPolicyWorker(AbstractPolicyWorker, ColocatablePolicyInterface):
     def _prepare_data_for_generation(
         self, data: BatchedDataDict[GenerationDatumSpec], greedy: bool = False
     ) -> tuple[torch.Tensor, torch.Tensor, SamplingParams]:
-        dist_rank = torch.distributed.get_rank()
-        is_request_submitter = (dist_rank == 0)
         # For non-rank-0 workers, data may be None (they participate in engine loop only)
         if data is not None:
             # Verify input is right padded
@@ -929,15 +927,9 @@ class MegatronPolicyWorker(AbstractPolicyWorker, ColocatablePolicyInterface):
                 termination_id=self.megatron_tokenizer.eod,
             )
 
-            if is_request_submitter:
-                input_ids = data["input_ids"]
-                print(f"[Rank {dist_rank}] input_ids: {input_ids.shape}")
-                prompt_tokens_tensor = input_ids.cuda()
-                prompt_lengths_tensor = data["input_lengths"]
-            else:
-                print(f"[Rank {dist_rank}] Participating in engine loop (no data to submit)")
-                prompt_tokens_tensor = torch.empty(0, dtype=torch.long, device="cuda")
-                prompt_lengths_tensor = torch.empty(0, dtype=torch.long, device="cuda")
+            input_ids = data["input_ids"]
+            prompt_tokens_tensor = input_ids.cuda()
+            prompt_lengths_tensor = data["input_lengths"]
 
             return prompt_tokens_tensor, prompt_lengths_tensor, sampling_params
 
@@ -1049,10 +1041,6 @@ class MegatronPolicyWorker(AbstractPolicyWorker, ColocatablePolicyInterface):
                 - generation_lengths: Lengths of each response
         """
         
-        
-        dist_rank = torch.distributed.get_rank()
-        is_request_submitter = (dist_rank == 0)
-        
         with torch.no_grad():
 
             prompt_tokens_tensor, prompt_lengths_tensor, sampling_params = self._prepare_data_for_generation(data, greedy)
@@ -1065,18 +1053,6 @@ class MegatronPolicyWorker(AbstractPolicyWorker, ColocatablePolicyInterface):
                 prompt_lengths_tensor,
                 sampling_params,
             )
-
-        # Only rank 0 needs to format and return results
-        # Other ranks return None (their results are ignored due to output_is_replicated)
-        if not is_request_submitter:
-            # Return empty result for non-submitter ranks
-            # Use BatchedDataDict directly instead of from_batches to avoid padding issues with empty tensors
-            return BatchedDataDict({
-                "output_ids": torch.empty(0, 0, dtype=torch.long),
-                "logprobs": torch.empty(0, 0, dtype=torch.float),
-                "generation_lengths": torch.empty(0, dtype=torch.long),
-                "unpadded_sequence_lengths": torch.empty(0, dtype=torch.long),
-            }).to("cpu")
 
         return self._parse_result_to_batched_data_dict(data, result)
 
@@ -1178,17 +1154,7 @@ class MegatronPolicyWorker(AbstractPolicyWorker, ColocatablePolicyInterface):
         from megatron.core.inference.inference_request import DynamicInferenceRequestRecord
 
         dist_rank = torch.distributed.get_rank()
-        
-        if dist_rank == 0:
-            assert self.inference_client is not None, "Inference client not initialized"
-        
-        # Non-rank-0 workers: return immediately with empty results
-        # Their engine loops will continue processing requests from the coordinator
-        # in the background (the engine loop runs as a separate task in _inference_loop)
-        if dist_rank != 0:
-            print(f"[Rank {dist_rank}] Participating in engine loop only (not submitting requests)")
-            # Return empty results - the caller only uses rank 0's results
-            return []
+        assert dist_rank == 0, "Only rank 0 creates a client to communicate with the coordinator"
         
         # Rank 0: submit ALL requests and collect results
         print(f"[Rank {dist_rank}] Submitting {prompt_tokens_tensor.size(0)} requests to coordinator")

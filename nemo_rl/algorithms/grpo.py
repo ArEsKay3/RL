@@ -621,28 +621,17 @@ def setup(
             policy, policy_time = init_policy()
             worker_init_timing_metrics["policy_init_time_s"] = policy_time
         else:
-            # Non-colocated Megatron backend: separate inference workers
-            print(
-                "  ⚡ Using parallel worker initialization (non-colocated Megatron mode)",
-                flush=True,
-            )
+            # Non-colocated Megatron: initialize training first so HF→Megatron
+            # checkpoint conversion completes before inference workers start.
+            # Both sides target the same checkpoint path, so parallel init
+            # causes a write race during conversion.
+            policy, policy_time = init_policy()
+            worker_init_timing_metrics["policy_init_time_s"] = policy_time
 
-            # Execute both initializations in parallel
-            parallel_start_time = time.perf_counter()
-            with ThreadPoolExecutor(max_workers=2) as executor:
-                megatron_gen_future = executor.submit(init_megatron_generation)
-                policy_future = executor.submit(init_policy)
-                policy_generation, megatron_gen_time = megatron_gen_future.result()
-                policy, policy_time = policy_future.result()
-            parallel_wall_time = time.perf_counter() - parallel_start_time
-
-            # Store timing metrics
+            policy_generation, megatron_gen_time = init_megatron_generation()
             worker_init_timing_metrics["megatron_generation_init_time_s"] = (
                 megatron_gen_time
             )
-            worker_init_timing_metrics["policy_init_time_s"] = policy_time
-            worker_init_timing_metrics["parallel_wall_time_s"] = parallel_wall_time
-            worker_init_timing_metrics["parallel_init_enabled"] = True
 
     elif backend == "vllm":
         # vLLM generation: setup config, then initialize with policy
@@ -721,21 +710,39 @@ def setup(
         train_world_size = train_cluster.world_size()
         inference_world_size = inference_nodes * inference_gpus_per_node
         world_size = train_world_size + inference_world_size
-        # init collective
-        futures_train = policy.init_collective(
-            ip, port, world_size, train_world_size=train_world_size
-        )
-        futures_inference = policy_generation.init_collective(
-            ip, port, world_size, train_world_size=train_world_size
-        )  # type: ignore
-        # wait for all futures to complete
-        ray.get(futures_train + futures_inference)
+
+        if backend == "megatron":
+            # Non-colocated Megatron: use init_refit_collective
+            refit_backend = policy_config.get("megatron_cfg", {}).get("refit_backend", "gloo")
+            futures_train = policy.init_refit_collective(
+                ip, port, world_size,
+                rank_offset=0,
+                dst_rank_offset=train_world_size,
+                refit_backend=refit_backend,
+            )
+            futures_inference = policy_generation.init_collective(
+                ip, port, world_size, train_world_size=train_world_size,
+                refit_backend=refit_backend,
+            )
+            ray.get(futures_train + futures_inference)
+        else:
+            # vLLM path: init_collective
+            futures_train = policy.init_collective(
+                ip, port, world_size, train_world_size=train_world_size
+            )
+            futures_inference = policy_generation.init_collective(
+                ip, port, world_size, train_world_size=train_world_size
+            )  # type: ignore
+            ray.get(futures_train + futures_inference)
         worker_init_timing_metrics["collective_init_time_s"] = time.perf_counter() - t0
 
-    # prepare refit info
-    state_dict_info = policy.prepare_refit_info()
-    if policy_generation is not None:
-        policy_generation.prepare_refit_info(state_dict_info)
+    # prepare refit info (not needed for megatron non-colocated, which uses swap_model_weights)
+    if not colocated_inference and backend == "megatron":
+        pass
+    else:
+        state_dict_info = policy.prepare_refit_info()
+        if policy_generation is not None:
+            policy_generation.prepare_refit_info(state_dict_info)
 
     # Calculate total setup time
     total_setup_time = time.perf_counter() - setup_start_time
@@ -967,13 +974,16 @@ def _should_use_async_rollouts(master_config: MasterConfig) -> bool:
     generation_config = master_config["policy"]["generation"]
     if generation_config is None:
         return False
-
     backend = generation_config.get("backend", "")
-    if backend != "vllm":
-        return False
 
-    vllm_cfg = generation_config.get("vllm_cfg", {})
-    return vllm_cfg.get("async_engine", False)
+    if backend == "vllm":
+        vllm_cfg = generation_config.get("vllm_cfg", {})
+        return vllm_cfg.get("async_engine", False)
+    elif backend == "megatron":
+        mcore_cfg = generation_config.get("mcore_generation_config", {})
+        return mcore_cfg.get("async_engine", False)
+    else:
+        return False
 
 
 def _should_use_nemo_gym(master_config: MasterConfig) -> bool:
@@ -1096,7 +1106,7 @@ def refit_policy_generation(
     """
     if colocated_inference:
         policy.offload_before_refit()
-        policy_generation.prepare_for_generation(tags=["weights"])
+    policy_generation.prepare_for_generation(tags=["weights"])
 
     # Create a context manager that does nothing when timer is None
     timer_context = (
@@ -1169,7 +1179,7 @@ def refit_policy_generation(
 
     if colocated_inference:
         policy.offload_after_refit()
-        policy_generation.prepare_for_generation(tags=["kv_cache"])
+    policy_generation.prepare_for_generation(tags=["kv_cache"])
 
 
 def _log_mixed_rewards_and_advantages_information(
@@ -1454,6 +1464,7 @@ def grpo_train(
                                 calibration_data, include_q=True
                             )["layers"]
 
+                        print("▶ Refitting policy generation...", flush=True)
                         refit_policy_generation(
                             policy,
                             policy_generation,
@@ -1465,6 +1476,7 @@ def grpo_train(
                     else:
                         if colocated_inference:
                             policy.offload_after_refit()  # unload optimizer to make space for generation
+                        print("▶ Preparing for generation...", flush=True)
                         policy_generation.prepare_for_generation()
 
                 dynamic_sampling_num_gen_batches += 1

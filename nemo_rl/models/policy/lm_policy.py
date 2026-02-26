@@ -15,7 +15,7 @@ import os
 import warnings
 from collections import defaultdict
 from contextlib import nullcontext
-from typing import Any, Optional, Union
+from typing import Any, Optional, Union, AsyncGenerator
 
 import numpy as np
 import ray
@@ -274,6 +274,42 @@ class Policy(ColocatablePolicyInterface, GenerationInterface):
             self.use_sequence_packing = False
 
         self.cfg = config
+        # Non-colocated Megatron uses swap_model_weights for refit
+        megatron_enabled = bool(config.get("megatron_cfg", {}).get("enabled", False))
+        generation_cfg = config.get("generation", {}) or {}
+        colocated = generation_cfg.get("colocated", {}).get("enabled", True)
+        self._uses_megatron_refit = megatron_enabled and not colocated
+        self._refit_dst_rank_offset = 0
+        self._refit_backend = config.get("megatron_cfg", {}).get("refit_backend", "gloo")
+
+    def init_refit_collective(
+        self, ip: str, port: int, world_size: int, rank_offset: int = 0,
+        dst_rank_offset: int = 0, refit_backend: str = "gloo",
+    ) -> list[ray.ObjectRef]:
+        """Initialize the refit collective for non-colocated Megatron weight transfer.
+
+        Args:
+            ip: IP address for the process group rendezvous.
+            port: Port for the process group rendezvous.
+            world_size: Total world size (train + inference workers).
+            rank_offset: Offset for this side's ranks (0 for training, train_ws for inference).
+            dst_rank_offset: Offset of the inference (destination) side, stored for
+                broadcast_weights_for_collective.
+            refit_backend: Copy service backend ("gloo" or "nvshmem").
+
+        Returns:
+            List of Ray ObjectRefs for the init futures.
+        """
+        self._refit_dst_rank_offset = dst_rank_offset
+        futures = self.worker_group.run_all_workers_single_data(
+            "init_refit_collective",
+            ip=ip,
+            port=port,
+            world_size=world_size,
+            rank_offset=rank_offset,
+            refit_backend=refit_backend,
+        )
+        return futures
 
     def init_collective(
         self, ip: str, port: int, world_size: int, *, train_world_size: int
@@ -617,6 +653,59 @@ class Policy(ColocatablePolicyInterface, GenerationInterface):
 
         return aggregated_results
 
+    async def generate_async(
+        self, data: BatchedDataDict[GenerationDatumSpec], greedy: bool = False
+    ) -> AsyncGenerator[tuple[int, BatchedDataDict[GenerationOutputSpec]], None]:
+        """Generate a batch of data using the policy asynchronously."""
+        # Verify input data is right-padded
+        assert isinstance(data, BatchedDataDict), (
+            f"data must be a BatchedDataDict, got type: {type(data)}"
+        )
+        assert "input_ids" in data and "input_lengths" in data, (
+            "Missing required input fields"
+        )
+
+        if self.cfg["generation"]['backend'] == "vllm":
+            assert "VLLM Backend is not supported for PolicyWorker async generation."
+        elif self.cfg["generation"]['backend'] == "megatron":
+            worker_idx = 0
+        else:
+            raise ValueError(f"Invalid generation backend: {self.cfg['generation']['backend']}, expected 'vllm' or 'megatron'")    
+
+        #futures = self.worker_group.run_single_worker_single_data(
+        #    method_name="generate_async",
+        #    worker_idx=worker_idx,
+        #    data=data,
+        #    greedy=greedy,
+        #)
+
+        # Need to force streaming mode because right now the Policy runtime does not have access to the 
+        # definition of the MegatronPolicyWorker so it can't see that this is a generator.
+        # If it can't tell it's a generator it returns a ray.ObjectRef instead of a ray.ObjectRefGenerator.
+        worker = self.worker_group.workers[worker_idx]
+        method = getattr(worker, "generate_async")
+        futures = method.options(num_returns="streaming").remote(data=data, greedy=greedy)
+
+        async for result_ref in futures:
+            result : tuple[int, BatchedDataDict[GenerationOutputSpec]] = await result_ref
+
+            result_batch = result[1]
+            result_batch["gen_leader_worker_idx"] = [int(worker_idx)]
+            # Verify the output has all required fields
+            required_keys = [
+                "output_ids",
+                "generation_lengths",
+                "unpadded_sequence_lengths",
+                "logprobs",
+            ]
+            missing_keys = [key for key in required_keys if key not in result_batch]
+            if missing_keys:
+                raise ValueError(
+                    f"Missing required keys for GenerationOutputSpec: {missing_keys}"
+                )
+            
+            yield result
+
     def generate(
         self, data: BatchedDataDict[GenerationDatumSpec], greedy: bool = False
     ) -> BatchedDataDict[GenerationOutputSpec]:
@@ -735,9 +824,9 @@ class Policy(ColocatablePolicyInterface, GenerationInterface):
 
         return result
 
-    def prepare_for_generation(self, *args: Any, **kwargs: Any) -> bool:
-        # We don't need to do anything here
-        return True
+    def prepare_for_generation(self, *args: Any, **kwargs: Any) -> None:
+        futures = self.worker_group.run_all_workers_single_data("prepare_for_generation")
+        ray.get(futures)
 
     def prepare_for_training(self, *args: Any, **kwargs: Any) -> None:
         # onload everything to the GPU
@@ -751,8 +840,8 @@ class Policy(ColocatablePolicyInterface, GenerationInterface):
         ray.get(futures)
 
     def finish_generation(self, *args: Any, **kwargs: Any) -> bool:
-        # We don't need to do anything here
-        return True
+        futures = self.worker_group.run_all_workers_single_data("finish_generation")
+        ray.get(futures)
 
     def invalidate_kv_cache(self, *args: Any, **kwargs: Any) -> bool:
         # We don't need to do anything here
@@ -872,12 +961,21 @@ class Policy(ColocatablePolicyInterface, GenerationInterface):
         self, kv_scales: Optional[dict[str, float]] = None
     ) -> list[ray.ObjectRef]:
         """Broadcast the weights for collective communication."""
-        futures = self.worker_group.run_all_workers_single_data(
-            "broadcast_weights_for_collective",
-            kv_scales=kv_scales,
-        )
-        # this function should co-work with vllm, so we should wait for all futures to complete outside
-        return futures
+        if self._uses_megatron_refit:
+            # Non-colocated Megatron: use megatron core swap_model_weights
+            futures = self.worker_group.run_all_workers_single_data(
+                "swap_weights_via_reshard",
+                is_source=True,
+                dst_rank_offset=self._refit_dst_rank_offset,
+            )
+            return futures
+        else:
+            futures = self.worker_group.run_all_workers_single_data(
+                "broadcast_weights_for_collective",
+                kv_scales=kv_scales,
+            )
+            # this function should co-work with vllm, so we should wait for all futures to complete outside
+            return futures
 
     def offload_before_refit(self) -> None:
         """Offload the optimizer and buffers to the CPU."""

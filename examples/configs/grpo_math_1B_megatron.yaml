@@ -164,6 +164,7 @@ policy:
       kv_cache_management_mode: "persist" # Can be "persist", "offload", or "recompute"
       static_kv_memory_pointers: false # Relevant only for offload and recompute modes
       materialize_only_last_token_logits: false
+      async_engine: false
       
     vllm_cfg:
       tensor_parallel_size: 1

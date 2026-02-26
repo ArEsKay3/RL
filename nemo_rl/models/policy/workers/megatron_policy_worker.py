@@ -19,7 +19,7 @@ import time
 import warnings
 from collections import defaultdict
 from contextlib import AbstractContextManager, contextmanager, nullcontext
-from typing import Any, Iterator, Optional, TypeVar, cast
+from typing import Any, Iterator, Optional, TypeVar, cast, AsyncGenerator
 
 import ray
 import torch
@@ -39,6 +39,7 @@ from megatron.core.distributed import DistributedDataParallel
 from megatron.core.distributed.fsdp.mcore_fsdp_adapter import (
     FullyShardedDataParallel as custom_FSDP,
 )
+from megatron.core.inference.sampling_params import SamplingParams
 from megatron.core.inference.config import InferenceConfig, KVCacheManagementMode
 from megatron.core.optimizer import ChainedOptimizer
 from megatron.core.parallel_state import (
@@ -876,60 +877,23 @@ class MegatronPolicyWorker(AbstractPolicyWorker, ColocatablePolicyInterface):
         await self.dynamic_inference_engine.running.wait()
         self.dynamic_inference_engine.resume()
 
+    def _log_gpu_memory(self, tag: str):
+        rank = torch.distributed.get_rank() if torch.distributed.is_initialized() else 0
+        allocated = torch.cuda.memory_allocated() / (1024 ** 3)
+        reserved = torch.cuda.memory_reserved() / (1024 ** 3)
+        free, total = torch.cuda.mem_get_info()
+        free_gb, total_gb = free / (1024 ** 3), total / (1024 ** 3)
+        print(
+            f"[GPU Rank {rank}] {tag} | "
+            f"Allocated: {allocated:.2f} GB, Reserved: {reserved:.2f} GB, "
+            f"Free: {free_gb:.2f} GB, Total: {total_gb:.2f} GB"
+        )
 
-    @wrap_with_nvtx_name("megatron_policy_worker/generate")
-    def generate(
-        self, *, data: BatchedDataDict[GenerationDatumSpec], greedy: bool = False
-    ) -> BatchedDataDict[GenerationOutputSpec]:
-        """Generate a batch of data using Megatron Core inference with coordinator.
-
-        This method uses the coordinator-based inference pattern from Megatron Core,
-        which enables better parallelism across data-parallel ranks through a central
-        coordinator that routes requests to available engines.
-
-        The inference engine is created once and reused across generate() calls.
-        The engine is paused between generate() calls to free GPU memory for training.
-
-        For coordinator-based inference:
-        - Only DP rank 0 receives actual data and submits requests to the coordinator
-        - Other DP ranks receive data=None but still participate in the inference engine loop
-        - The coordinator distributes work across all DP engines
-        - Results are broadcast from rank 0 to all ranks
-
-        Args:
-            data: BatchedDataDict containing input_ids and input_lengths tensors,
-                  or None for non-DP-0 workers (they participate in engine loop only)
-            BatchedDataDict conforming to GenerationOutputSpec:
-                - output_ids: input + generated token IDs
-                - logprobs: Log probabilities for each token
-                - generation_lengths: Lengths of each response
-        """
-
-        from megatron.core.inference.sampling_params import SamplingParams
-
-        def _log_gpu_memory(tag: str):
-            rank = torch.distributed.get_rank() if torch.distributed.is_initialized() else 0
-            allocated = torch.cuda.memory_allocated() / (1024 ** 3)
-            reserved = torch.cuda.memory_reserved() / (1024 ** 3)
-            free, total = torch.cuda.mem_get_info()
-            free_gb, total_gb = free / (1024 ** 3), total / (1024 ** 3)
-            print(
-                f"[GPU Rank {rank}] {tag} | "
-                f"Allocated: {allocated:.2f} GB, Reserved: {reserved:.2f} GB, "
-                f"Free: {free_gb:.2f} GB, Total: {total_gb:.2f} GB"
-            )
-
-        _log_gpu_memory("generate START")
-
-        self.model.config.flash_decode = False
-        if self.should_disable_forward_pre_hook:
-            self.model = self.move_model(
-                self.model, "cuda", move_params=True, move_grads=False
-            )
-        
+    def _prepare_data_for_generation(
+        self, data: BatchedDataDict[GenerationDatumSpec], greedy: bool = False
+    ) -> tuple[torch.Tensor, torch.Tensor, SamplingParams]:
         dist_rank = torch.distributed.get_rank()
         is_request_submitter = (dist_rank == 0)
-        
         # For non-rank-0 workers, data may be None (they participate in engine loop only)
         if data is not None:
             # Verify input is right padded
@@ -944,34 +908,8 @@ class MegatronPolicyWorker(AbstractPolicyWorker, ColocatablePolicyInterface):
                     f"Input to Megatron Generation worker is not properly right-padded: {error_msg}"
                 )
         
-
-        mcore_generation_config = self.cfg["generation"]["mcore_generation_config"]
-        
-        lang_module = self._get_lang_module()
-        cuda_graph_impl = mcore_generation_config.get("cuda_graph_impl", "local")
-        was_training = lang_module.training
-
-        lang_module.eval()
-        rotary_module = getattr(lang_module, "rotary_pos_emb", None)
-        has_lru_cache = rotary_module is not None and hasattr(rotary_module.forward, "cache_parameters")
-        if has_lru_cache:
-            rotary_module.forward.cache_clear()
-        
         with torch.no_grad():
-    
-            if cuda_graph_impl != "none":
-                toggle_cuda_graphs(lang_module, set_to=cuda_graph_impl)
-
-            if not self._inference_engine_initialized:
-                self._initialize_inference_engine(mcore_generation_config)
-                coordinator_port = self.cfg["generation"].get(
-                    "inference_coordinator_port", 5995
-                )
-                self._run_async_coordinator_start(coordinator_port)
-
-            if self._inference_engine_alseep:
-                self._wake()
-
+            # Handle None values for top_k - convert to integer as required by Megatron
             top_k_cfg = self.cfg["generation"]["top_k"]
             top_k_val = 1 if greedy else (int(top_k_cfg) if top_k_cfg is not None else 0)
 
@@ -1001,41 +939,12 @@ class MegatronPolicyWorker(AbstractPolicyWorker, ColocatablePolicyInterface):
                 prompt_tokens_tensor = torch.empty(0, dtype=torch.long, device="cuda")
                 prompt_lengths_tensor = torch.empty(0, dtype=torch.long, device="cuda")
 
-            result = self._run_async_generation_with_persistent_engine(
-                prompt_tokens_tensor,
-                prompt_lengths_tensor,
-                sampling_params,
-            )
+            return prompt_tokens_tensor, prompt_lengths_tensor, sampling_params
 
-            if self._inference_engine_initialized and not self._inference_engine_alseep:
-                self._sleep()
-
-            if cuda_graph_impl != "none":
-                toggle_cuda_graphs(lang_module, set_to="none")
-
-        if has_lru_cache:
-            rotary_module.forward.cache_clear()
-
-        if was_training:
-            lang_module.train()
-
-        gc.collect()
-        torch.cuda.empty_cache()
-
-        self.model.config.flash_decode = False
-
-        # Only rank 0 needs to format and return results
-        # Other ranks return None (their results are ignored due to output_is_replicated)
-        if not is_request_submitter:
-            _log_gpu_memory("generate END (non-submitter)")
-            return BatchedDataDict({
-                "output_ids": torch.empty(0, 0, dtype=torch.long),
-                "logprobs": torch.empty(0, 0, dtype=torch.float),
-                "generation_lengths": torch.empty(0, dtype=torch.long),
-                "unpadded_sequence_lengths": torch.empty(0, dtype=torch.long),
-            }).to("cpu")
+    def _parse_result_to_batched_data_dict(self, data:BatchedDataDict[GenerationDatumSpec], result: list) -> BatchedDataDict[GenerationOutputSpec]:
 
         input_lengths = data["input_lengths"]
+        input_ids = data["input_ids"]
         batch_size = data["input_ids"].size(0)
         max_gen_seq_len = max([len(x.generated_tokens) for x in result])
         padded_input_length = input_ids.size(1)
@@ -1083,8 +992,93 @@ class MegatronPolicyWorker(AbstractPolicyWorker, ColocatablePolicyInterface):
             "unpadded_sequence_lengths": unpadded_sequence_lengths,
         }
 
-        _log_gpu_memory("generate END")
         return BatchedDataDict.from_batches([out_dict]).to("cpu")
+
+    async def generate_async(
+        self, data: BatchedDataDict[GenerationDatumSpec], greedy: bool = False
+    ) -> AsyncGenerator[tuple[int, BatchedDataDict[GenerationOutputSpec]], None]:
+        if self._inference_loop is None:
+            raise RuntimeError("Inference loop not initialized. Call prepare_for_generation() first.")
+
+        async def _generate_single_item(
+            index:int
+        ) -> tuple[int, BatchedDataDict[GenerationOutputSpec]]:
+            datum = data.get_batch(index, 1)
+            with torch.no_grad():
+                prompt_tokens_tensor, prompt_lengths_tensor, sampling_params = self._prepare_data_for_generation(datum, greedy)
+                future = asyncio.run_coroutine_threadsafe(
+                    self._generate_with_persistent_engine(
+                        prompt_tokens_tensor,
+                        prompt_lengths_tensor,
+                        sampling_params,
+                    ),
+                    self._inference_loop
+                )
+                result = await asyncio.wrap_future(future)
+                return (index, self._parse_result_to_batched_data_dict(datum, result))
+        
+        tasks = [asyncio.create_task(_generate_single_item(index)) for index in range(data.size)]
+        for result in asyncio.as_completed(tasks):
+            yield await result
+
+    @wrap_with_nvtx_name("megatron_policy_worker/generate")
+    def generate(
+        self, *, data: BatchedDataDict[GenerationDatumSpec], greedy: bool = False
+    ) -> BatchedDataDict[GenerationOutputSpec]:
+        """Generate a batch of data using Megatron Core inference with coordinator.
+
+        This method uses the coordinator-based inference pattern from Megatron Core,
+        which enables better parallelism across data-parallel ranks through a central
+        coordinator that routes requests to available engines.
+
+        The inference engine is created once and reused across generate() calls.
+        The engine is paused between generate() calls to free GPU memory for training.
+
+        For coordinator-based inference:
+        - Only DP rank 0 receives actual data and submits requests to the coordinator
+        - Other DP ranks receive data=None but still participate in the inference engine loop
+        - The coordinator distributes work across all DP engines
+        - Results are broadcast from rank 0 to all ranks
+
+        Args:
+            data: BatchedDataDict containing input_ids and input_lengths tensors,
+                  or None for non-DP-0 workers (they participate in engine loop only)
+            BatchedDataDict conforming to GenerationOutputSpec:
+                - output_ids: input + generated token IDs
+                - logprobs: Log probabilities for each token
+                - generation_lengths: Lengths of each response
+        """
+        
+        
+        dist_rank = torch.distributed.get_rank()
+        is_request_submitter = (dist_rank == 0)
+        
+        with torch.no_grad():
+
+            prompt_tokens_tensor, prompt_lengths_tensor, sampling_params = self._prepare_data_for_generation(data, greedy)
+
+            # Run the coordinator-based generation using the persistent engine
+            # Rank 0 submits requests, other ranks participate in engine loop
+            # Results are broadcast to all ranks inside this method
+            result = self._run_async_generation_with_persistent_engine(
+                prompt_tokens_tensor,
+                prompt_lengths_tensor,
+                sampling_params,
+            )
+
+        # Only rank 0 needs to format and return results
+        # Other ranks return None (their results are ignored due to output_is_replicated)
+        if not is_request_submitter:
+            # Return empty result for non-submitter ranks
+            # Use BatchedDataDict directly instead of from_batches to avoid padding issues with empty tensors
+            return BatchedDataDict({
+                "output_ids": torch.empty(0, 0, dtype=torch.long),
+                "logprobs": torch.empty(0, 0, dtype=torch.float),
+                "generation_lengths": torch.empty(0, dtype=torch.long),
+                "unpadded_sequence_lengths": torch.empty(0, dtype=torch.long),
+            }).to("cpu")
+
+        return self._parse_result_to_batched_data_dict(data, result)
 
     def _start_inference_loop_thread(self):
         """Start a background thread with a persistent event loop for inference.
@@ -1141,7 +1135,7 @@ class MegatronPolicyWorker(AbstractPolicyWorker, ColocatablePolicyInterface):
         The async operation runs in the persistent inference loop.
         """
         if self._inference_loop is None:
-            raise RuntimeError("Inference loop not initialized. Call generate() first.")
+            raise RuntimeError("Inference loop not initialized. Call prepare_for_generation() first.")
         
         # Schedule the generation in the inference loop
         future = asyncio.run_coroutine_threadsafe(
@@ -1381,69 +1375,203 @@ class MegatronPolicyWorker(AbstractPolicyWorker, ColocatablePolicyInterface):
             post_iter_func=lambda x: x[1],
         )
 
-    @torch.no_grad()
-    def update_weights_from_collective(self) -> bool:
-        """Receive updated weights from collective communication (inference side).
+    def init_refit_collective(self, ip, port, world_size, rank_offset, refit_backend="gloo"):
+        """Initialize the refit collective for non-colocated Megatron weight transfer.
 
-        This method is the consumer counterpart of broadcast_weights_for_collective.
-        It receives weights broadcast by the training workers and updates the local
-        model parameters.
-
-        TODO: Implement the actual weight update logic using packed_broadcast_consumer.
-        The implementation should:
-        1. Iterate over the stored state_dict_info
-        2. Use packed_broadcast_consumer to receive weights from the training side
-        3. Update the local Megatron model parameters with the received weights
-
-        Returns:
-            bool: True if weights were successfully updated.
-        """
-        raise NotImplementedError(
-            "update_weights_from_collective for MegatronPolicyWorker is not yet implemented. "
-            "This placeholder will be replaced with actual NCCL collective weight reception logic."
-        )
-
-    def init_collective_as_inference(
-        self, ip: str, port: int, world_size: int, *, train_world_size: int
-    ) -> None:
-        """Initialize collective communication for inference-side workers.
-
-        Unlike the base init_collective (used by training workers which use
-        self.rank directly), this method offsets the rank by train_world_size
-        so inference workers get globally unique ranks that don't collide
-        with training workers.
+        Creates a Gloo-backed ProcessGroup spanning training and inference
+        workers for metadata exchange (all_gather_object, broadcast), and a
+        CopyService for the actual data transfer (GlooCopyService for
+        CPU-staged P2P, or NVSHMEMCopyService for GPU-direct transfers).
 
         Args:
             ip: IP address for the process group rendezvous.
             port: Port for the process group rendezvous.
             world_size: Total world size (train + inference workers).
-            train_world_size: Number of training workers (used to offset ranks).
+            rank_offset: Offset for this side's ranks (0 for training, train_ws for inference).
+            refit_backend: Copy service backend ("gloo" or "nvshmem").
         """
-        from nemo_rl.distributed.stateless_process_group import StatelessProcessGroup
-
-        # Offset rank by train_world_size so inference workers get unique global ranks
-        rank = train_world_size + self.rank
-        self.model_update_group = StatelessProcessGroup(
-            master_address=ip, port=port, rank=rank, world_size=world_size
+        from torch.distributed.distributed_c10d import (
+            PrefixStore,
+            ProcessGroup,
+            ProcessGroupGloo,
+            _world,
         )
-        device = torch.cuda.current_device()
-        self.model_update_group.init_nccl_communicator(device=device)
 
-    def store_refit_info(self, state_dict_info: dict[str, Any]) -> None:
-        """Store state dict metadata for weight refitting on the inference side.
+        local_rank = torch.distributed.get_rank()
+        global_rank = local_rank + rank_offset
+        self.refit_rank_offset = rank_offset
 
-        This is the inference-side counterpart of prepare_refit_info(). Instead of
-        calculating the metadata from the model, it accepts pre-computed metadata
-        from the training side.
+        # port+1 to avoid collision with the caller's rendezvous on `port`.
+        store = torch.distributed.TCPStore(
+            host_name=ip,
+            port=port + 1,
+            world_size=world_size,
+            is_master=(global_rank == 0),
+        )
 
-        TODO: Implement proper storage and use of state_dict_info for
-        update_weights_from_collective.
+        group_name = "refit"
+        pg_prefix_store = PrefixStore(f"{group_name}/", store)
+
+        # Training and inference workers run in separate torch.distributed worlds
+        # (each has its own init_process_group). The public APIs (new_group,
+        # init_process_group) assume all ranks belong to one world — new_group
+        # validates ranks against the default PG, and init_process_group can only
+        # be called once. We construct the PG manually using the same internal
+        # pattern as _new_process_group_helper, skipping the single-world
+        # assumptions.
+        pg = ProcessGroup(pg_prefix_store, global_rank, world_size)
+        gloo_store = PrefixStore("cpu/", pg_prefix_store)
+        gloo_backend = ProcessGroupGloo(gloo_store, global_rank, world_size)
+        gloo_backend._set_sequence_number_for_group()
+        pg._register_backend(
+            torch.device("cpu"),
+            ProcessGroup.BackendType.GLOO,
+            gloo_backend,
+        )
+        pg._set_default_backend(ProcessGroup.BackendType.GLOO)
+        pg._set_group_name(group_name)
+
+        self.refit_pg = pg
+
+        # Register in torch.distributed's global state so that high-level ops
+        # (all_gather_object, broadcast_object_list) work with this PG.
+        # These ops internally call get_rank(group) which looks up pg_group_ranks,
+        # and use pg_map for backend dispatch. The identity mapping works because
+        # our global_rank space (0..world_size-1) is already the group rank space.
+        _world.pg_group_ranks[pg] = {i: i for i in range(world_size)}
+        _world.pg_map[pg] = ("gloo", pg_prefix_store)
+        _world.pg_names[pg] = group_name
+
+        if refit_backend == "nvshmem":
+            from megatron.core.resharding.copy_services.nvshmem_copy_service import NVSHMEMCopyService
+            self.refit_copy_service = NVSHMEMCopyService(group=self.refit_pg)
+            self.refit_copy_service._ensure_initialized()
+        else:
+            from megatron.core.resharding.copy_services.gloo_copy_service import GlooCopyService
+            self.refit_copy_service = GlooCopyService(group=self.refit_pg)
+
+        print(f"[REFIT] rank={global_rank} init_refit_collective complete", flush=True)
+
+    @torch.no_grad()
+    def swap_weights_via_reshard(self, is_source: bool, dst_rank_offset: int = 0) -> bool:
+        """Transfer weights using Megatron's swap_model_weights resharding API.
+
+        Uses the CopyService initialized in init_refit_collective for data
+        transfer and the refit ProcessGroup for metadata exchange.
 
         Args:
-            state_dict_info: Dictionary mapping tensor names to (shape, dtype) tuples,
-                as returned by the training-side prepare_refit_info().
+            is_source: True for training workers (weight source), False for inference
+                       workers (weight destination).
+            dst_rank_offset: Rank offset of the inference (destination) side.
+
+        Returns:
+            True on success.
         """
-        self.state_dict_info = state_dict_info
+        from megatron.core.resharding.refit import swap_model_weights
+
+        if is_source:
+            src_model = self.model
+            dst_model = None
+        else:
+            src_model = None
+            dst_model = self.model
+
+        swap_model_weights(
+            src_model, dst_model,
+            refit_method=self.refit_copy_service,
+            group=self.refit_pg,
+            src_rank_offset=0,
+            dst_rank_offset=dst_rank_offset,
+        )
+        return True
+
+    def prepare_for_generation(self) -> None:
+        print(f"[Rank {self.rank}] preparing for generation", flush=True)
+        self._log_gpu_memory("prepare_for_generation START")
+        # Get the generation config
+        mcore_generation_config = self.cfg["generation"]["mcore_generation_config"]
+
+        self.model.config.flash_decode = False
+        if self.should_disable_forward_pre_hook:
+            self.model = self.move_model(
+                self.model, "cuda", move_params=True, move_grads=False
+            )
+
+        # Get the language module (unwrap from precision wrappers if needed)
+        lang_module = self._get_lang_module()
+
+        # Get config settings
+        cuda_graph_impl = mcore_generation_config.get("cuda_graph_impl", "local")
+
+        # === ENTER INFERENCE MODE ===
+
+        # 1. Put model in eval mode
+        lang_module.eval()
+
+        # 2. Clear rotary position embedding caches (Megatron RL does this)
+        rotary_module = getattr(lang_module, "rotary_pos_emb", None)
+        has_lru_cache = rotary_module is not None and hasattr(rotary_module.forward, "cache_parameters")
+        if has_lru_cache:
+            rotary_module.forward.cache_clear()
+
+        if cuda_graph_impl != "none":
+            toggle_cuda_graphs(lang_module, set_to=cuda_graph_impl)
+
+        # 4. Initialize inference engine if not already done
+        if not self._inference_engine_initialized:
+            self._initialize_inference_engine(mcore_generation_config)
+            # Start the coordinator and engine loop (first time only)
+            coordinator_port = self.cfg["generation"].get(
+                "inference_coordinator_port", 5995
+            )
+            self._run_async_coordinator_start(coordinator_port)
+
+        if self._inference_engine_alseep:
+            self._wake()
+        self._log_gpu_memory("prepare_for_generation END")
+
+    def finish_generation(self) -> None:
+        print(f"[Rank {self.rank}] finishing generation", flush=True)
+        self._log_gpu_memory("finish_generation START")
+        # Get the generation config
+        mcore_generation_config = self.cfg["generation"]["mcore_generation_config"]  
+
+        # Get the language module (unwrap from precision wrappers if needed)
+        lang_module = self._get_lang_module()
+        
+        # Get config settings
+        cuda_graph_impl = mcore_generation_config.get("cuda_graph_impl", "local")
+
+        # In non-colocated mode, we don't need to suspend/resume the engine
+        # between iterations since training runs on separate GPUs. The CUDA
+        # graphs and KV cache can stay allocated. Only weight values change.
+        needs_suspend_resume = self.is_generation_colocated
+
+        # 1. pause the inference engine (skip in non-colocated mode to
+        #    avoid deleting and recreating CUDA graphs unnecessarily)
+        if needs_suspend_resume and self._inference_engine_initialized and not self._inference_engine_alseep:
+            self._sleep()
+
+        # 2. Toggle CUDA graphs OFF (skip in non-colocated mode to keep them alive)
+        if needs_suspend_resume and cuda_graph_impl != "none":
+            toggle_cuda_graphs(lang_module, set_to="none")
+
+        # 3. Clear rotary embedding cache again (Megatron RL does this on exit too)
+        rotary_module = getattr(lang_module, "rotary_pos_emb", None)
+        has_lru_cache = rotary_module is not None and hasattr(rotary_module.forward, "cache_parameters")
+        if has_lru_cache:
+            rotary_module.forward.cache_clear()   
+
+        # RKIRBY - Remove, it's covered in prepare_for_training
+        # 4. Restore training state (skip in non-colocated mode - model stays in eval)
+        # if needs_suspend_resume and was_training:
+        #     lang_module.train()
+
+        # 5. Force garbage collection and CUDA memory cleanup
+        if needs_suspend_resume:
+            gc.collect()
+            torch.cuda.empty_cache()
+        self._log_gpu_memory("finish_generation END")
 
     def prepare_for_lp_inference(self):
         self.model = self.move_model(self.model, "cuda", move_grads=False)

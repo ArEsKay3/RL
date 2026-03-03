@@ -745,7 +745,6 @@ class MegatronPolicyWorker(AbstractPolicyWorker, ColocatablePolicyInterface):
             block_size_tokens=block_size_tokens,
             buffer_size_gb=buffer_size_gb,
             num_cuda_graphs=num_cuda_graphs,
-            max_requests=max_tokens,
             max_tokens=max_tokens,
             max_sequence_length=self.cfg["generation"]["max_new_tokens"],
             unified_memory_level=unified_memory_level,

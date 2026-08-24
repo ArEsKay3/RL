@@ -37,6 +37,20 @@ class MCoreGenerationSpecificArgs(TypedDict):
     num_cuda_graphs: int
     use_cuda_graphs_for_non_decode_steps: bool
     cuda_graph_impl: str
+    # How captured CUDA-graph token counts are spaced. Defaults to 'hybrid'.
+    # - 'hybrid': exponential for prefill/mixed graphs, linear for decode-only graphs. The two
+    #   cover ranges differing by orders of magnitude (prefill spans cuda_graph_max_tokens,
+    #   decode is capped at max_requests), so a single spacing serves one badly.
+    # - 'exponential': halve from cuda_graph_max_tokens down to tp_size for both.
+    # - 'linear': linear strides for both; captures far more prefill graphs.
+    cuda_graph_sizing_distribution: NotRequired[
+        Literal["exponential", "linear", "hybrid"]
+    ]
+    # Ceiling on the token count of captured prefill/mixed graphs; clamped to
+    # [max_requests, max_tokens]. mcore defaults to 512, so longer prefill steps run
+    # eager. Raise toward max_tokens to cover them, at the cost of capture time and
+    # graph memory. Omit to keep mcore's default.
+    cuda_graph_max_tokens: NotRequired[int]
     # Inference CUDA-graph scope. Options:
     # - 'none': inference runs in eager mode (no CUDA graphs).
     # - 'layer': graphs are owned at the per-layer boundary (TransformerLayer / MambaLayer).
@@ -53,6 +67,34 @@ class MCoreGenerationSpecificArgs(TypedDict):
 
     mamba_inference_ssm_states_dtype: NotRequired[str]
     mamba_inference_conv_states_dtype: NotRequired[str]
+    prefix_caching_mamba_gb: NotRequired[int]
+
+    # How the DP coordinator picks an engine for each request. Defaults to
+    # 'longest_prefix'; forced to 'load_balanced' when enable_prefix_caching is
+    # false, since there is then no cache to route on.
+    # - 'longest_prefix': cheapest (prefill blocks still to compute) x (load), so
+    #   idle ranks are filled first and a rank already holding the prefix wins
+    #   thereafter.
+    # - 'load_balanced': fewest in-flight requests; ignores prefix affinity.
+    # - 'first_prefix_block': route on the first block hash alone.
+    prefix_caching_coordinator_policy: NotRequired[
+        Literal["load_balanced", "longest_prefix", "first_prefix_block"]
+    ]
+    # How long the coordinator assumes an engine still holds a block it routed
+    # there. Only meaningful under the LRU eviction policy.
+    prefix_cache_ttl_seconds: NotRequired[float]
+    # How 'longest_prefix' weighs prefix affinity against rank load:
+    # - 'load_aware': score = prefix_fraction - beta * (load - mean) / max(1, mean).
+    #   Normalized and subtractive, so load still counts on a full cache hit and the
+    #   penalty vanishes when ranks are balanced.
+    # - 'simple_multiplicative': cost = remaining_blocks * (1 + load). A full hit costs
+    #   0 regardless of load, which strands work on a busy rank during the drain phase.
+    prefix_caching_cost_policy: NotRequired[
+        Literal["simple_multiplicative", "load_aware"]
+    ]
+    # Weight on the load penalty under 'load_aware', in units of "full cache hits per
+    # 100% above mean load". 0 is pure affinity.
+    prefix_caching_load_beta: NotRequired[float]
 
     # KV cache lifecycle across suspend/resume:
     # - "persist": cache stays allocated; CUDA graphs remain valid (default)

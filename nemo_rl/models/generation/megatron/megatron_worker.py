@@ -23,9 +23,13 @@ from typing import AsyncGenerator, Optional
 import requests
 import torch
 from megatron.core.inference.config import (
+    CudaGraphSizingDistribution,
     InferenceConfig,
     KVCacheManagementMode,
     PrefixCachingCoordinatorPolicy,
+    PrefixCachingCostPolicy,
+    PrefixCachingEvictionPolicy,
+    AsyncScheduleMode,
 )
 from megatron.core.inference.engines.dynamic_engine import EngineState
 from megatron.core.inference.sampling_params import SamplingParams
@@ -56,6 +60,35 @@ from nemo_rl.models.megatron.memory_saver import (
     resume_inference_weights,
 )
 from nemo_rl.utils.nsys import wrap_with_nvtx_name
+
+# Prefix-affinity routing is the better default whenever there is a prefix cache to
+# route on: on a 16-engine SWE-RL run it moved the prefill skip rate from 59-63% to
+# 97.7%. Without a cache the coordinator ignores affinity anyway, so resolve to
+# load_balanced there rather than having frontends hash prompts nobody reads.
+_DEFAULT_COORDINATOR_POLICY = "longest_prefix"
+
+# Prefill and decode graphs cover ranges that differ by orders of magnitude: prefill spans
+# cuda_graph_max_tokens (thousands), decode is capped at max_requests (tens). One distribution
+# cannot serve both -- halving leaves decode with 3 graphs and 2.35x worst-case padding, while
+# linear spacing across the prefill range would capture ~144 graphs. Hybrid applies exponential
+# to prefill and linear to decode.
+_DEFAULT_CUDA_GRAPH_SIZING = "hybrid"
+
+
+def _resolve_coordinator_policy(mcore_generation_config) -> PrefixCachingCoordinatorPolicy:
+    """Effective DP-coordinator routing policy for this generation config.
+
+    Resolved in one place so the engine and the HTTP frontends cannot disagree:
+    if the engine routes on prefix affinity but the frontends skip hashing, the
+    coordinator silently sees no hashes and degrades to load balancing.
+    """
+    if not mcore_generation_config["enable_prefix_caching"]:
+        return PrefixCachingCoordinatorPolicy.LOAD_BALANCED
+    return PrefixCachingCoordinatorPolicy(
+        mcore_generation_config.get(
+            "prefix_caching_coordinator_policy", _DEFAULT_COORDINATOR_POLICY
+        )
+    )
 
 
 class MegatronGenerationMixin:
@@ -180,16 +213,53 @@ class MegatronGenerationMixin:
             kv_cache_management_mode=KVCacheManagementMode(kv_cache_management_mode),
             static_kv_memory_pointers=needs_static_kv_pointers,
             use_cuda_graphs_for_non_decode_steps=use_cuda_graphs_for_non_decode_steps,
+            cuda_graph_sizing_distribution=CudaGraphSizingDistribution(
+                mcore_generation_config.get(
+                    "cuda_graph_sizing_distribution", _DEFAULT_CUDA_GRAPH_SIZING
+                )
+            ),
+            # Ceiling on the prefill/mixed graph range. mcore defaults this to 512, so
+            # any prefill step longer than that runs eager -- on a 60-turn SWE workload
+            # that was 62% of prefill steps and 88% of prefill time. Absent from config,
+            # leave mcore's default alone rather than inventing one here.
+            **(
+                {"cuda_graph_max_tokens": mcore_generation_config["cuda_graph_max_tokens"]}
+                if "cuda_graph_max_tokens" in mcore_generation_config
+                else {}
+            ),
             use_flashinfer_fused_rope=use_flashinfer_fused_rope,
             sampling_backend="flashinfer",
             use_synchronous_zmq_collectives=True,
             materialize_only_last_token_logits=materialize_only_last_token_logits,
             enable_chunked_prefill=enable_chunked_prefill,
             enable_prefix_caching=mcore_generation_config["enable_prefix_caching"],
-            prefix_caching_coordinator_policy=PrefixCachingCoordinatorPolicy(
-                "first_prefix_block"
+            prefix_caching_coordinator_policy=_resolve_coordinator_policy(
+                mcore_generation_config
+            ),
+            prefix_caching_mamba_gb=mcore_generation_config.get("prefix_caching_mamba_gb", 50),
+            prefix_caching_routing_alpha=0.5,
+            prefix_caching_eviction_policy=PrefixCachingEvictionPolicy.LRU,
+            prefix_cache_ttl_seconds=mcore_generation_config.get(
+                "prefix_cache_ttl_seconds", 300.0
+            ),
+            # Absent from config, leave mcore's defaults alone rather than restating
+            # them here; both only apply under the longest_prefix policy.
+            **(
+                {
+                    "prefix_caching_cost_policy": PrefixCachingCostPolicy(
+                        mcore_generation_config["prefix_caching_cost_policy"]
+                    )
+                }
+                if "prefix_caching_cost_policy" in mcore_generation_config
+                else {}
+            ),
+            **(
+                {"prefix_caching_load_beta": mcore_generation_config["prefix_caching_load_beta"]}
+                if "prefix_caching_load_beta" in mcore_generation_config
+                else {}
             ),
             pg_collection=pg_collection,
+            async_sched_mode=AsyncScheduleMode.ASYNC,
             mamba_inference_state_config=mamba_inference_state_config,
             # Reserve more KV-cache space when speculative decoding is enabled.
             mamba_memory_ratio=(
@@ -304,25 +374,52 @@ class MegatronGenerationMixin:
 
     def _setup_openai_api_server(self) -> str:
         """Start the OpenAI-compatible HTTP server on this worker."""
+        import random
+
         from megatron.core.inference.text_generation_server.dynamic_text_gen_server.text_generation_server import (
             start_text_gen_server,
         )
+        from megatron.core.utils import get_pg_rank
 
         from nemo_rl.distributed.virtual_cluster import (
             _get_free_port_local,
             _get_node_ip_local,
         )
 
+        gen_cfg = self.cfg["generation"]["mcore_generation_config"]
+        coordinator_policy = _resolve_coordinator_policy(gen_cfg)
+
         ip = _get_node_ip_local()
-        free_port = _get_free_port_local()
+        # Seed the port draw per DP rank. The default generator is seeded per run,
+        # so every rank produces the same candidate sequence; ranks sharing a node
+        # then converge on one port, and because each frontend replica binds with
+        # SO_REUSEPORT the duplicate bind succeeds instead of failing. The result is
+        # several ranks advertising one address, which collapses into a single
+        # client-side connection pool.
+        dp_rank = get_pg_rank(self.dynamic_inference_engine.pg_collection.dp)
+        free_port = _get_free_port_local(rng=random.Random(dp_rank))
+
+        # Each HTTP frontend replica is a single asyncio event loop, so frontend
+        # capacity is the replica count. The old max(dp_size, 4) sized one rank's
+        # server to feed every engine; now that every rank hosts one, aggregate
+        # capacity is world_size * this, and scaling per rank with dp_size would
+        # square it (1024 processes at r16, each holding a copy of the tokenizer).
+        num_replicas = 8
 
         start_text_gen_server(
             coordinator_addr=self.coordinator_addr,
             tokenizer=self.megatron_tokenizer,
             rank=torch.distributed.get_rank(),
             server_port=free_port,
-            parsers=self.cfg["generation"]["mcore_generation_config"]["parsers"],
+            parsers=gen_cfg["parsers"],
             verbose=False,
+            num_replicas=num_replicas,
+            # The frontend hashes prompts so the coordinator does not have to.
+            # Whether it bothers follows from the routing policy, so pass that
+            # rather than encoding the decision here; the block size is only the
+            # granularity and must match the engine's.
+            block_size_tokens=gen_cfg["block_size_tokens"],
+            prefix_caching_coordinator_policy=coordinator_policy,
         )
 
         base_url = f"http://{ip}:{free_port}/v1"
@@ -358,9 +455,15 @@ class MegatronGenerationMixin:
         future.result()
         print(f"[Rank {torch.distributed.get_rank()}] Coordinator started")
 
+        # One frontend per model-parallel group rather than one for the whole job.
+        # Frontend work (chat template, detokenize, parsers, JSON) is CPU-bound, so
+        # hosting it on a single rank caps request throughput at that rank's cores;
+        # spreading it also gives the client one address per group instead of one
+        # for everything. Hosting on *every* rank was measured to add nothing over
+        # this at r2, and multiplies the process count by the TP degree.
         if (
             self.cfg["generation"]["mcore_generation_config"]["expose_http_server"]
-            and torch.distributed.get_rank() == 0
+            and self.dynamic_inference_engine.is_mp_coordinator
         ):
             print(f"[Rank {torch.distributed.get_rank()}] Starting HTTP Server")
             self.base_url = self._setup_openai_api_server()

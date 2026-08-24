@@ -1221,7 +1221,10 @@ def setup(
             policy=policy if colocated_inference else None,
             processor=processor,
             weights_path=weights_path,
-            skip_weight_load=not colocated_inference,
+            # Load inference weights up front instead of leaving them to the
+            # first refit: a non-colocated engine that starts uninitialized
+            # serves garbage until that refit lands.
+            skip_weight_load=False,
         )
         return mg, time.perf_counter() - t0
 

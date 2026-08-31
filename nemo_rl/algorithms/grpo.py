@@ -2524,10 +2524,68 @@ def _resolve_logprob_skip_flags(
     )
 
 
+def _dump_logprob_pairs(
+    train_data: BatchedDataDict,
+    mask: torch.Tensor,
+    seq_mult_prob_error: torch.Tensor,
+    rewards: torch.Tensor,
+    step: Optional[int],
+) -> None:
+    """Dump inference/training logprobs and their per-token mismatch.
+
+    Enabled by setting NRL_LOGPROB_DUMP_DIR; a no-op otherwise.
+
+    Only masked-in tokens are written. The dense tensors are
+    [train_global_batch_size, max_total_sequence_length] -- 8192 x 73728 at
+    study scale, i.e. terabytes per step -- while the tokens that actually
+    carry signal are a few tens of millions, some hundreds of MB. Sequences are
+    concatenated flat and seq_token_counts lets them be split apart again.
+
+    Written in float32 rather than half precision: this exists to compare the
+    *shape* of the inference/training mismatch distribution between engines, so
+    quantising the values would defeat the purpose.
+
+    Never raises. A dump failure must not kill a multi-hour run.
+    """
+    dump_dir = os.environ.get("NRL_LOGPROB_DUMP_DIR")
+    if not dump_dir:
+        return
+    try:
+        os.makedirs(dump_dir, exist_ok=True)
+        keep = mask.bool()
+        gen = train_data["generation_logprobs"][:, 1:][keep].detach().float().cpu()
+        prev = train_data["prev_logprobs"][:, 1:][keep].detach().float().cpu()
+        payload = {
+            "step": step,
+            # Inference-side logprobs, as handed to NeMo RL by the generation engine.
+            "generation_logprobs": gen,
+            # Training-side logprobs from the policy forward.
+            "prev_logprobs": prev,
+            # Per-token mismatch, the quantity seq_mult_prob_error aggregates.
+            "lp_error": (gen - prev).abs(),
+            "seq_token_counts": keep.sum(dim=-1).cpu(),
+            "seq_mult_prob_error": seq_mult_prob_error.detach().float().cpu(),
+            "sample_mask": train_data["sample_mask"].detach().float().cpu(),
+            "rewards": rewards.detach().float().cpu(),
+            "minf_logprobs_mode": os.environ.get("NRL_MINF_LOGPROBS_MODE", "unset"),
+        }
+        path = os.path.join(
+            dump_dir, f"logprobs_step{(step if step is not None else 0):05d}.pt"
+        )
+        torch.save(payload, path)
+        print(
+            f"▶ [logprob-dump] step={step} wrote {gen.numel()} token pairs -> {path}",
+            flush=True,
+        )
+    except Exception as e:  # noqa: BLE001 - diagnostics must never fail the run
+        print(f"▶ [logprob-dump] FAILED: {type(e).__name__}: {e}", flush=True)
+
+
 def compute_and_apply_seq_logprob_error_masking(
     train_data: BatchedDataDict,
     rewards: torch.Tensor,
     seq_logprob_error_threshold: Optional[float],
+    step: Optional[int] = None,
 ) -> dict:
     """Compute sequence-level logprob error metrics and optionally mask high-error sequences.
 
@@ -2582,6 +2640,16 @@ def compute_and_apply_seq_logprob_error_masking(
         max_seq_mult_prob_error = 0.0
         mean_seq_mult_prob_error = 0.0
         min_seq_mult_prob_error = 0.0
+
+    # Dump before masking mutates sample_mask, so the dump reflects everything
+    # generation produced rather than only what survived the threshold.
+    _dump_logprob_pairs(
+        train_data=train_data,
+        mask=mask,
+        seq_mult_prob_error=seq_mult_prob_error,
+        rewards=rewards,
+        step=step,
+    )
 
     # Apply sequence-level masking if configured
     num_masked_seqs = 0
@@ -3290,6 +3358,7 @@ def grpo_train(
                         train_data=train_data,
                         rewards=rewards,
                         seq_logprob_error_threshold=seq_logprob_error_threshold,
+                        step=current_step,
                     )
                     seq_logprob_error_metrics = seq_error_result
                     if "num_masked_seqs" in seq_logprob_error_metrics:
@@ -4829,6 +4898,7 @@ def async_grpo_train(
                         train_data=train_data,
                         rewards=rewards,
                         seq_logprob_error_threshold=seq_logprob_error_threshold,
+                        step=step,
                     )
                     seq_logprob_error_metrics = seq_error_result
                     if "num_masked_seqs" in seq_logprob_error_metrics:

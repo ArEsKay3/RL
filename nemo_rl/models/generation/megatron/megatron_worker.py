@@ -267,7 +267,13 @@ class MegatronGenerationMixin:
             ),
             logging_step_interval=logging_step_interval,
             num_speculative_tokens=num_speculative_tokens,
-            logprobs_mode="processed_logprobs",
+            # 'processed_logprobs' reports logprobs after the sampling
+            # transforms; 'raw_logprobs' (Megatron-Core's default) reports them
+            # straight from the logits. Overridable via NRL_MINF_LOGPROBS_MODE
+            # so the two can be compared against training-side logprobs without
+            # a rebuild. Note Megatron-Core rejects 'processed_logprobs' when
+            # num_speculative_tokens > 0.
+            logprobs_mode=os.environ.get("NRL_MINF_LOGPROBS_MODE", "raw_logprobs"),
             max_requests=max_requests,
         )
 

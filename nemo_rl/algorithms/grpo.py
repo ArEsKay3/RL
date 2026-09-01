@@ -2568,7 +2568,44 @@ def _dump_logprob_pairs(
             "sample_mask": train_data["sample_mask"].detach().float().cpu(),
             "rewards": rewards.detach().float().cpu(),
             "minf_logprobs_mode": os.environ.get("NRL_MINF_LOGPROBS_MODE", "unset"),
+            "minf_sampling_backend": os.environ.get(
+                "NRL_MINF_SAMPLING_BACKEND", "unset"
+            ),
         }
+
+        # Full trajectories: prompt + generation token ids, plus the mask that
+        # separates them. Enabled by NRL_TRAJECTORY_DUMP=1 because it roughly
+        # doubles the file size.
+        #
+        # input_ids is padded to max_total_sequence_length (73728), so a dense
+        # save would be 8192 x 73728 x 4B = 2.4 TB per step. Trim each sequence
+        # to its own input_length and concatenate flat; input_lengths splits it
+        # back apart. token_mask is bit-packed -- it is one bool per token and
+        # would otherwise cost more than the ids it describes.
+        if os.environ.get("NRL_TRAJECTORY_DUMP") == "1":
+            lengths = train_data["input_lengths"].detach().cpu().to(torch.int64)
+            ids = train_data["input_ids"].detach().cpu()
+            flat_ids = torch.cat(
+                [ids[i, : int(lengths[i])] for i in range(ids.shape[0])]
+            ).to(torch.int32)
+            tmask = train_data["token_mask"].detach().cpu().to(torch.bool)
+            flat_mask = torch.cat(
+                [tmask[i, : int(lengths[i])] for i in range(tmask.shape[0])]
+            )
+            payload["input_ids"] = flat_ids
+            payload["input_lengths"] = lengths
+            payload["token_mask_packed"] = torch.from_numpy(
+                np.packbits(flat_mask.numpy())
+            )
+            payload["token_mask_numel"] = int(flat_mask.numel())
+            # Alignment, because the two halves of this file are indexed
+            # differently and silently mismatching them would be easy:
+            #   input_ids / token_mask are full length, position j is token j.
+            #   generation_logprobs / prev_logprobs cover token_mask[:, 1:],
+            #     since logits at position j predict the token at j+1.
+            # So the logprob for input_ids[j] is at logprob index j-1 within
+            # that sequence, and position 0 has no logprob.
+            payload["logprob_position_offset"] = 1
         path = os.path.join(
             dump_dir, f"logprobs_step{(step if step is not None else 0):05d}.pt"
         )

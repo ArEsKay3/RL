@@ -257,7 +257,14 @@ class MegatronGenerationMixin:
                 else {}
             ),
             use_flashinfer_fused_rope=use_flashinfer_fused_rope,
-            sampling_backend="flashinfer",
+            # Megatron-Core defaults this to "torch"; we override to flashinfer
+            # for throughput. NRL_MINF_SAMPLING_BACKEND selects the other one
+            # without a rebuild, so the two kernels can be compared on the same
+            # model. Note mcore silently falls back to torch (with a warning) if
+            # flashinfer is requested but not installed.
+            sampling_backend=os.environ.get(
+                "NRL_MINF_SAMPLING_BACKEND", "flashinfer"
+            ),
             use_synchronous_zmq_collectives=True,
             materialize_only_last_token_logits=materialize_only_last_token_logits,
             enable_chunked_prefill=enable_chunked_prefill,

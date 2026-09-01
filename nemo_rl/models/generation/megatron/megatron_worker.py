@@ -27,10 +27,39 @@ from megatron.core.inference.config import (
     InferenceConfig,
     KVCacheManagementMode,
     PrefixCachingCoordinatorPolicy,
-    PrefixCachingCostPolicy,
-    PrefixCachingEvictionPolicy,
-    AsyncScheduleMode,
 )
+
+# These three are carried by the Megatron-LM fork the MINF arm bind-mounts, not
+# by the megatron-core in the container. A vLLM arm takes megatron-core from the
+# container and never reaches the MINF generation path, but it still imports
+# this module transitively via megatron_policy_worker when training on Megatron
+# -- so a hard import fails the run before generation ever starts.
+#
+# Degrade to None instead. Every use site below is inside the MINF inference
+# config, which only executes when the fork is mounted and these are real.
+try:
+    from megatron.core.inference.config import (
+        AsyncScheduleMode,
+        PrefixCachingCostPolicy,
+        PrefixCachingEvictionPolicy,
+    )
+except ImportError:  # pragma: no cover - depends on which megatron-core is mounted
+    AsyncScheduleMode = None
+    PrefixCachingCostPolicy = None
+    PrefixCachingEvictionPolicy = None
+
+
+def _require_cost_policy():
+    """Return PrefixCachingCostPolicy, or explain which mount is missing."""
+    if PrefixCachingCostPolicy is None:
+        raise RuntimeError(
+            "mcore_generation_config sets prefix_caching_cost_policy, but "
+            "PrefixCachingCostPolicy is absent from the megatron-core in use. "
+            "It lives in the Megatron-LM fork the MINF arm bind-mounts -- run "
+            "with MINF=1 so Megatron-Bridge/Megatron-LM are mounted, or drop "
+            "prefix_caching_cost_policy from the config."
+        )
+    return PrefixCachingCostPolicy
 from megatron.core.inference.engines.dynamic_engine import EngineState
 from megatron.core.inference.sampling_params import SamplingParams
 from megatron.core.resharding.copy_services.gloo_copy_service import GlooCopyService
@@ -246,7 +275,7 @@ class MegatronGenerationMixin:
             # them here; both only apply under the longest_prefix policy.
             **(
                 {
-                    "prefix_caching_cost_policy": PrefixCachingCostPolicy(
+                    "prefix_caching_cost_policy": _require_cost_policy()(
                         mcore_generation_config["prefix_caching_cost_policy"]
                     )
                 }

@@ -450,11 +450,14 @@ class MegatronGenerationMixin:
 
     def _setup_openai_api_server(self) -> str:
         """Start the OpenAI-compatible HTTP server on this worker."""
+        import random
+
         from megatron.core.inference.text_generation_server.dynamic_text_gen_server.text_generation_server import (
             start_text_gen_server,
         )
 
         from nemo_rl.distributed.virtual_cluster import (
+            _get_free_port_local,
             _get_node_ip_local,
         )
 
@@ -462,19 +465,21 @@ class MegatronGenerationMixin:
         coordinator_policy = _resolve_coordinator_policy(gen_cfg)
 
         ip = _get_node_ip_local()
-        # The driver reserves one address per frontend-hosting rank and hands
-        # every one of them to NeMo Gym, so a frontend rank always arrives here
-        # holding its own socket. Binding a port here instead would advertise an
-        # address Gym never received, and that frontend would take no traffic.
+        # The driver reserves one address per frontend when NeMo Gym is in play,
+        # because Gym has to be handed every URL before the engine exists. Nothing
+        # reserves otherwise, so those frontends pick their own port.
         reserved_socket = self._reserved_http_server_socket
-        if reserved_socket is None:
-            raise RuntimeError(
-                f"Rank {torch.distributed.get_rank()} hosts an HTTP frontend but "
-                "received no reserved socket. The driver reserves one address per "
-                "model-parallel coordinator; this rank was not among them, so its "
-                "address was never published to NeMo Gym."
+        if reserved_socket is not None:
+            server_port = reserved_socket.getsockname()[1]
+        else:
+            # Seed per rank: the default generator is seeded per run, so every
+            # rank draws the same sequence and ranks sharing a node converge on
+            # one port. The duplicate bind then succeeds rather than failing,
+            # because each frontend replica binds with SO_REUSEPORT, leaving
+            # several ranks advertising a single address.
+            server_port = _get_free_port_local(
+                rng=random.Random(torch.distributed.get_rank())
             )
-        server_port = reserved_socket.getsockname()[1]
 
         # Each replica is one asyncio event loop, so this is the per-host
         # frontend capacity; every model-parallel coordinator hosts a set.

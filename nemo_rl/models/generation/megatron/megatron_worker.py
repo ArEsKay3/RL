@@ -23,14 +23,12 @@ from typing import AsyncGenerator, Optional
 import requests
 import torch
 from megatron.core.inference.config import (
+    AsyncScheduleMode,
     CudaGraphSizingDistribution,
     InferenceConfig,
     KVCacheManagementMode,
     MambaInferenceStateConfig,
     PrefixCachingCoordinatorPolicy,
-    PrefixCachingCostPolicy,
-    PrefixCachingEvictionPolicy,
-    AsyncScheduleMode,
 )
 from megatron.core.inference.engines.dynamic_engine import EngineState
 from megatron.core.inference.sampling_params import SamplingParams
@@ -76,11 +74,6 @@ from nemo_rl.utils.nsys import wrap_with_nvtx_name
 
 _DEFAULT_COORDINATOR_POLICY = "longest_prefix"
 
-# Prefill and decode graphs cover ranges that differ by orders of magnitude: prefill spans
-# cuda_graph_max_tokens (thousands), decode is capped at max_requests (tens). One distribution
-# cannot serve both -- halving leaves decode with 3 graphs and 2.35x worst-case padding, while
-# linear spacing across the prefill range would capture ~144 graphs. Hybrid applies exponential
-# to prefill and linear to decode.
 _DEFAULT_CUDA_GRAPH_SIZING = "hybrid"
 
 
@@ -332,27 +325,15 @@ class MegatronGenerationMixin:
             prefix_caching_coordinator_policy=_resolve_coordinator_policy(
                 mcore_generation_config
             ),
-            prefix_caching_mamba_gb=mcore_generation_config.get("prefix_caching_mamba_gb", 50),
-            prefix_caching_eviction_policy=PrefixCachingEvictionPolicy.LRU,
-            prefix_cache_ttl_seconds=mcore_generation_config.get(
-                "prefix_cache_ttl_seconds", 300.0
-            ),
-            # Absent from config, leave mcore's defaults alone rather than restating
-            # them here; both only apply under the longest_prefix policy.
-            **(
-                {
-                    "prefix_caching_cost_policy": PrefixCachingCostPolicy(
-                        mcore_generation_config["prefix_caching_cost_policy"]
-                    )
-                }
-                if "prefix_caching_cost_policy" in mcore_generation_config
-                else {}
-            ),
-            **(
-                {"prefix_caching_load_beta": mcore_generation_config["prefix_caching_load_beta"]}
-                if "prefix_caching_load_beta" in mcore_generation_config
-                else {}
-            ),
+            **{
+                key: mcore_generation_config[key]
+                for key in (
+                    "prefix_caching_mamba_gb",
+                    "prefix_cache_ttl_seconds",
+                    "prefix_caching_routing_alpha",
+                )
+                if key in mcore_generation_config
+            },
             pg_collection=pg_collection,
             async_sched_mode=AsyncScheduleMode.ASYNC,
             mamba_inference_state_config=mamba_inference_state_config,
@@ -469,15 +450,11 @@ class MegatronGenerationMixin:
 
     def _setup_openai_api_server(self) -> str:
         """Start the OpenAI-compatible HTTP server on this worker."""
-        import random
-
         from megatron.core.inference.text_generation_server.dynamic_text_gen_server.text_generation_server import (
             start_text_gen_server,
         )
-        from megatron.core.utils import get_pg_rank
 
         from nemo_rl.distributed.virtual_cluster import (
-            _get_free_port_local,
             _get_node_ip_local,
         )
 
@@ -485,27 +462,22 @@ class MegatronGenerationMixin:
         coordinator_policy = _resolve_coordinator_policy(gen_cfg)
 
         ip = _get_node_ip_local()
-        # A driver-reserved socket carries its own port and is used as-is. It is
-        # reserved for one server, so it only covers the rank that received one;
-        # every other rank now hosting a frontend has to find its own port.
+        # The driver reserves one address per frontend-hosting rank and hands
+        # every one of them to NeMo Gym, so a frontend rank always arrives here
+        # holding its own socket. Binding a port here instead would advertise an
+        # address Gym never received, and that frontend would take no traffic.
         reserved_socket = self._reserved_http_server_socket
-        if reserved_socket is not None:
-            server_port = reserved_socket.getsockname()[1]
-        else:
-            # Seed the port draw per DP rank. The default generator is seeded per
-            # run, so every rank produces the same candidate sequence; ranks
-            # sharing a node then converge on one port, and because each frontend
-            # replica binds with SO_REUSEPORT the duplicate bind succeeds instead
-            # of failing. The result is several ranks advertising one address,
-            # which collapses into a single client-side connection pool.
-            dp_rank = get_pg_rank(self.dynamic_inference_engine.pg_collection.dp)
-            server_port = _get_free_port_local(rng=random.Random(dp_rank))
+        if reserved_socket is None:
+            raise RuntimeError(
+                f"Rank {torch.distributed.get_rank()} hosts an HTTP frontend but "
+                "received no reserved socket. The driver reserves one address per "
+                "model-parallel coordinator; this rank was not among them, so its "
+                "address was never published to NeMo Gym."
+            )
+        server_port = reserved_socket.getsockname()[1]
 
-        # Each HTTP frontend replica is a single asyncio event loop, so frontend
-        # capacity is the replica count. The old max(dp_size, 4) sized one rank's
-        # server to feed every engine; now that every rank hosts one, aggregate
-        # capacity is world_size * this, and scaling per rank with dp_size would
-        # square it (1024 processes at r16, each holding a copy of the tokenizer).
+        # Each replica is one asyncio event loop, so this is the per-host
+        # frontend capacity; every model-parallel coordinator hosts a set.
         num_replicas = 8
 
         start_text_gen_server(
@@ -558,9 +530,6 @@ class MegatronGenerationMixin:
         future.result()
         print(f"[Rank {torch.distributed.get_rank()}] Coordinator started")
 
-        # One frontend per model-parallel group. Frontend work (chat template,
-        # detokenize, parsers, JSON) is CPU-bound, so hosting it on a single rank
-        # caps throughput at that rank's cores.
         if (
             self.cfg["generation"]["mcore_generation_config"]["expose_http_server"]
             and self.dynamic_inference_engine.is_mp_coordinator

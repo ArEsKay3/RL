@@ -433,7 +433,7 @@ class MegatronPolicyWorkerImpl(
         *,
         worker_sharding_annotations: NamedSharding,
         skip_weight_load: bool = False,
-        reserved_http_server_port: Optional[int] = None,
+        reserved_http_server_ports: Optional[dict[int, int]] = None,
         **kwargs: Any,
     ):
         """Initialize the MegatronPolicyWorker."""
@@ -477,10 +477,9 @@ class MegatronPolicyWorkerImpl(
         # The port holder has kept it bound and listening since reservation, so
         # there was no window in which the pre-published URL could be stolen.
         self._reserved_http_server_socket: Optional[socket.socket] = None
-        if reserved_http_server_port is not None and self.rank == 0:
-            self._reserved_http_server_socket = receive_held_socket(
-                reserved_http_server_port
-            )
+        reserved_port = (reserved_http_server_ports or {}).get(self.rank)
+        if reserved_port is not None:
+            self._reserved_http_server_socket = receive_held_socket(reserved_port)
 
         # Step 1: Setup distributed
         setup_distributed(config)

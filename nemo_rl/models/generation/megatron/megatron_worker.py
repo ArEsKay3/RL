@@ -570,7 +570,7 @@ class MegatronGenerationMixin:
             "static_kv_memory_pointers": needs_static_kv_pointers,
             "use_cuda_graphs_for_non_decode_steps": use_cuda_graphs_for_non_decode_steps,
             "use_flashinfer_fused_rope": use_flashinfer_fused_rope,
-            "sampling_backend": "flashinfer",
+            "sampling_backend": mcore_generation_config["sampling_backend"],
             "use_synchronous_zmq_collectives": True,
             "materialize_only_last_token_logits": materialize_only_last_token_logits,
             "enable_chunked_prefill": enable_chunked_prefill,

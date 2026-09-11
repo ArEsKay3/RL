@@ -85,7 +85,11 @@ from nemo_rl.distributed.virtual_cluster import (
     prepare_segment_topology,
 )
 from nemo_rl.environments.interfaces import EnvironmentInterface
-from nemo_rl.environments.nemo_gym import should_use_nemo_gym, spinup_nemo_gym_actor
+from nemo_rl.environments.nemo_gym import (
+    DEFAULT_INVALID_TOOL_CALL_PATTERNS,
+    should_use_nemo_gym,
+    spinup_nemo_gym_actor,
+)
 from nemo_rl.experience.interfaces import (
     FRONTIER_ORDINAL_KEY,
     NEMO_GYM_TASK_INDEX_KEY,
@@ -2729,10 +2733,316 @@ def _resolve_logprob_skip_flags(
     )
 
 
+def _dump_logprob_pairs(
+    train_data: BatchedDataDict,
+    mask: torch.Tensor,
+    seq_mult_prob_error: torch.Tensor,
+    rewards: torch.Tensor,
+    step: Optional[int],
+) -> None:
+    """Dump inference/training logprobs and their per-token mismatch.
+
+    Enabled by setting NRL_LOGPROB_DUMP_DIR; a no-op otherwise.
+
+    Only masked-in tokens are written. The dense tensors are
+    [train_global_batch_size, max_total_sequence_length] -- 8192 x 73728 at
+    study scale, i.e. terabytes per step -- while the tokens that actually
+    carry signal are a few tens of millions, some hundreds of MB. Sequences are
+    concatenated flat and seq_token_counts lets them be split apart again.
+
+    Written in float32 rather than half precision: this exists to compare the
+    *shape* of the inference/training mismatch distribution between engines, so
+    quantising the values would defeat the purpose.
+
+    Never raises. A dump failure must not kill a multi-hour run.
+    """
+    dump_dir = os.environ.get("NRL_LOGPROB_DUMP_DIR")
+    if not dump_dir:
+        return
+    try:
+        os.makedirs(dump_dir, exist_ok=True)
+        keep = mask.bool()
+        gen = train_data["generation_logprobs"][:, 1:][keep].detach().float().cpu()
+        prev = train_data["prev_logprobs"][:, 1:][keep].detach().float().cpu()
+        payload = {
+            "step": step,
+            # Inference-side logprobs, as handed to NeMo RL by the generation engine.
+            "generation_logprobs": gen,
+            # Training-side logprobs from the policy forward.
+            "prev_logprobs": prev,
+            # Per-token mismatch, the quantity seq_mult_prob_error aggregates.
+            "lp_error": (gen - prev).abs(),
+            "seq_token_counts": keep.sum(dim=-1).cpu(),
+            "seq_mult_prob_error": seq_mult_prob_error.detach().float().cpu(),
+            "sample_mask": train_data["sample_mask"].detach().float().cpu(),
+            "rewards": rewards.detach().float().cpu(),
+        }
+
+        # Full trajectories: prompt + generation token ids, plus the mask that
+        # separates them. Enabled by NRL_TRAJECTORY_DUMP=1 because it roughly
+        # doubles the file size.
+        #
+        # input_ids is padded to max_total_sequence_length (73728), so a dense
+        # save would be 8192 x 73728 x 4B = 2.4 TB per step. Trim each sequence
+        # to its own input_length and concatenate flat; input_lengths splits it
+        # back apart. token_mask is bit-packed -- it is one bool per token and
+        # would otherwise cost more than the ids it describes.
+        if os.environ.get("NRL_TRAJECTORY_DUMP") == "1":
+            lengths = train_data["input_lengths"].detach().cpu().to(torch.int64)
+            ids = train_data["input_ids"].detach().cpu()
+            flat_ids = torch.cat(
+                [ids[i, : int(lengths[i])] for i in range(ids.shape[0])]
+            ).to(torch.int32)
+            tmask = train_data["token_mask"].detach().cpu().to(torch.bool)
+            flat_mask = torch.cat(
+                [tmask[i, : int(lengths[i])] for i in range(tmask.shape[0])]
+            )
+            payload["input_ids"] = flat_ids
+            payload["input_lengths"] = lengths
+            payload["token_mask_packed"] = torch.from_numpy(
+                np.packbits(flat_mask.numpy())
+            )
+            payload["token_mask_numel"] = int(flat_mask.numel())
+            # Alignment, because the two halves of this file are indexed
+            # differently and silently mismatching them would be easy:
+            #   input_ids / token_mask are full length, position j is token j.
+            #   generation_logprobs / prev_logprobs cover token_mask[:, 1:],
+            #     since logits at position j predict the token at j+1.
+            # So the logprob for input_ids[j] is at logprob index j-1 within
+            # that sequence, and position 0 has no logprob.
+            payload["logprob_position_offset"] = 1
+        path = os.path.join(
+            dump_dir, f"logprobs_step{(step if step is not None else 0):05d}.pt"
+        )
+        torch.save(payload, path)
+        print(
+            f"▶ [logprob-dump] step={step} wrote {gen.numel()} token pairs -> {path}",
+            flush=True,
+        )
+    except Exception as e:  # noqa: BLE001 - diagnostics must never fail the run
+        print(f"▶ [logprob-dump] FAILED: {type(e).__name__}: {e}", flush=True)
+
+
+def _dump_advantage_reconstruction(
+    train_data: BatchedDataDict,
+    message_logs: list,
+    master_config: MasterConfig,
+    step: Optional[int],
+    adv_pre_penalty: Optional[torch.Tensor] = None,
+) -> None:
+    """Dump what is needed to reconstruct ``advantages/mean`` offline.
+
+    The trajectory dump is written inside seq-logprob-error masking, which runs
+    *before* the advantage pipeline, so it captures rewards but not advantages.
+    Reconstructing the logged metric from it falls short by ~0.003 because two
+    later stages are invisible: ``_apply_message_level_advantage_penalties``
+    OVERWRITES whole assistant-message spans with
+    ``grpo.invalid_tool_call_advantage`` (-5.0), and ``_clip_grpo_advantages``
+    clamps to +/-20.
+
+    The logged metric is ``mean(advantages[token_loss_mask])``, and
+    ``train_data["token_mask"]`` IS ``flat_messages["token_loss_mask"]``, so the
+    per-sequence numerator/denominator written here reproduce it exactly:
+
+        advantages/mean == adv_sum.sum() / n_tok.sum()
+
+    Call AFTER penalties and clipping. Read-only: it re-walks ``message_logs``
+    with the same flag checks the penalty pass uses rather than threading state
+    out of it, so the training path is untouched.
+
+    Enabled by NRL_LOGPROB_DUMP_DIR (same switch as the trajectory dump).
+    Never raises -- a dump failure must not kill a multi-hour run.
+    """
+    dump_dir = os.environ.get("NRL_LOGPROB_DUMP_DIR")
+    if not dump_dir:
+        return
+    try:
+        adv = train_data["advantages"]
+        tok_mask = train_data["token_mask"].bool()
+        if adv.dim() == 1:  # per-sample; expand for the masked reduction
+            adv = adv.unsqueeze(-1).expand_as(tok_mask)
+        adv_masked = adv * tok_mask
+        n_seq = tok_mask.shape[0]
+
+        (
+            invalid_neg_adv,
+            malformed_neg_adv,
+        ) = _resolve_message_level_advantage_penalties(master_config)
+
+        # Flagged messages are also captured verbatim. The detector is a bare
+        # substring test for "<tool_call>" / "</tool_call>" / "<function_call>" /
+        # "</function_call>" in the rendered text, so it cannot tell a genuine
+        # unexecuted call from the model merely *mentioning* the markup (in a code
+        # block, or when explaining tool syntax). Keeping the token ids lets that
+        # be adjudicated offline instead of guessed at.
+        max_flagged = int(os.environ.get("NRL_ADV_DUMP_MAX_FLAGGED", "256"))
+        flagged: list[dict] = []
+
+        # Message-object shape, for the engine-parity question the token stream
+        # cannot answer. Recomputing the penalty flags from tokens agrees with
+        # the recorded reward at the same rate on both engines, which rules out
+        # asymmetric *labelling* -- but not a parser difference that changes the
+        # message objects themselves, since tokens and label would then move
+        # together and look self-consistent. This records the structure (turn
+        # count, roles, per-message spans, which flags and keys are present) so
+        # the two can be compared directly. Off by default: one dict per message
+        # per sequence is large at bs1024.
+        dump_msg_log = os.environ.get("NRL_ADV_DUMP_MESSAGE_LOG") == "1"
+        msg_structure: list[list[dict]] = []
+
+        pen_tok = torch.zeros(n_seq, dtype=torch.long)
+        n_invalid = torch.zeros(n_seq, dtype=torch.long)
+        n_malformed = torch.zeros(n_seq, dtype=torch.long)
+        for i, message_log in enumerate(message_logs):
+            if i >= n_seq:
+                break
+            token_offset = 0
+            per_seq: list[dict] = []
+            for j, message in enumerate(message_log):
+                token_ids = cast(torch.Tensor, message["token_ids"])
+                msg_len = len(token_ids)
+                is_assistant = (
+                    message["role"] == "assistant" and "generation_logprobs" in message
+                )
+                is_invalid = (
+                    is_assistant
+                    and invalid_neg_adv is not None
+                    and message.get("is_invalid_tool_call", False)
+                )
+                is_malformed = (
+                    is_assistant
+                    and malformed_neg_adv is not None
+                    and message.get("has_malformed_thinking", False)
+                )
+                if is_invalid or is_malformed:
+                    span = tok_mask[i, token_offset : token_offset + msg_len]
+                    n_span = int(span.sum())
+                    pen_tok[i] += n_span
+                    n_invalid[i] += int(is_invalid)
+                    n_malformed[i] += int(is_malformed and not is_invalid)
+                    if len(flagged) < max_flagged:
+                        flagged.append(
+                            {
+                                "seq_index": i,
+                                "msg_index": j,
+                                "role": message["role"],
+                                "is_invalid_tool_call": bool(is_invalid),
+                                "has_malformed_thinking": bool(is_malformed),
+                                "token_offset": token_offset,
+                                "n_tokens": msg_len,
+                                "n_penalised_tokens": n_span,
+                                "content": message.get("content", ""),
+                                "token_ids": token_ids.detach().to(torch.int32).cpu(),
+                            }
+                        )
+                if dump_msg_log:
+                    content = message.get("content")
+                    per_seq.append(
+                        {
+                            "msg_index": j,
+                            "role": message.get("role"),
+                            "n_tokens": msg_len,
+                            "token_offset": token_offset,
+                            # n_tokens counts the rendered span; this is how many
+                            # of them the loss actually sees.
+                            "n_masked_tokens": int(
+                                tok_mask[i, token_offset : token_offset + msg_len].sum()
+                            ),
+                            "has_generation_logprobs": "generation_logprobs" in message,
+                            "is_assistant_generation": bool(is_assistant),
+                            # Raw flags as the parser set them, independent of
+                            # whether the corresponding penalty is configured.
+                            "flag_invalid_tool_call": bool(
+                                message.get("is_invalid_tool_call", False)
+                            ),
+                            "flag_malformed_thinking": bool(
+                                message.get("has_malformed_thinking", False)
+                            ),
+                            "content_type": type(content).__name__,
+                            "content_len": (
+                                len(content) if hasattr(content, "__len__") else None
+                            ),
+                            # Key set is the discriminator: a parser that builds
+                            # message objects differently shows up here first.
+                            "keys": sorted(message.keys()),
+                        }
+                    )
+                token_offset += msg_len
+            if dump_msg_log:
+                msg_structure.append(per_seq)
+
+        # Config readback is best-effort and isolated: it is provenance, not
+        # data, and an unexpected config shape must not cost us the dump (it
+        # already did once -- MasterConfig is a dataclass, not a Mapping).
+        clip_low = clip_high = None
+        try:
+            grpo_cfg = (
+                master_config["grpo"]
+                if isinstance(master_config, dict)
+                else master_config.grpo
+            )
+            get = (
+                grpo_cfg.get
+                if isinstance(grpo_cfg, dict)
+                else lambda k, d=None: getattr(grpo_cfg, k, d)
+            )
+            clip_low = get("advantage_clip_low")
+            clip_high = get("advantage_clip_high")
+        except Exception as cfg_e:  # noqa: BLE001
+            print(f"▶ [adv-dump] config readback skipped: {cfg_e}", flush=True)
+        payload = {
+            "step": step,
+            # advantages/mean == adv_sum.sum() / n_tok.sum(), exactly.
+            "adv_sum": adv_masked.sum(-1).detach().float().cpu(),
+            "n_tok": tok_mask.sum(-1).detach().cpu(),
+            # Tokens whose advantage was OVERWRITTEN by a message-level penalty.
+            # The un-penalised per-sequence advantage is recoverable as
+            #   (adv_sum - penalty_value * pen_tok) / (n_tok - pen_tok),
+            # for sequences with n_tok > pen_tok.
+            "penalised_tokens": pen_tok,
+            # Per-sequence advantage as the estimator produced it, BEFORE the
+            # message-level overwrite. Captured at the call site because a
+            # sequence whose whole generation is flagged has no un-penalised
+            # token left to back it out of adv_sum.
+            "adv_pre_penalty": adv_pre_penalty,
+            "num_invalid_tool_calls": n_invalid,
+            "num_malformed_thinking": n_malformed,
+            # Verbatim flagged messages (token ids -> decode offline with the
+            # policy tokenizer). Capped by NRL_ADV_DUMP_MAX_FLAGGED (default 256);
+            # n_flagged_total records how many there really were, so truncation
+            # is visible rather than silent.
+            "flagged_messages": flagged,
+            "n_flagged_total": int((n_invalid + n_malformed).sum()),
+            # Per-sequence message-object structure; [] unless
+            # NRL_ADV_DUMP_MESSAGE_LOG=1. See the comment at its construction.
+            "message_structure": msg_structure,
+            "invalid_tool_call_patterns": DEFAULT_INVALID_TOOL_CALL_PATTERNS,
+            "invalid_tool_call_advantage": invalid_neg_adv,
+            "malformed_thinking_advantage": malformed_neg_adv,
+            "advantage_clip_low": clip_low,
+            "advantage_clip_high": clip_high,
+        }
+        os.makedirs(dump_dir, exist_ok=True)
+        path = os.path.join(dump_dir, f"adv_step{step:05d}.pt")
+        torch.save(payload, path)
+        tot = max(int(payload["n_tok"].sum()), 1)
+        print(
+            f"▶ [adv-dump] step={step} advantages/mean="
+            f"{(payload['adv_sum'].sum() / tot).item():.6f} "
+            f"penalised_tokens={int(pen_tok.sum())}/{tot} "
+            f"({100 * int(pen_tok.sum()) / tot:.4f}%) "
+            f"seqs_with_invalid_tool_call={int((n_invalid > 0).sum())} -> {path}",
+            flush=True,
+        )
+    except Exception as e:  # noqa: BLE001 - diagnostics must never fail the run
+        print(f"▶ [adv-dump] FAILED: {type(e).__name__}: {e}", flush=True)
+
+
 def compute_and_apply_seq_logprob_error_masking(
     train_data: BatchedDataDict,
     rewards: torch.Tensor,
     seq_logprob_error_threshold: Optional[float],
+    step: Optional[int] = None,
 ) -> dict:
     """Compute sequence-level logprob error metrics and optionally mask high-error sequences.
 
@@ -2787,6 +3097,16 @@ def compute_and_apply_seq_logprob_error_masking(
         max_seq_mult_prob_error = 0.0
         mean_seq_mult_prob_error = 0.0
         min_seq_mult_prob_error = 0.0
+
+    # Dump before masking mutates sample_mask, so the dump reflects everything
+    # generation produced rather than only what survived the threshold.
+    _dump_logprob_pairs(
+        train_data=train_data,
+        mask=mask,
+        seq_mult_prob_error=seq_mult_prob_error,
+        rewards=rewards,
+        step=step,
+    )
 
     # Apply sequence-level masking if configured
     num_masked_seqs = 0
@@ -3542,6 +3862,7 @@ def grpo_train(
                         train_data=train_data,
                         rewards=rewards,
                         seq_logprob_error_threshold=seq_logprob_error_threshold,
+                        step=current_step,
                     )
                     seq_logprob_error_metrics = seq_error_result
                     if "num_masked_seqs" in seq_logprob_error_metrics:
@@ -3573,6 +3894,14 @@ def grpo_train(
                         logprobs_reference=train_data.get("reference_policy_logprobs"),
                     )
                     del prompt_ids_for_adv
+                    # One scalar per sequence: pre-penalty advantage is constant
+                    # along a sequence, and the tensor is an expanded zero-stride
+                    # view, so take column 0 rather than cloning it.
+                    _adv_pre_penalty = (
+                        train_data["advantages"][:, 0].detach().float().cpu()
+                        if train_data["advantages"].dim() > 1
+                        else train_data["advantages"].detach().float().cpu()
+                    )
 
                     # Log rewards and advantages information
                     _log_mixed_rewards_and_advantages_information(
@@ -3593,6 +3922,17 @@ def grpo_train(
                     # Clip advantages to prevent extreme values from small std normalization
                     train_data["advantages"] = _clip_grpo_advantages(
                         train_data["advantages"], master_config.grpo
+                    )
+
+                    # Advantages are final here (estimator -> message-level
+                    # penalties -> clip), which is the only point at which the
+                    # logged advantages/mean is reconstructible offline.
+                    _dump_advantage_reconstruction(
+                        train_data=train_data,
+                        message_logs=repeated_batch["message_log"],
+                        master_config=master_config,
+                        step=current_step,
+                        adv_pre_penalty=_adv_pre_penalty,
                     )
 
                 memory_tracker.snapshot_start_of_stage("Policy train", dir())
@@ -5297,6 +5637,7 @@ def async_grpo_train(
                         train_data=train_data,
                         rewards=rewards,
                         seq_logprob_error_threshold=seq_logprob_error_threshold,
+                        step=step,
                     )
                     seq_logprob_error_metrics = seq_error_result
                     if "num_masked_seqs" in seq_logprob_error_metrics:
@@ -5359,6 +5700,15 @@ def async_grpo_train(
                         f"  📊 Advantages stats: min={advantages.min():.4f}, max={advantages.max():.4f}, mean={advantages.mean():.4f}, std={advantages.std():.4f}"
                     )
 
+                    # One scalar per sequence: pre-penalty advantage is constant
+                    # along a sequence, and the tensor is an expanded zero-stride
+                    # view, so take column 0 rather than cloning it.
+                    _adv_pre_penalty = (
+                        train_data["advantages"][:, 0].detach().float().cpu()
+                        if train_data["advantages"].dim() > 1
+                        else train_data["advantages"].detach().float().cpu()
+                    )
+
                     penalty_metrics = (
                         _apply_configured_message_level_advantage_penalties(
                             train_data,
@@ -5371,6 +5721,17 @@ def async_grpo_train(
                     # Clip advantages to prevent extreme values from small std normalization
                     train_data["advantages"] = _clip_grpo_advantages(
                         train_data["advantages"], master_config.grpo
+                    )
+
+                    # Advantages are final here (estimator -> message-level
+                    # penalties -> clip), which is the only point at which the
+                    # logged advantages/mean is reconstructible offline.
+                    _dump_advantage_reconstruction(
+                        train_data=train_data,
+                        message_logs=repeated_batch["message_log"],
+                        master_config=master_config,
+                        step=step,
+                        adv_pre_penalty=_adv_pre_penalty,
                     )
 
                 print("▶ Preparing for training...")

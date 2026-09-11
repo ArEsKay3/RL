@@ -257,14 +257,19 @@ class MegatronGenerationMixin:
                 else {}
             ),
             use_flashinfer_fused_rope=use_flashinfer_fused_rope,
-            # Megatron-Core defaults this to "torch"; we override to flashinfer
-            # for throughput. NRL_MINF_SAMPLING_BACKEND selects the other one
-            # without a rebuild, so the two kernels can be compared on the same
-            # model. Note mcore silently falls back to torch (with a warning) if
+            # "torch" is both Megatron-Core's default and the convergence
+            # study's: the Gumbel-max exponential-race fix (PR#16) lives in
+            # torch_sampling.py, so only this path carries it, and only this
+            # path prints the [minf-sampler] banner that proves at runtime which
+            # kernel ran. Defaulting to flashinfer meant a launch that simply
+            # forgot the env var sampled through a different kernel than the arm
+            # it was being compared against -- silent, and invisible in the
+            # config, since this is read from the environment rather than from
+            # Hydra. NRL_MINF_SAMPLING_BACKEND=flashinfer still selects the
+            # faster kernel explicitly when throughput matters more than parity.
+            # Note mcore silently falls back to torch (with a warning) if
             # flashinfer is requested but not installed.
-            sampling_backend=os.environ.get(
-                "NRL_MINF_SAMPLING_BACKEND", "flashinfer"
-            ),
+            sampling_backend=os.environ.get("NRL_MINF_SAMPLING_BACKEND", "torch"),
             use_synchronous_zmq_collectives=True,
             materialize_only_last_token_logits=materialize_only_last_token_logits,
             enable_chunked_prefill=enable_chunked_prefill,

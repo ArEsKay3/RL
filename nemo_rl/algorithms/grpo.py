@@ -85,7 +85,11 @@ from nemo_rl.distributed.virtual_cluster import (
     prepare_segment_topology,
 )
 from nemo_rl.environments.interfaces import EnvironmentInterface
-from nemo_rl.environments.nemo_gym import should_use_nemo_gym, spinup_nemo_gym_actor
+from nemo_rl.environments.nemo_gym import (
+    DEFAULT_INVALID_TOOL_CALL_PATTERNS,
+    should_use_nemo_gym,
+    spinup_nemo_gym_actor,
+)
 from nemo_rl.experience.interfaces import (
     FRONTIER_ORDINAL_KEY,
     NEMO_GYM_TASK_INDEX_KEY,
@@ -2674,6 +2678,221 @@ def _dump_logprob_pairs(
         print(f"▶ [logprob-dump] FAILED: {type(e).__name__}: {e}", flush=True)
 
 
+def _dump_advantage_reconstruction(
+    train_data: BatchedDataDict,
+    message_logs: list,
+    master_config: MasterConfig,
+    step: Optional[int],
+    adv_pre_penalty: Optional[torch.Tensor] = None,
+) -> None:
+    """Dump what is needed to reconstruct ``advantages/mean`` offline.
+
+    The trajectory dump is written inside seq-logprob-error masking, which runs
+    *before* the advantage pipeline, so it captures rewards but not advantages.
+    Reconstructing the logged metric from it falls short by ~0.003 because two
+    later stages are invisible: ``_apply_message_level_advantage_penalties``
+    OVERWRITES whole assistant-message spans with
+    ``grpo.invalid_tool_call_advantage`` (-5.0), and ``_clip_grpo_advantages``
+    clamps to +/-20.
+
+    The logged metric is ``mean(advantages[token_loss_mask])``, and
+    ``train_data["token_mask"]`` IS ``flat_messages["token_loss_mask"]``, so the
+    per-sequence numerator/denominator written here reproduce it exactly:
+
+        advantages/mean == adv_sum.sum() / n_tok.sum()
+
+    Call AFTER penalties and clipping. Read-only: it re-walks ``message_logs``
+    with the same flag checks the penalty pass uses rather than threading state
+    out of it, so the training path is untouched.
+
+    Enabled by NRL_LOGPROB_DUMP_DIR (same switch as the trajectory dump).
+    Never raises -- a dump failure must not kill a multi-hour run.
+    """
+    dump_dir = os.environ.get("NRL_LOGPROB_DUMP_DIR")
+    if not dump_dir:
+        return
+    try:
+        adv = train_data["advantages"]
+        tok_mask = train_data["token_mask"].bool()
+        if adv.dim() == 1:  # per-sample; expand for the masked reduction
+            adv = adv.unsqueeze(-1).expand_as(tok_mask)
+        adv_masked = adv * tok_mask
+        n_seq = tok_mask.shape[0]
+
+        (
+            invalid_neg_adv,
+            malformed_neg_adv,
+        ) = _resolve_message_level_advantage_penalties(master_config)
+
+        # Flagged messages are also captured verbatim. The detector is a bare
+        # substring test for "<tool_call>" / "</tool_call>" / "<function_call>" /
+        # "</function_call>" in the rendered text, so it cannot tell a genuine
+        # unexecuted call from the model merely *mentioning* the markup (in a code
+        # block, or when explaining tool syntax). Keeping the token ids lets that
+        # be adjudicated offline instead of guessed at.
+        max_flagged = int(os.environ.get("NRL_ADV_DUMP_MAX_FLAGGED", "256"))
+        flagged: list[dict] = []
+
+        # Message-object shape, for the engine-parity question the token stream
+        # cannot answer. Recomputing the penalty flags from tokens agrees with
+        # the recorded reward at the same rate on both engines, which rules out
+        # asymmetric *labelling* -- but not a parser difference that changes the
+        # message objects themselves, since tokens and label would then move
+        # together and look self-consistent. This records the structure (turn
+        # count, roles, per-message spans, which flags and keys are present) so
+        # the two can be compared directly. Off by default: one dict per message
+        # per sequence is large at bs1024.
+        dump_msg_log = os.environ.get("NRL_ADV_DUMP_MESSAGE_LOG") == "1"
+        msg_structure: list[list[dict]] = []
+
+        pen_tok = torch.zeros(n_seq, dtype=torch.long)
+        n_invalid = torch.zeros(n_seq, dtype=torch.long)
+        n_malformed = torch.zeros(n_seq, dtype=torch.long)
+        for i, message_log in enumerate(message_logs):
+            if i >= n_seq:
+                break
+            token_offset = 0
+            per_seq: list[dict] = []
+            for j, message in enumerate(message_log):
+                token_ids = cast(torch.Tensor, message["token_ids"])
+                msg_len = len(token_ids)
+                is_assistant = (
+                    message["role"] == "assistant" and "generation_logprobs" in message
+                )
+                is_invalid = (
+                    is_assistant
+                    and invalid_neg_adv is not None
+                    and message.get("is_invalid_tool_call", False)
+                )
+                is_malformed = (
+                    is_assistant
+                    and malformed_neg_adv is not None
+                    and message.get("has_malformed_thinking", False)
+                )
+                if is_invalid or is_malformed:
+                    span = tok_mask[i, token_offset : token_offset + msg_len]
+                    n_span = int(span.sum())
+                    pen_tok[i] += n_span
+                    n_invalid[i] += int(is_invalid)
+                    n_malformed[i] += int(is_malformed and not is_invalid)
+                    if len(flagged) < max_flagged:
+                        flagged.append(
+                            {
+                                "seq_index": i,
+                                "msg_index": j,
+                                "role": message["role"],
+                                "is_invalid_tool_call": bool(is_invalid),
+                                "has_malformed_thinking": bool(is_malformed),
+                                "token_offset": token_offset,
+                                "n_tokens": msg_len,
+                                "n_penalised_tokens": n_span,
+                                "content": message.get("content", ""),
+                                "token_ids": token_ids.detach().to(torch.int32).cpu(),
+                            }
+                        )
+                if dump_msg_log:
+                    content = message.get("content")
+                    per_seq.append(
+                        {
+                            "msg_index": j,
+                            "role": message.get("role"),
+                            "n_tokens": msg_len,
+                            "token_offset": token_offset,
+                            # n_tokens counts the rendered span; this is how many
+                            # of them the loss actually sees.
+                            "n_masked_tokens": int(
+                                tok_mask[i, token_offset : token_offset + msg_len].sum()
+                            ),
+                            "has_generation_logprobs": "generation_logprobs" in message,
+                            "is_assistant_generation": bool(is_assistant),
+                            # Raw flags as the parser set them, independent of
+                            # whether the corresponding penalty is configured.
+                            "flag_invalid_tool_call": bool(
+                                message.get("is_invalid_tool_call", False)
+                            ),
+                            "flag_malformed_thinking": bool(
+                                message.get("has_malformed_thinking", False)
+                            ),
+                            "content_type": type(content).__name__,
+                            "content_len": (
+                                len(content) if hasattr(content, "__len__") else None
+                            ),
+                            # Key set is the discriminator: a parser that builds
+                            # message objects differently shows up here first.
+                            "keys": sorted(message.keys()),
+                        }
+                    )
+                token_offset += msg_len
+            if dump_msg_log:
+                msg_structure.append(per_seq)
+
+        # Config readback is best-effort and isolated: it is provenance, not
+        # data, and an unexpected config shape must not cost us the dump (it
+        # already did once -- MasterConfig is a dataclass, not a Mapping).
+        clip_low = clip_high = None
+        try:
+            grpo_cfg = (
+                master_config["grpo"]
+                if isinstance(master_config, dict)
+                else master_config.grpo
+            )
+            get = (
+                grpo_cfg.get
+                if isinstance(grpo_cfg, dict)
+                else lambda k, d=None: getattr(grpo_cfg, k, d)
+            )
+            clip_low = get("advantage_clip_low")
+            clip_high = get("advantage_clip_high")
+        except Exception as cfg_e:  # noqa: BLE001
+            print(f"▶ [adv-dump] config readback skipped: {cfg_e}", flush=True)
+        payload = {
+            "step": step,
+            # advantages/mean == adv_sum.sum() / n_tok.sum(), exactly.
+            "adv_sum": adv_masked.sum(-1).detach().float().cpu(),
+            "n_tok": tok_mask.sum(-1).detach().cpu(),
+            # Tokens whose advantage was OVERWRITTEN by a message-level penalty.
+            # The un-penalised per-sequence advantage is recoverable as
+            #   (adv_sum - penalty_value * pen_tok) / (n_tok - pen_tok),
+            # for sequences with n_tok > pen_tok.
+            "penalised_tokens": pen_tok,
+            # Per-sequence advantage as the estimator produced it, BEFORE the
+            # message-level overwrite. Captured at the call site because a
+            # sequence whose whole generation is flagged has no un-penalised
+            # token left to back it out of adv_sum.
+            "adv_pre_penalty": adv_pre_penalty,
+            "num_invalid_tool_calls": n_invalid,
+            "num_malformed_thinking": n_malformed,
+            # Verbatim flagged messages (token ids -> decode offline with the
+            # policy tokenizer). Capped by NRL_ADV_DUMP_MAX_FLAGGED (default 256);
+            # n_flagged_total records how many there really were, so truncation
+            # is visible rather than silent.
+            "flagged_messages": flagged,
+            "n_flagged_total": int((n_invalid + n_malformed).sum()),
+            # Per-sequence message-object structure; [] unless
+            # NRL_ADV_DUMP_MESSAGE_LOG=1. See the comment at its construction.
+            "message_structure": msg_structure,
+            "invalid_tool_call_patterns": DEFAULT_INVALID_TOOL_CALL_PATTERNS,
+            "invalid_tool_call_advantage": invalid_neg_adv,
+            "malformed_thinking_advantage": malformed_neg_adv,
+            "advantage_clip_low": clip_low,
+            "advantage_clip_high": clip_high,
+        }
+        os.makedirs(dump_dir, exist_ok=True)
+        path = os.path.join(dump_dir, f"adv_step{step:05d}.pt")
+        torch.save(payload, path)
+        tot = max(int(payload["n_tok"].sum()), 1)
+        print(
+            f"▶ [adv-dump] step={step} advantages/mean="
+            f"{(payload['adv_sum'].sum() / tot).item():.6f} "
+            f"penalised_tokens={int(pen_tok.sum())}/{tot} "
+            f"({100 * int(pen_tok.sum()) / tot:.4f}%) "
+            f"seqs_with_invalid_tool_call={int((n_invalid > 0).sum())} -> {path}",
+            flush=True,
+        )
+    except Exception as e:  # noqa: BLE001 - diagnostics must never fail the run
+        print(f"▶ [adv-dump] FAILED: {type(e).__name__}: {e}", flush=True)
+
+
 def compute_and_apply_seq_logprob_error_masking(
     train_data: BatchedDataDict,
     rewards: torch.Tensor,
@@ -3476,6 +3695,14 @@ def grpo_train(
                         logprobs_reference=train_data.get("reference_policy_logprobs"),
                     )
                     del prompt_ids_for_adv
+                    # One scalar per sequence: pre-penalty advantage is constant
+                    # along a sequence, and the tensor is an expanded zero-stride
+                    # view, so take column 0 rather than cloning it.
+                    _adv_pre_penalty = (
+                        train_data["advantages"][:, 0].detach().float().cpu()
+                        if train_data["advantages"].dim() > 1
+                        else train_data["advantages"].detach().float().cpu()
+                    )
 
                     # Log rewards and advantages information
                     _log_mixed_rewards_and_advantages_information(
@@ -3498,11 +3725,44 @@ def grpo_train(
                         train_data["advantages"], master_config.grpo
                     )
 
+                    # Advantages are final here (estimator -> message-level
+                    # penalties -> clip), which is the only point at which the
+                    # logged advantages/mean is reconstructible offline.
+                    _dump_advantage_reconstruction(
+                        train_data=train_data,
+                        message_logs=repeated_batch["message_log"],
+                        master_config=master_config,
+                        step=current_step,
+                        adv_pre_penalty=_adv_pre_penalty,
+                    )
+
                 memory_tracker.snapshot_start_of_stage("Policy train", dir())
                 print("▶ Preparing for training...", flush=True)
                 with timer.time("training_prep"):
                     policy.prepare_for_training()  # set model train and reload optim to GPU
                     POLICY_GENERATION_STALE = True
+
+                # FROZEN-POLICY MODE (NRL_FREEZE_POLICY=1). Zeroing the advantages
+                # makes the gradient exactly zero rather than merely small: every
+                # term in this loss is proportional to the advantage
+                # (reference_policy_kl_penalty is 0.0 in these configs), and with
+                # weight_decay 0.0 Adam's update is lr*0/(sqrt(0)+eps) = 0. So the
+                # weights are provably unchanged, unlike lr=0 which still admits
+                # momentum and decay effects.
+                #
+                # This exists to compare generation engines at a FIXED checkpoint:
+                # resume vLLM and MINF from the same converged weights, generate,
+                # and never update. Any divergence is then the engine alone, with
+                # no policy feedback. grad_norm should print 0.0 -- if it does not,
+                # the freeze is not working and the run is not usable for that.
+                if os.environ.get("NRL_FREEZE_POLICY") == "1":
+                    train_data["advantages"] = torch.zeros_like(
+                        train_data["advantages"]
+                    )
+                    print(
+                        "▶ [freeze-policy] advantages zeroed; expect grad_norm=0",
+                        flush=True,
+                    )
 
                 print("▶ Training policy...", flush=True)
                 with timer.time("policy_training"):
@@ -5122,6 +5382,15 @@ def async_grpo_train(
                         f"  📊 Advantages stats: min={advantages.min():.4f}, max={advantages.max():.4f}, mean={advantages.mean():.4f}, std={advantages.std():.4f}"
                     )
 
+                    # One scalar per sequence: pre-penalty advantage is constant
+                    # along a sequence, and the tensor is an expanded zero-stride
+                    # view, so take column 0 rather than cloning it.
+                    _adv_pre_penalty = (
+                        train_data["advantages"][:, 0].detach().float().cpu()
+                        if train_data["advantages"].dim() > 1
+                        else train_data["advantages"].detach().float().cpu()
+                    )
+
                     penalty_metrics = (
                         _apply_configured_message_level_advantage_penalties(
                             train_data,
@@ -5136,10 +5405,43 @@ def async_grpo_train(
                         train_data["advantages"], master_config.grpo
                     )
 
+                    # Advantages are final here (estimator -> message-level
+                    # penalties -> clip), which is the only point at which the
+                    # logged advantages/mean is reconstructible offline.
+                    _dump_advantage_reconstruction(
+                        train_data=train_data,
+                        message_logs=repeated_batch["message_log"],
+                        master_config=master_config,
+                        step=step,
+                        adv_pre_penalty=_adv_pre_penalty,
+                    )
+
                 print("▶ Preparing for training...")
                 with timer.time("training_prep"):
                     policy.prepare_for_training()
                     POLICY_GENERATION_STALE = True
+
+                # FROZEN-POLICY MODE (NRL_FREEZE_POLICY=1). Zeroing the advantages
+                # makes the gradient exactly zero rather than merely small: every
+                # term in this loss is proportional to the advantage
+                # (reference_policy_kl_penalty is 0.0 in these configs), and with
+                # weight_decay 0.0 Adam's update is lr*0/(sqrt(0)+eps) = 0. So the
+                # weights are provably unchanged, unlike lr=0 which still admits
+                # momentum and decay effects.
+                #
+                # This exists to compare generation engines at a FIXED checkpoint:
+                # resume vLLM and MINF from the same converged weights, generate,
+                # and never update. Any divergence is then the engine alone, with
+                # no policy feedback. grad_norm should print 0.0 -- if it does not,
+                # the freeze is not working and the run is not usable for that.
+                if os.environ.get("NRL_FREEZE_POLICY") == "1":
+                    train_data["advantages"] = torch.zeros_like(
+                        train_data["advantages"]
+                    )
+                    print(
+                        "▶ [freeze-policy] advantages zeroed; expect grad_norm=0",
+                        flush=True,
+                    )
 
                 print("▶ Training policy...")
                 with timer.time("policy_training"):

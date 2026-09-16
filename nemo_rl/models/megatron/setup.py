@@ -231,6 +231,7 @@ from nemo_rl.models.generation.megatron.config import (
 from nemo_rl.models.megatron.community_import import (
     import_model_from_hf_name,
     iter_vlm_config_overrides,
+    megatron_conversion_is_complete,
 )
 from nemo_rl.models.megatron.config import (
     ColocatedReshardPlan,
@@ -575,9 +576,7 @@ def validate_model_paths(config: PolicyConfig) -> tuple[str, str, bool]:
         overrides_hash = _get_hf_config_overrides_hash(hf_config_overrides)
         hf_model_subdir = f"{hf_model_subdir}__hfovr_{overrides_hash}"
     pretrained_path = os.path.join(get_megatron_checkpoint_dir(), hf_model_subdir)
-    pt_checkpoint_exists = os.path.exists(pretrained_path) and os.path.exists(
-        os.path.join(pretrained_path, "iter_0000000")
-    )
+    pt_checkpoint_exists = megatron_conversion_is_complete(pretrained_path)
     return hf_model_name, pretrained_path, pt_checkpoint_exists
 
 
@@ -2000,6 +1999,7 @@ def handle_model_import(
         model_post_wrap_hook=model_post_wrap_hook,
         transformer_layer_spec=transformer_layer_spec,
         mamba_stack_spec=mamba_stack_spec,
+        overwrite=force_reconvert,
         **hf_config_overrides,
     )
 

@@ -22,7 +22,7 @@ runtime_envs and breaks Ray's resource resolution (see the PR #2692 follow-up).
 from __future__ import annotations
 
 import time
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import Future, ThreadPoolExecutor
 from dataclasses import dataclass
 from functools import partial
 from pathlib import Path
@@ -80,6 +80,7 @@ from nemo_rl.models.generation.generation_router import (
 from nemo_rl.models.generation.interfaces import (
     resolve_routed_experts_dtype_name_for_model,
 )
+from nemo_rl.models.generation.megatron import MegatronGeneration
 from nemo_rl.models.generation.sglang.config import SGLangConfig
 from nemo_rl.models.generation.sglang.sglang_generation import SGLangGeneration
 from nemo_rl.models.generation.vllm import VllmGeneration
@@ -153,10 +154,6 @@ def _build_clusters(
         return cluster, cluster
 
     # Non-colocated: split node into train + inference clusters.
-    assert backend != "megatron", (
-        "The Megatron generation backend does not support non-colocated inference "
-        "in SingleController."
-    )
     inference_resources = generation_config["colocated"]["resources"]
     inference_gpus_per_node = inference_resources["gpus_per_node"]
     if inference_gpus_per_node is None:
@@ -204,17 +201,25 @@ def _build_generation(
     master_config: MasterConfig,
     *,
     defer_model_load: bool = False,
+    tokenizer: Optional[PreTrainedTokenizerBase] = None,
+    processor: Optional[AutoProcessor] = None,
+    weights_path: Optional[Path] = None,
 ) -> tuple[Any, float]:
-    """Spin up the generation backend (vLLM or SGLang).
+    """Spin up the generation backend (vLLM, SGLang or Megatron).
 
     Args:
         inference_cluster: Ray virtual cluster the generation workers run on.
         master_config: SC MasterConfig.
         defer_model_load: If True (for the NeMo-Gym flow), reserve OpenAI server URLs without loading weights; caller runs gen.load_and_start() later.
+        tokenizer: Tokenizer for the megatron backend's dedicated inference policy.
+        processor: Optional AutoProcessor for the megatron backend (VLM paths).
+        weights_path: Checkpointed policy weights the megatron backend loads at
+            construction, or None for the pretrained checkpoint.
 
     Returns:
         A tuple of (generation object, wall time spent in this call). The
-        generation object is a VllmGeneration or SGLangGeneration.
+        generation object is a VllmGeneration, SGLangGeneration or
+        MegatronGeneration.
     """
     t0 = time.perf_counter()
     generation_config = master_config.policy["generation"]
@@ -246,9 +251,27 @@ def _build_generation(
             sglang_cfg=sglang_config,
         )
 
+    elif backend == "megatron":
+        assert not defer_model_load, (
+            "defer_model_load is only supported for the vllm backend"
+        )
+        assert tokenizer is not None, (
+            "the megatron backend needs the tokenizer to build its inference policy"
+        )
+        gen = MegatronGeneration(
+            config=master_config.policy,
+            tokenizer=tokenizer,
+            cluster=inference_cluster,
+            processor=processor,
+            weights_path=weights_path,
+            skip_weight_load=False,
+        )
+        return gen, time.perf_counter() - t0
+
     else:
         raise ValueError(
-            f"single_controller_utils.setup only supports vllm or sglang generation; got {backend!r}"
+            "single_controller_utils.setup only supports vllm, sglang or megatron "
+            f"generation; got {backend!r}"
         )
 
     if not defer_model_load:
@@ -356,8 +379,7 @@ def _generation_max_seq_len(generation_config) -> int:
     """Return the per-backend max sequence length.
 
     vllm uses vllm_cfg.max_model_len; sglang uses sglang_cfg.context_length;
-    megatron generation has no dedicated field and routes max_new_tokens
-    through as max_sequence_length on the inference worker.
+    megatron uses mcore_generation_config.max_model_len.
     """
     backend = generation_config["backend"]
     if backend == "vllm":
@@ -365,8 +387,40 @@ def _generation_max_seq_len(generation_config) -> int:
     if backend == "sglang":
         return generation_config["sglang_cfg"]["context_length"]
     if backend == "megatron":
-        return generation_config["max_new_tokens"]
+        return generation_config["mcore_generation_config"]["max_model_len"]
     raise ValueError(f"Unknown generation backend: {backend!r}")
+
+
+def _validate_megatron_generation(master_config: MasterConfig) -> None:
+    """Reject settings the megatron generation backend cannot honor in SC."""
+    policy_config = master_config.policy
+    generation_config = policy_config["generation"]
+    if not policy_config.get("megatron_cfg", {}).get("enabled", False):
+        raise ValueError(
+            "policy.generation.backend='megatron' requires the Megatron trainer "
+            "(policy.megatron_cfg.enabled=true): refit reshards weights from it."
+        )
+    if generation_config["colocated"]["enabled"]:
+        raise NotImplementedError(
+            "SingleController supports the megatron generation backend only "
+            "non-colocated; set policy.generation.colocated.enabled=false."
+        )
+    kv_cache_mode = generation_config["mcore_generation_config"].get(
+        "kv_cache_management_mode"
+    )
+    recompute = master_config.async_rl.recompute_kv_cache_after_weight_updates
+    if recompute != (kv_cache_mode == "recompute"):
+        raise ValueError(
+            f"async_rl.recompute_kv_cache_after_weight_updates={recompute} conflicts "
+            "with policy.generation.mcore_generation_config."
+            f"kv_cache_management_mode={kv_cache_mode!r}: with the megatron "
+            "backend the two must agree."
+        )
+    if master_config.async_rl.generation_fleet_health.enabled:
+        raise NotImplementedError(
+            "async_rl.generation_fleet_health is not supported for the megatron "
+            "generation backend."
+        )
 
 
 def _clamp_max_num_steps(
@@ -578,10 +632,10 @@ def setup_single_controller(
     # ==========================
     # TODO: add validate dataset wiring.
     use_nemo_gym = should_use_nemo_gym(master_config)
-    if use_nemo_gym and generation_config["backend"] != "vllm":
+    if use_nemo_gym and generation_config["backend"] not in ("vllm", "megatron"):
         raise NotImplementedError(
-            "SC NeMo-Gym integration currently supports the vllm backend "
-            f"only; got {generation_config['backend']!r}"
+            "SC NeMo-Gym integration currently supports the vllm and megatron "
+            f"backends only; got {generation_config['backend']!r}"
         )
     if use_nemo_gym:
         # NeMo-Gym creates the env actor outside setup_response_data; we wire
@@ -616,6 +670,10 @@ def setup_single_controller(
     # ==========================
     setup_start_time = time.perf_counter()
     setup_timing_metrics = SetupTimingMetrics()
+
+    backend = generation_config["backend"]
+    if backend == "megatron":
+        _validate_megatron_generation(master_config)
 
     # Create clusters
     train_cluster, inference_cluster = _build_clusters(master_config)
@@ -680,7 +738,42 @@ def setup_single_controller(
             "NeMo-Gym. Set env.should_use_nemo_gym=true, or disable the router."
         )
 
-    if use_nemo_gym:
+    megatron_generation_ready: Future[Any] = Future()
+
+    def _build_megatron_generation() -> tuple[Any, float]:
+        try:
+            built = _build_generation(
+                inference_cluster,
+                master_config,
+                tokenizer=tokenizer,
+                processor=processor,
+                weights_path=weights_path,
+            )
+        except BaseException as exc:
+            megatron_generation_ready.set_exception(exc)
+            raise
+        megatron_generation_ready.set_result(built[0])
+        return built
+
+    def _spinup_gym_behind_megatron_generation() -> tuple[Any, float]:
+        nonlocal generation_router
+        megatron_generation = megatron_generation_ready.result()
+        generation_router = _maybe_start_generation_router(
+            megatron_generation, master_config
+        )
+        return _spinup_gym(
+            master_config=master_config,
+            base_urls=(
+                [ray.get(generation_router.base_url.remote())]
+                if generation_router is not None
+                else megatron_generation.dp_openai_server_base_urls
+            ),
+            tokenizer=tokenizer,
+        )
+
+    if use_nemo_gym and backend == "megatron":
+        build_tasks["nemo_gym"] = _spinup_gym_behind_megatron_generation
+    elif use_nemo_gym:
         # defer generation, only get base_urls for nemo_gym spinup
         generation, gen_reserve_time = _build_generation(
             inference_cluster,
@@ -718,6 +811,8 @@ def setup_single_controller(
                 _finish_deferred_generation,
                 generation=generation,
             )
+        elif backend == "megatron":
+            build_tasks["generation"] = _build_megatron_generation
         else:
             build_tasks["generation"] = partial(
                 _build_generation,

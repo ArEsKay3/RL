@@ -34,6 +34,7 @@ from nemo_rl.models.policy import PolicyConfig
 from nemo_rl.weight_sync.interfaces import WeightSynchronizer
 
 if TYPE_CHECKING:
+    from nemo_rl.distributed.worker_groups import RayWorkerGroup
     from nemo_rl.models.policy.lm_policy import Policy
 
 
@@ -165,6 +166,10 @@ class MegatronGeneration(GenerationInterface):
 
         # Start the persistent inference engine + HTTP server during construction.
         self.prepare_for_generation()
+
+    @property
+    def worker_group(self) -> "RayWorkerGroup":
+        return self._policy.worker_group
 
     def init_collective(
         self,

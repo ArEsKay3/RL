@@ -1,0 +1,48 @@
+# SWE-E2E v2 (streaming, in_order lag 1) served by Megatron in-engine inference
+# instead of vLLM. Everything except policy.generation is inherited.
+defaults: swe_sc_cmh_stream4.yaml
+
+policy:
+  generation:
+    backend: "megatron"
+    port_range_low: 11001
+    port_range_high: 15000
+    mcore_generation_config:
+      tensor_model_parallel_size: 4
+      expert_model_parallel_size: 4
+      expert_tensor_parallel_size: 1
+      pipeline_model_parallel_size: 1
+      context_parallel_size: 1
+      sequence_parallel: true
+      max_model_len: ${policy.max_total_sequence_length}
+      transformer_impl: "inference_optimized"
+      activation_checkpointing: false
+      mamba_inference_ssm_states_dtype: "float32"
+      inference_grouped_gemm_backend: "vllm"
+      moe_router_num_groups: null
+      moe_router_group_topk: null
+      cuda_graph_impl: "local"
+      inference_cuda_graph_scope: "block"
+      num_cuda_graphs: -1
+      use_cuda_graphs_for_non_decode_steps: true
+      buffer_size_gb: 70
+      block_size_tokens: 256
+      max_tokens: 16384
+      enable_chunked_prefill: true
+      enable_prefix_caching: true
+      prefix_caching_coordinator_policy: "longest_prefix"
+      materialize_only_last_token_logits: true
+      kv_cache_management_mode: "persist"
+      expose_http_server: true
+      num_speculative_tokens: 0
+      refit_backend: "nvshmem"
+      offload_policy_before_refit: false
+      logging_step_interval: 100
+      parsers:
+        - nemotron-v3-reasoning
+        - qwen3-coder-tool
+    colocated:
+      enabled: false
+      resources:
+        gpus_per_node: 4
+        num_nodes: 32

@@ -46,6 +46,7 @@ from nemo_rl.experience.interfaces import (
     PromptGroupRecord,
 )
 from nemo_rl.experience.metric_utils import calculate_single_metric, pct
+from nemo_rl.experience.rollout_dump import RolloutDumpWriter
 from nemo_rl.experience.rollouts import (
     _attach_routed_experts_to_message_log_prefix,
     _dummy_routed_experts_for_tokens,
@@ -1185,10 +1186,12 @@ class RolloutManager:
         tq_buffer: Optional[TQReplayBuffer] = None,
         timeouts: Optional[RolloutTimeouts] = None,
         retry_policy: Optional[RolloutRetryPolicy] = None,
+        dump_writer: Optional[RolloutDumpWriter] = None,
     ) -> None:
         assert num_generations_per_prompt >= 1, (
             "num_generations_per_prompt must be >= 1"
         )
+        self._dump_writer = dump_writer
         # Resolved before the impl is built: the NeMo-Gym impl reads its row-retry
         # budget out of it at construction time, and shares the counters so its
         # row-level re-dispatches land in the same place as everything else.
@@ -1356,7 +1359,7 @@ class RolloutManager:
                     if inflight_registry is not None:
                         inflight_registry.pop(group_id, None)
                 end_version = self._weight_version
-                await self._tq_buffer.commit(
+                committed_meta = await self._tq_buffer.commit(
                     group_id,
                     record,
                     start_weight_version=start_version,
@@ -1433,6 +1436,16 @@ class RolloutManager:
             # the success path rather than in the infra handler so that a prompt which
             # succeeded on a retry also counts -- the fleet recovered either way.
             self._consecutive_infra_drops = 0
+            if self._dump_writer is not None:
+                self._dump_writer.write_group(
+                    record,
+                    group_id=group_id,
+                    journal_id=rollout_journal_id,
+                    sample_ids=list(committed_meta.sample_ids),
+                    target_step=target_step,
+                    start_weight_version=start_version,
+                    end_weight_version=end_version,
+                )
             return RolloutOutcome.COMMITTED
 
         # The infrastructure budget ran out. The same failure followed the prompt across

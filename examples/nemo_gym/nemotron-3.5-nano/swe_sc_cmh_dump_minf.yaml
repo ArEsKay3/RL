@@ -1,0 +1,11 @@
+# SWE-E2E v2 (streaming, in_order lag 1) on Megatron in-engine inference with
+# offline rollout and token-level dumps. Everything except the dump block is
+# inherited from the MINF recipe.
+defaults: swe_sc_cmh_minf.yaml
+
+async_rl:
+  dump:
+    enabled: true
+    dir: null
+    rollout_text: true
+    token_level: true

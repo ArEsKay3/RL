@@ -235,6 +235,16 @@ class RolloutDumpWriter:
             }
             if self._include_text:
                 row["prompt_messages"] = prompt_messages
+                completion_params = env_extras.get("responses_create_params")
+                row["prompt_input"] = (
+                    completion_params.get("input")
+                    if isinstance(completion_params, Mapping)
+                    else (
+                        create_params.get("input")
+                        if isinstance(create_params, Mapping)
+                        else None
+                    )
+                )
                 row["full_result"] = env_extras
             lines.append(json.dumps(row, default=_json_default, ensure_ascii=False))
 

@@ -67,6 +67,7 @@ from nemo_rl.experience.rollout_manager import (
     RolloutRetryPolicy,
     RolloutTimeouts,
 )
+from nemo_rl.experience.rollout_dump import RolloutDumpWriter, resolve_dump_dir
 from nemo_rl.experience.rollouts import should_mask_flagged_samples
 from nemo_rl.models.generation.fleet_health import (
     FleetHealthPolicy,
@@ -892,6 +893,21 @@ def setup_single_controller(
         pad_value_dict={"token_ids": pad_id, "input_ids": pad_id},
         require_routed_experts=router_replay_enabled(policy_config),
     )
+    dump_dir = resolve_dump_dir(master_config)
+    dump_writer = (
+        RolloutDumpWriter(
+            dump_dir, include_text=bool(master_config.async_rl.dump.rollout_text)
+        )
+        if dump_dir is not None
+        else None
+    )
+    if dump_dir is not None:
+        print(
+            f"Rollout dump enabled: {dump_dir} "
+            f"(rollout_text={master_config.async_rl.dump.rollout_text}, "
+            f"token_level={master_config.async_rl.dump.token_level})",
+            flush=True,
+        )
     rollout_manager = RolloutManager(
         tokenizer=tokenizer,
         task_to_env=env_handles,
@@ -909,6 +925,7 @@ def setup_single_controller(
             env_s=master_config.async_rl.rollout_failure.native.env_timeout_s,
         ),
         retry_policy=_build_retry_policy(master_config),
+        dump_writer=dump_writer,
     )
 
     # Print setup timing metrics

@@ -75,6 +75,10 @@ from nemo_rl.data_plane.schema import DP_CALIB_INPUT_FIELDS
 from nemo_rl.distributed.batched_data_dict import BatchedDataDict
 from nemo_rl.environments.nemo_gym import should_use_nemo_gym
 from nemo_rl.experience.failures import RolloutStall
+from nemo_rl.experience.rollout_dump import (
+    resolve_dump_dir,
+    write_token_level_chunk,
+)
 from nemo_rl.experience.rollout_manager import RolloutOutcome
 from nemo_rl.models.generation.megatron import MegatronGeneration
 from nemo_rl.models.generation.sglang.sglang_generation import SGLangGeneration
@@ -138,6 +142,10 @@ class SingleControllerActor:
         )
         self._reference_logprobs_required = not bool(
             master_config.grpo.skip_reference_policy_logprobs_calculation
+        )
+        self._dump_dir = resolve_dump_dir(master_config)
+        self._dump_token_level = (
+            self._dump_dir is not None and bool(self._async_cfg.dump.token_level)
         )
         self._dp_client = actor_args.dp_client
         self._gen: Generation = actor_args.gen_handle
@@ -1243,7 +1251,11 @@ class SingleControllerActor:
                         (
                             train_meta,
                             has_valid_training_tokens,
-                        ) = await self._advantage_stage(train_meta)
+                        ) = await self._advantage_stage(
+                            train_meta,
+                            step=version_during_step + 1,
+                            chunk_index=chunks_dispatched + 1,
+                        )
 
                     # Filtering can leave a streaming chunk with no training tokens.
                     # Consume that chunk without F/B, then continue the same optimizer
@@ -1984,7 +1996,13 @@ class SingleControllerActor:
         self._rollout_permitted.set()
         return aborted_stale_inflight_groups
 
-    async def _advantage_stage(self, meta: KVBatchMeta) -> tuple[KVBatchMeta, bool]:
+    async def _advantage_stage(
+        self,
+        meta: KVBatchMeta,
+        *,
+        step: Optional[int] = None,
+        chunk_index: Optional[int] = None,
+    ) -> tuple[KVBatchMeta, bool]:
         """Fetch advantage inputs, compute advantages, and write them back.
 
         SC owns the prompt-group-scoped advantage stage because the selected
@@ -2016,6 +2034,7 @@ class SingleControllerActor:
         sample_mask = squeeze_trailing_unit_dim(
             tensor_field(data, adv_cfg.sample_mask_field)
         ).float()
+        sample_mask_before = sample_mask.clone()
 
         seq_logprob_error_threshold = (
             self._master_config.grpo.seq_logprob_error_threshold
@@ -2047,6 +2066,7 @@ class SingleControllerActor:
                 train_data=masking_data,
                 rewards=rewards,
                 seq_logprob_error_threshold=seq_logprob_error_threshold,
+                step=step,
             )
             sample_mask = masking_data["sample_mask"]
             num_valid_seqs_after = float(
@@ -2102,6 +2122,30 @@ class SingleControllerActor:
             response_advantages.detach().cpu()
         )
 
+        if self._dump_token_level and self._dump_dir is not None:
+            write_token_level_chunk(
+                self._dump_dir,
+                step=step if step is not None else self._train_steps + 1,
+                chunk_index=chunk_index if chunk_index is not None else 0,
+                trainer_version=self._trainer_version,
+                sample_ids=list(meta.sample_ids),
+                tags=meta.tags,
+                input_ids=tensor_field(data, "input_ids"),
+                input_lengths=tensor_field(data, "input_lengths"),
+                token_mask=token_mask,
+                sample_mask_before=sample_mask_before,
+                sample_mask_after=sample_mask,
+                rewards=rewards,
+                advantages=advantages,
+                generation_logprobs=(
+                    tensor_field(data, adv_cfg.generation_logprobs_field)
+                    if self._policy_logprobs_required
+                    else None
+                ),
+                prev_logprobs=kwargs.get("logprobs_policy"),
+                reference_logprobs=kwargs.get("logprobs_reference"),
+            )
+
         fields_to_put = {adv_cfg.output_field: advantages}
         if seq_logprob_error_threshold is not None:
             fields_to_put[adv_cfg.sample_mask_field] = sample_mask
@@ -2134,4 +2178,6 @@ class SingleControllerActor:
             fields.append(adv_cfg.generation_logprobs_field)
         if self._reference_logprobs_required:
             fields.append(adv_cfg.reference_logprobs_field)
+        if self._dump_token_level:
+            fields.extend(["input_ids", "input_lengths"])
         return list(dict.fromkeys(fields))

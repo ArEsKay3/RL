@@ -859,6 +859,47 @@ class VllmAsyncGenerationWorkerImpl(
         ########################################
         # Logging
         ########################################
+        from vllm.entrypoints.openai.completion.protocol import (
+            CompletionRequest,
+            CompletionResponse,
+        )
+        from vllm.entrypoints.openai.completion.serving import (
+            OpenAIServingCompletion,
+        )
+
+        openai_serving_completion = OpenAIServingCompletion(
+            engine_client,
+            openai_serving_models,
+            online_renderer=online_renderer,
+            request_logger=serving_chat_kwargs["request_logger"],
+            return_tokens_as_token_ids=True,
+        )
+
+        @app.post("/v1/completions")
+        async def create_completion(request: CompletionRequest, raw_request: Request):
+            try:
+                generator = await openai_serving_completion.create_completion(
+                    request, raw_request
+                )
+            except VLLMValidationError as e:
+                return JSONResponse(
+                    content={
+                        "error": {
+                            "message": str(e),
+                            "type": "invalid_request_error",
+                            "code": 400,
+                        }
+                    },
+                    status_code=400,
+                )
+            if isinstance(generator, ErrorResponse):
+                return JSONResponse(
+                    content=generator.model_dump(), status_code=generator.error.code
+                )
+            elif isinstance(generator, CompletionResponse):
+                return JSONResponse(content=generator.model_dump())
+            return StreamingResponse(content=generator, media_type="text/event-stream")
+
         print(
             "Adding a vLLM logging filter so that the logs aren't spammed with not useful messages like `Added request ...`. This is to help errors pop up better and filter out noise."
         )

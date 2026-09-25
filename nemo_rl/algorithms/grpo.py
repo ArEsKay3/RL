@@ -1377,7 +1377,10 @@ def setup(
             cluster=None if colocated_inference else inference_cluster,
             policy=policy if colocated_inference else None,
             processor=processor,
-            skip_weight_load=not colocated_inference,
+            # Load inference weights up front instead of leaving them to the
+            # first refit: a non-colocated engine that starts uninitialized
+            # serves garbage until that refit lands.
+            skip_weight_load=False,
             reserved_http_server_ports=reserved_http_server_ports,
         )
         return mg, time.perf_counter() - t0

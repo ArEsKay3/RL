@@ -26,14 +26,29 @@ from typing import Any, AsyncGenerator, Optional
 import requests
 import torch
 from megatron.core.inference.config import (
-    AsyncScheduleMode,
     CudaGraphSizingDistribution,
     InferenceConfig,
     KVCacheManagementMode,
     MambaInferenceStateConfig,
     PrefixCachingCoordinatorPolicy,
-    PrefixCachingEvictionPolicy,
 )
+
+# These two are carried by the Megatron-LM fork the MINF arm bind-mounts, not
+# necessarily by whatever megatron-core the container/mount in use ships. A
+# vLLM arm never reaches the MINF generation path, but it still imports this
+# module transitively via megatron_policy_worker when training on Megatron --
+# so a hard import fails the run before generation ever starts.
+#
+# Degrade to None instead. Every use site below is inside the MINF inference
+# config, which only executes when a mount providing these is in play.
+try:
+    from megatron.core.inference.config import (
+        AsyncScheduleMode,
+        PrefixCachingEvictionPolicy,
+    )
+except ImportError:  # pragma: no cover - depends on which megatron-core is mounted
+    AsyncScheduleMode = None
+    PrefixCachingEvictionPolicy = None
 from megatron.core.inference.engines.dynamic_engine import EngineState
 from megatron.core.inference.quantization.mxfp8_tensor import MXFP8Tensor
 from megatron.core.inference.quantization.utils import (
@@ -570,7 +585,14 @@ class MegatronGenerationMixin:
             "static_kv_memory_pointers": needs_static_kv_pointers,
             "use_cuda_graphs_for_non_decode_steps": use_cuda_graphs_for_non_decode_steps,
             "use_flashinfer_fused_rope": use_flashinfer_fused_rope,
-            "sampling_backend": "flashinfer",
+            # Megatron-Core defaults this to "torch"; we override to flashinfer
+            # for throughput. NRL_MINF_SAMPLING_BACKEND selects the other one
+            # without a rebuild, so the two kernels can be compared on the same
+            # model. mcore silently falls back to torch (with a warning) if
+            # flashinfer is requested but not installed.
+            "sampling_backend": os.environ.get(
+                "NRL_MINF_SAMPLING_BACKEND", "flashinfer"
+            ),
             "use_synchronous_zmq_collectives": True,
             "materialize_only_last_token_logits": materialize_only_last_token_logits,
             "enable_chunked_prefill": enable_chunked_prefill,

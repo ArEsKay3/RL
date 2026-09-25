@@ -612,15 +612,16 @@ def _build_generation(
         assert tokenizer is not None, "Megatron generation requires a tokenizer"
         # Non-colocated only: colocated Megatron routes to `_build_trainer_then_megatron_generation`
         # at the dispatch and never reaches here.
-        # The inference and trainer policies build in parallel;
-        # the inference engine only becomes live at the initial refit, which delivers weights.
+        # Load inference weights up front instead of leaving them to the first
+        # refit: a non-colocated engine that starts uninitialized serves garbage
+        # (repeated tokens) until that refit lands.
         gen = MegatronGeneration(
             config=master_config.policy,
             tokenizer=tokenizer,
             cluster=inference_cluster,
             reserved_http_server_ports=reserved_http_server_ports,
             processor=processor,
-            skip_weight_load=True,
+            skip_weight_load=False,
         )
 
     else:

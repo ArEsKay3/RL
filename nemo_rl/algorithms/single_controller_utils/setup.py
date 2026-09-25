@@ -103,6 +103,7 @@ from nemo_rl.environments.nemo_gym import (
     should_use_nemo_gym,
     validate_dataset_agent_coverage,
 )
+from nemo_rl.experience.rollout_dump import RolloutDumpWriter, resolve_dump_dir
 from nemo_rl.experience.rollout_manager import (
     RolloutManager,
     RolloutRetryPolicy,
@@ -1942,6 +1943,21 @@ def setup_single_controller(
             # until every finalizer's process-local TQ client has attached and
             # registered its checkpoint participant.
             ray.get([actor.__ray_ready__.remote() for actor in finalizer_actors])
+    dump_dir = resolve_dump_dir(master_config)
+    dump_writer = (
+        RolloutDumpWriter(
+            dump_dir, include_text=bool(master_config.async_rl.dump.rollout_text)
+        )
+        if dump_dir is not None
+        else None
+    )
+    if dump_dir is not None:
+        print(
+            f"Rollout dump enabled: {dump_dir} "
+            f"(rollout_text={master_config.async_rl.dump.rollout_text}, "
+            f"token_level={master_config.async_rl.dump.token_level})",
+            flush=True,
+        )
     rollout_manager = RolloutManager(
         tokenizer=tokenizer,
         task_to_env=env_handles,
@@ -1966,6 +1982,7 @@ def setup_single_controller(
         ),
         retry_policy=_build_retry_policy(master_config),
         effort_config=_get_effort_config(cast(GRPOMasterConfig, master_config)),
+        dump_writer=dump_writer,
     )
 
     # Print setup timing metrics

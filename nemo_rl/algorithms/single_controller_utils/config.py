@@ -472,6 +472,18 @@ class WatchdogConfig(BaseModel, extra="allow"):
         return self
 
 
+class RolloutDumpConfig(BaseModel, extra="allow"):
+    """Offline dump of committed rollouts and per-chunk training tensors."""
+
+    enabled: bool = False
+    # Dump root; None resolves to <logger.log_dir>/dumps.
+    dir: Optional[str] = None
+    # Include decoded prompt/generation text and the full environment result per rollout.
+    rollout_text: bool = True
+    # Write per-chunk token-level tensors (ids, masks, logprobs, advantages).
+    token_level: bool = True
+
+
 class AsyncRLConfig(BaseModel, extra="allow"):
     # Staleness policy shared by the rollout and train pumps.
     sampler: SamplerConfig = Field(
@@ -504,6 +516,8 @@ class AsyncRLConfig(BaseModel, extra="allow"):
     # Log bounded per-lag importance-sampling summaries and compact JSONL rows.
     # Uses policy logprobs already required by the training configuration.
     importance_sampling_diagnostics: bool = False
+    # Offline rollout / token-level dumps (see nemo_rl.experience.rollout_dump).
+    dump: RolloutDumpConfig = Field(default_factory=RolloutDumpConfig)
 
     @model_validator(mode="after")
     def _reject_renamed_blocks(self) -> "AsyncRLConfig":

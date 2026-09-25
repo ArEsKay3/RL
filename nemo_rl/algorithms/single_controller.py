@@ -164,6 +164,10 @@ from nemo_rl.experience.interfaces import (
     STALENESS_TAG,
 )
 from nemo_rl.experience.payload import VIOLATION_TAG_KEYS
+from nemo_rl.experience.rollout_dump import (
+    resolve_dump_dir,
+    write_token_level_chunk,
+)
 from nemo_rl.experience.rollout_manager import RolloutOutcome
 from nemo_rl.experience.rollout_recovery import (
     ROLLOUT_RECOVERY_SCHEMA_VERSION,
@@ -372,6 +376,10 @@ class SingleControllerActor:
             and not self._algo_cfg.skip_reference_policy_logprobs_calculation
         )
         self._teacher_logprobs_required = opd_module.is_opd_enabled(master_config)
+        self._dump_dir = resolve_dump_dir(master_config)
+        self._dump_token_level = (
+            self._dump_dir is not None and bool(self._async_cfg.dump.token_level)
+        )
         self._train_fields = _train_fields_for_step(
             policy_logprobs_required=self._policy_logprobs_required,
             reference_logprobs_required=self._reference_logprobs_required,
@@ -2841,7 +2849,11 @@ class SingleControllerActor:
                         (
                             train_meta,
                             has_valid_training_tokens,
-                        ) = await self._advantage_stage(train_meta)
+                        ) = await self._advantage_stage(
+                            train_meta,
+                            step=self._train_steps + 1,
+                            chunk_index=chunks_dispatched + 1,
+                        )
 
                     # A PPO step is this one chunk, so a chunk with nothing left
                     # after filtering is a step that trains neither model.
@@ -5027,7 +5039,13 @@ class SingleControllerActor:
         assert result is not None
         return result
 
-    async def _advantage_stage(self, meta: KVBatchMeta) -> tuple[KVBatchMeta, bool]:
+    async def _advantage_stage(
+        self,
+        meta: KVBatchMeta,
+        *,
+        step: Optional[int] = None,
+        chunk_index: Optional[int] = None,
+    ) -> tuple[KVBatchMeta, bool]:
         """Fetch advantage inputs, compute advantages, and write them back.
 
         SC owns the prompt-group-scoped advantage stage because the selected
@@ -5093,6 +5111,7 @@ class SingleControllerActor:
         final_sample_mask = sample_mask * (~mask_sample).to(sample_mask.dtype)
         if self._algo_cfg.overlong_filtering:
             final_sample_mask = final_sample_mask * (~truncated).to(sample_mask.dtype)
+        sample_mask_before = final_sample_mask.clone()
 
         seq_logprob_error_threshold = self._algo_cfg.seq_logprob_error_threshold
         # Match the legacy path: whenever real policy logprobs are available,
@@ -5268,6 +5287,30 @@ class SingleControllerActor:
                 valid_seq_mask=valid_seq_mask,
             )
 
+        if self._dump_token_level and self._dump_dir is not None:
+            write_token_level_chunk(
+                self._dump_dir,
+                step=step if step is not None else self._train_steps + 1,
+                chunk_index=chunk_index if chunk_index is not None else 0,
+                trainer_version=self._trainer_version,
+                sample_ids=list(meta.sample_ids),
+                tags=meta.tags,
+                input_ids=tensor_field(data, "input_ids"),
+                input_lengths=tensor_field(data, "input_lengths"),
+                token_mask=token_mask,
+                sample_mask_before=sample_mask_before,
+                sample_mask_after=final_sample_mask,
+                rewards=rewards,
+                advantages=advantages,
+                generation_logprobs=(
+                    tensor_field(data, adv_cfg.generation_logprobs_field)
+                    if self._policy_logprobs_required
+                    else None
+                ),
+                prev_logprobs=None,
+                reference_logprobs=None,
+            )
+
         fields_to_put = {adv_cfg.output_field: advantages}
         if not torch.equal(final_sample_mask, sample_mask):
             fields_to_put[adv_cfg.sample_mask_field] = final_sample_mask
@@ -5318,6 +5361,8 @@ class SingleControllerActor:
             fields.append(adv_cfg.teacher_logprobs_field)
         if self._is_ppo:
             fields.append(adv_cfg.values_field)
+        if self._dump_token_level:
+            fields.extend(["input_ids", "input_lengths"])
         return list(dict.fromkeys(fields))
 
     def _retune_lookahead_versions(self) -> None:

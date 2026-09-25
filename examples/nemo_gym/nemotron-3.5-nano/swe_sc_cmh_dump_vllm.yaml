@@ -1,0 +1,16 @@
+# SWE-E2E v2 (streaming, in_order lag 1) on vLLM with offline rollout and
+# token-level dumps. Everything except the dump block and the explicit vLLM
+# logprobs mode is inherited.
+defaults: swe_sc_cmh_stream4.yaml
+
+policy:
+  generation:
+    vllm_cfg:
+      logprobs_mode: processed_logprobs
+
+async_rl:
+  dump:
+    enabled: true
+    dir: null
+    rollout_text: true
+    token_level: true

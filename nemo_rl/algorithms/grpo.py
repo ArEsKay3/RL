@@ -1302,7 +1302,7 @@ def setup(
             cluster=None if colocated_inference else inference_cluster,
             policy=policy if colocated_inference else None,
             processor=processor,
-            skip_weight_load=not colocated_inference,
+            skip_weight_load=False,
             reserved_http_server_port=reserved_http_server_port,
         )
         return mg, time.perf_counter() - t0

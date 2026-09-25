@@ -400,6 +400,7 @@ data:
 env:
   should_use_nemo_gym: true
   should_log_nemo_gym_responses: true
+  should_mask_flagged_samples: false
   nemo_gym:
     # nano35_launch.sh overrides this per submission for response artifacts.
     nemo_gym_log_dir: null

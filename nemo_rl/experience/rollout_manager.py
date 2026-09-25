@@ -65,6 +65,7 @@ from nemo_rl.experience.interfaces import (
     PromptGroupRecord,
 )
 from nemo_rl.experience.metric_utils import calculate_single_metric, pct
+from nemo_rl.experience.rollout_dump import RolloutDumpWriter
 from nemo_rl.experience.rollout_recovery import (
     PromptGroupPhase,
     PromptGroupStatus,
@@ -1597,10 +1598,12 @@ class RolloutManager:
         retry_policy: Optional[RolloutRetryPolicy] = None,
         effort_config: Optional[EffortLevelsConfig] = None,
         log_full_result_tables: bool = False,
+        dump_writer: Optional[RolloutDumpWriter] = None,
     ) -> None:
         assert num_generations_per_prompt >= 1, (
             "num_generations_per_prompt must be >= 1"
         )
+        self._dump_writer = dump_writer
         # Resolved before the impl is built: the NeMo-Gym impl reads its row-retry
         # budget out of it at construction time, and shares the counters so its
         # row-level re-dispatches land in the same place as everything else.
@@ -1952,12 +1955,22 @@ class RolloutManager:
                     if inflight_registry is not None:
                         inflight_registry.pop(tq_group_id, None)
                 end_version = self._weight_version
-                await self._tq_buffer.commit(
+                committed_meta = await self._tq_buffer.commit(
                     tq_group_id,
                     record,
                     start_weight_version=start_version,
                     end_weight_version=end_version,
                 )
+                if self._dump_writer is not None:
+                    self._dump_writer.write_group(
+                        record,
+                        group_id=tq_group_id,
+                        journal_id=None,
+                        sample_ids=list(committed_meta.sample_ids),
+                        target_step=target_step,
+                        start_weight_version=start_version,
+                        end_weight_version=end_version,
+                    )
             except Exception as error:
                 # A failed rollout must not leave an unready slot that can block an
                 # in-order sampler. commit() rolls back any DataPlane rows it wrote.

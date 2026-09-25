@@ -1483,3 +1483,83 @@ class RolloutManager:
         )
         self._stats.skipped += 1
         return RolloutOutcome.SKIPPED
+
+    async def generate_and_push_foreign(
+        self,
+        input_sample: DatumSpec,
+        train_batch: dict[str, Any],
+        rollout_tags: list[dict[str, Any]],
+        *,
+        target_step: Optional[int] = None,
+        inflight_registry: Optional[dict[str, tuple[asyncio.Task[None], int]]] = None,
+        rollout_journal_id: Optional[str] = None,
+    ) -> RolloutOutcome:
+        """Commit an already-tensorized foreign group in place of a live rollout.
+
+        Mirrors generate_and_push's reserve/commit/cleanup shape exactly, minus
+        run_rollout (no engine call, no environment/Gym execution) and minus its
+        infra/data retry budgets, which exist specifically for live generation's
+        own failure modes (shard unhealthy, deterministic bad output) that don't
+        apply to committing already-computed foreign data -- a failure here is
+        far more likely a genuine bug than something a retry would fix, so it
+        propagates immediately rather than being retried or silently skipped.
+
+        Does not write to the rollout JSONL dump (self._dump_writer.write_group
+        requires a full PromptGroupRecord with message_log/full_result, which a
+        foreign commit doesn't have and shouldn't fabricate -- no new generation
+        or environment execution happened, so there is no new eval record to
+        write). The token-level dump is unaffected: _advantage_stage writes it
+        downstream for every committed group regardless of origin.
+
+        Args:
+            input_sample: The live prompt this foreign data is substituting for
+                (used only as the slot's `prompt`, for checkpoint/resume
+                bookkeeping -- consistent with a live commit's own reserve()).
+            train_batch: record_to_train_batch-shaped fields for this group
+                (ForeignRolloutSource.lookup's first return value).
+            rollout_tags: record_to_rollout_tags-shaped per-row tags for this
+                group (ForeignRolloutSource.lookup's second return value).
+
+        Returns:
+            COMMITTED once the substituted group reaches the buffer.
+        """
+        assert self._tq_buffer is not None, (
+            "generate_and_push_foreign requires tq_buffer to be set at __init__"
+        )
+        start_version = self._weight_version
+        group_id = self._tq_buffer.reserve(
+            weight_version=start_version,
+            target_step=target_step,
+            prompt=input_sample,
+            journal_id=rollout_journal_id,
+        )
+        if inflight_registry is not None:
+            current_task = asyncio.current_task()
+            assert current_task is not None
+            inflight_registry[group_id] = (current_task, start_version)
+        try:
+            try:
+                end_version = self._weight_version
+                await self._tq_buffer.commit(
+                    group_id,
+                    None,
+                    start_weight_version=start_version,
+                    end_weight_version=end_version,
+                    prebuilt_train_batch_and_tags=(train_batch, rollout_tags),
+                )
+            finally:
+                if inflight_registry is not None:
+                    inflight_registry.pop(group_id, None)
+        except BaseException:
+            try:
+                await self._tq_buffer.remove_group(group_id)
+            except Exception as cleanup_exc:
+                print(
+                    f"  warn: remove_group({group_id}) cleanup failed: {cleanup_exc!r}",
+                    flush=True,
+                )
+            raise
+
+        self._stats.committed += 1
+        self._consecutive_infra_drops = 0
+        return RolloutOutcome.COMMITTED

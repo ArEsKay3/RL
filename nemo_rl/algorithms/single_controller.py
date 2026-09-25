@@ -54,6 +54,7 @@ from nemo_rl.algorithms.grpo import (
     compute_and_apply_seq_logprob_error_masking,
 )
 from nemo_rl.algorithms.metric_utils import SetupTimingMetrics
+from nemo_rl.algorithms.utils import get_tokenizer
 from nemo_rl.algorithms.single_controller_utils.config import (
     AdvantageConfig,
     MasterConfig,
@@ -75,6 +76,7 @@ from nemo_rl.data_plane.schema import DP_CALIB_INPUT_FIELDS
 from nemo_rl.distributed.batched_data_dict import BatchedDataDict
 from nemo_rl.environments.nemo_gym import should_use_nemo_gym
 from nemo_rl.experience.failures import RolloutStall
+from nemo_rl.experience.foreign_rollout_source import ForeignRolloutSource
 from nemo_rl.experience.rollout_dump import (
     resolve_dump_dir,
     write_token_level_chunk,
@@ -174,6 +176,34 @@ class SingleControllerActor:
         # Rebind so writer and sampler share one buffer instance even
         # when Ray deserializes rollout_manager and tq_buffer separately.
         self._rollout_manager._tq_buffer = self._buffer
+
+        # Optional: +foreign_rollout.source_run=<path> +foreign_rollout.steps=1:10
+        # (Hydra overrides, same extra="allow" mechanism as
+        # +checkpointing.load_replay_buffer=false) substitutes a foreign run's own
+        # saved rollouts for live generation at matching (target_step, prompt idx)
+        # pairs -- see _dispatch_one_prompt. None (the default) preserves today's
+        # behavior exactly: no live chain is affected unless it opts in. Falls
+        # through to live generation automatically once the foreign data is
+        # exhausted or a given step/prompt has no match, with no explicit mode
+        # switch anywhere in the pump.
+        self._foreign_rollout_source: Optional[ForeignRolloutSource] = None
+        foreign_rollout_cfg = getattr(master_config, "foreign_rollout", None)
+        if foreign_rollout_cfg and foreign_rollout_cfg.get("source_run"):
+            start_step, end_step = (
+                int(x) for x in foreign_rollout_cfg.get("steps", "1:10").split(":")
+            )
+            self._foreign_rollout_source = ForeignRolloutSource(
+                source_run=foreign_rollout_cfg["source_run"],
+                steps=range(start_step, end_step + 1),
+                pad_token_id=int(
+                    get_tokenizer(master_config.policy["tokenizer"]).pad_token_id or 0
+                ),
+            )
+            print(
+                f"SingleControllerActor: foreign_rollout enabled, source_run="
+                f"{foreign_rollout_cfg['source_run']} steps={start_step}:{end_step}",
+                flush=True,
+            )
 
         # Built here, not on the driver: Logger backends (wandb/tb/...) hold
         # _thread.lock that Ray can't cloudpickle into the actor.
@@ -652,13 +682,39 @@ class SingleControllerActor:
                         "prompt": prompt,
                         "target_step": target_step,
                     }
+                    # Foreign-substitution check: a source run's own saved data for
+                    # this exact (target_step, prompt idx) skips the live engine +
+                    # environment call entirely and commits that data instead, via
+                    # the same reserve/commit path a live rollout uses (see
+                    # RolloutManager.generate_and_push_foreign,
+                    # ForeignRolloutSource.lookup). None (the default, unconfigured
+                    # case) or a miss (foreign data exhausted / step out of range)
+                    # falls through to live generation exactly as before -- this is
+                    # what gives disk-to-live fallthrough for free, with no explicit
+                    # mode switch anywhere.
+                    foreign = (
+                        self._foreign_rollout_source.lookup(target_step, prompt["idx"])
+                        if self._foreign_rollout_source is not None
+                        and target_step is not None
+                        else None
+                    )
                     try:
-                        outcome = await self._rollout_manager.generate_and_push(
-                            prompt,
-                            target_step=target_step,
-                            inflight_registry=self._inflight_by_group_id,
-                            rollout_journal_id=rollout_journal_id,
-                        )
+                        if foreign is not None:
+                            outcome = await self._rollout_manager.generate_and_push_foreign(
+                                prompt,
+                                foreign[0],
+                                foreign[1],
+                                target_step=target_step,
+                                inflight_registry=self._inflight_by_group_id,
+                                rollout_journal_id=rollout_journal_id,
+                            )
+                        else:
+                            outcome = await self._rollout_manager.generate_and_push(
+                                prompt,
+                                target_step=target_step,
+                                inflight_registry=self._inflight_by_group_id,
+                                rollout_journal_id=rollout_journal_id,
+                            )
                     except BaseException:
                         # On success ownership transfers to the train pump, which
                         # releases this permit after consuming the committed group.

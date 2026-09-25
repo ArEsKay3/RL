@@ -29,7 +29,7 @@ policy:
       block_size_tokens: 256
       max_tokens: 16384
       enable_chunked_prefill: true
-      enable_prefix_caching: false
+      enable_prefix_caching: true
       prefix_caching_coordinator_policy: "longest_prefix"
       materialize_only_last_token_logits: true
       kv_cache_management_mode: "persist"

@@ -787,18 +787,27 @@ class TQReplayBuffer:
     async def commit(
         self,
         group_id: str,
-        record: PromptGroupRecord,
+        record: Optional[PromptGroupRecord],
         start_weight_version: int,
         end_weight_version: int,
+        *,
+        prebuilt_train_batch_and_tags: Optional[tuple[Any, list[dict[str, Any]]]] = None,
     ) -> KVBatchMeta:
         """Tensorize record, write N rows to TQ, and mark the slot ready.
 
         Args:
             group_id: group_id returned by the matching reserve call.
-            record: PromptGroupRecord to tensorize.
+            record: PromptGroupRecord to tensorize. May be None only when
+                prebuilt_train_batch_and_tags is given.
             start_weight_version: Weight version stamped on the slot before rollout.
                 The same as the one from reserve, passed again to avoid race condition when lookup.
             end_weight_version: Weight version stamped on the slot after rollout.
+            prebuilt_train_batch_and_tags: (train_batch, rollout_tags) already in
+                record_to_train_batch's / record_to_rollout_tags's own output shape,
+                bypassing both of those calls -- for committing a group sourced from
+                something other than a live rollout (e.g. a foreign run's own saved
+                dump) while still going through pack_payload, put_samples, and this
+                class's own bookkeeping exactly as a live commit does.
 
         Returns:
             KVBatchMeta for the committed group.
@@ -814,11 +823,15 @@ class TQReplayBuffer:
                 f"commit called with unknown group_id={group_id!r}; "
                 f"reserve() must precede commit() (or the slot was already removed)"
             )
-        train_batch = record_to_train_batch(record, pad_value_dict=self._pad_value_dict)
+        if prebuilt_train_batch_and_tags is not None:
+            train_batch, rollout_tags = prebuilt_train_batch_and_tags
+        else:
+            train_batch = record_to_train_batch(record, pad_value_dict=self._pad_value_dict)
         sample_ids, fields, tags = pack_payload(
             train_batch, weight_version=start_weight_version, group_id=group_id
         )
-        rollout_tags = record_to_rollout_tags(record)
+        if prebuilt_train_batch_and_tags is None:
+            rollout_tags = record_to_rollout_tags(record)
         if len(rollout_tags) != len(tags):
             raise ValueError(
                 "rollout diagnostics must align with the tensorized prompt group: "

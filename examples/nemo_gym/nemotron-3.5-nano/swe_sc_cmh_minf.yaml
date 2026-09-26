@@ -35,7 +35,14 @@ policy:
       kv_cache_management_mode: "persist"
       expose_http_server: true
       num_speculative_tokens: 0
-      refit_backend: "nvshmem"
+      # refit_backend is only read when policy.generation.refit_transport='mcore'
+      # (the newer native-MCore refit path). This recipe uses refit_transport=
+      # nccl_reshard (swe_sc_cmh_common.yaml), matching every other SWE arm;
+      # setting refit_backend under that transport is now a hard error on
+      # main@9-15 (megatron_generation.py raises). Omitted, not nulled: main
+      # also tightened several config fields from Optional to concrete types
+      # this session (see the nemo_rl branch's fix commits), so an explicit
+      # null here risks the same class of failure rather than avoiding it.
       offload_policy_before_refit: false
       logging_step_interval: 100
       parsers:

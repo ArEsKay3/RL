@@ -382,8 +382,11 @@ data:
     # OpenMathInstruct-2 and crash nemo_gym_data_processor with
     # KeyError: 'extra_env_info'. Pin them here so the split loads via NemoGymDataset.
     dataset_name: NemoGymDataset
-    split_validation_size: null
-    seed: null
+    # 0 (not null): ResponseDatasetConfig.split_validation_size/seed are
+    # NotRequired[float]/NotRequired[int] on nemo_rl main -- null fails
+    # pydantic validation. 0 means "no split", same as null meant here.
+    split_validation_size: 0.0
+    seed: 0
   validation:
     data_path: null   # Set by launch script
     dataset_name: NemoGymDataset

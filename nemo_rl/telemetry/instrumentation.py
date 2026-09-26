@@ -44,16 +44,38 @@ from typing import (
     cast,
 )
 
-from nemo.lens import (
-    is_span_group_enabled,
-    span_cm,
-)
-from nemo.lens import (
-    managed_span as _managed_span,
-)
-from nemo.lens import (
-    safe_set_span_attributes as _safe_set_span_attributes,
-)
+# nemo.lens is not available in every container this runs in (it ships with
+# the official NVIDIA-built images, not with ad-hoc community/dev builds).
+# Everything in this module is instrumentation: degrade to no-op tracing
+# rather than fail every run that lands on a container without it.
+try:
+    from nemo.lens import (
+        is_span_group_enabled,
+        span_cm,
+    )
+    from nemo.lens import (
+        managed_span as _managed_span,
+    )
+    from nemo.lens import (
+        safe_set_span_attributes as _safe_set_span_attributes,
+    )
+
+    HAVE_NEMO_LENS = True
+except ImportError:
+    HAVE_NEMO_LENS = False
+
+    def is_span_group_enabled(group: str) -> bool:  # noqa: D103 - stub, see HAVE_NEMO_LENS
+        return False
+
+    def span_cm(*args: Any, **kwargs: Any) -> Iterator[Any]:  # noqa: D103
+        return nullcontext()
+
+    @contextmanager
+    def _managed_span(group: str, name: str, tracer=None, **attributes: Any) -> Iterator[None]:
+        yield None
+
+    def _safe_set_span_attributes(span: Optional[Any], attributes: dict) -> None:  # noqa: D103
+        pass
 
 from nemo_rl.telemetry.span_groups import UMBRELLA_GROUP_VALUES, RLSpanGroup
 from nemo_rl.telemetry.vocabulary import (
@@ -376,6 +398,8 @@ def current_trace_carrier() -> dict[str, str]:
     case whenever the enclosing span's group is disabled — so the caller needs
     no telemetry-specific branch.
     """
+    if not HAVE_NEMO_LENS:
+        return {}
     # Via lens rather than opentelemetry.propagate directly: lens owns the
     # carrier format on both ends of a Ray hop, so a change there cannot leave
     # the two halves of this file's round-trip disagreeing.
@@ -395,6 +419,9 @@ def remote_trace_context(carrier: Optional[Mapping[str, str]]) -> Iterator[None]
     :class:`~contextvars.ContextVar`, and ``threading.Thread`` does not inherit
     them — a fire-and-forget worker thread starts with an empty context.
     """
+    if not carrier or not HAVE_NEMO_LENS:
+        yield
+        return
     with attached_context(remote_trace_parent(carrier)):
         yield
 

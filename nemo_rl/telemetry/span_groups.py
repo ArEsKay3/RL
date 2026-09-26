@@ -43,7 +43,25 @@ time, so this module must be imported before ``setup_telemetry``.
 
 from typing import ClassVar, Final
 
-from nemo.lens.groups import SpanRegistry
+# nemo.lens is not available in every container this runs in (see
+# nemo_rl/telemetry/instrumentation.py). Stub SpanRegistry with the two
+# methods this module actually calls -- resolve() and register() -- as
+# no-ops, so import-time registration and any later resolve() are silent
+# instead of crashing. RLSpanGroup's own constants are plain strings, defined
+# below independent of lens, so they still exist for callers to read.
+try:
+    from nemo.lens.groups import SpanRegistry
+except ImportError:
+
+    class SpanRegistry:  # type: ignore[no-redef]
+        @staticmethod
+        def register(*args, **kwargs) -> None:
+            pass
+
+        @staticmethod
+        def resolve(spec: str) -> tuple:
+            return (frozenset(), frozenset())
+
 
 #: Registry namespace NeMo-RL owns. Also the key for ``SpanRegistry.unregister``.
 NAMESPACE = "nemo_rl"

@@ -480,6 +480,10 @@ class RolloutDumpConfig(BaseModel, extra="allow"):
     rollout_text: bool = True
     # Write per-chunk token-level tensors (ids, masks, logprobs, advantages).
     token_level: bool = True
+    # Per-message token ids in the rollout jsonl: "off", "digest" (token_ids and
+    # generation_token_ids verbatim, prompt_token_ids as len/sha1/head/tail) or
+    # "full" (every id list verbatim).
+    token_ids: Literal["off", "digest", "full"] = "off"
 
 
 class AsyncRLConfig(BaseModel, extra="allow"):

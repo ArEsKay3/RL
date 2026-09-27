@@ -1966,7 +1966,9 @@ def setup_single_controller(
     dump_dir = resolve_dump_dir(master_config)
     dump_writer = (
         RolloutDumpWriter(
-            dump_dir, include_text=bool(master_config.async_rl.dump.rollout_text)
+            dump_dir,
+            include_text=bool(master_config.async_rl.dump.rollout_text),
+            token_ids_mode=str(getattr(master_config.async_rl.dump, "token_ids", "off")),
         )
         if dump_dir is not None
         else None
@@ -1975,7 +1977,8 @@ def setup_single_controller(
         print(
             f"Rollout dump enabled: {dump_dir} "
             f"(rollout_text={master_config.async_rl.dump.rollout_text}, "
-            f"token_level={master_config.async_rl.dump.token_level})",
+            f"token_level={master_config.async_rl.dump.token_level}, "
+            f"token_ids={getattr(master_config.async_rl.dump, 'token_ids', 'off')})",
             flush=True,
         )
     rollout_manager = RolloutManager(

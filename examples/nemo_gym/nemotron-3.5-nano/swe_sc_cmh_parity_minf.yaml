@@ -1,0 +1,20 @@
+# SWE-E2E v2 (streaming, in_order lag 1) on Megatron in-engine inference running
+# the vLLM numerical-parity adapter. Inherits the MINF dump recipe and changes
+# only what docs/inference/vllm_numerical_parity.md lists as audit conditions,
+# plus the prefix-cache knob that chain P'''' runs.
+defaults: swe_sc_cmh_dump_minf.yaml
+
+policy:
+  megatron_cfg:
+    model_overrides:
+      inference_vllm_parity: true
+  generation:
+    mcore_generation_config:
+      # Audited profile: TP4/EP1/ETP4. Replica size is unchanged at 4 GPUs;
+      # experts shard by tensor instead of by expert.
+      expert_model_parallel_size: 1
+      expert_tensor_parallel_size: 4
+      # Audited logical scheduler budget. Sets the chunked-prefill boundaries
+      # the compiled norms and SSD chunk alignment were warmed against.
+      max_tokens: 8480
+      invalidate_prefix_cache_on_weight_update: false

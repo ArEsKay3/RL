@@ -269,6 +269,9 @@ class MegatronGenerationMixin:
             materialize_only_last_token_logits=materialize_only_last_token_logits,
             enable_chunked_prefill=enable_chunked_prefill,
             enable_prefix_caching=mcore_generation_config["enable_prefix_caching"],
+            invalidate_prefix_cache_on_weight_update=mcore_generation_config.get(
+                "invalidate_prefix_cache_on_weight_update", True
+            ),
             prefix_caching_coordinator_policy=_resolve_coordinator_policy(
                 mcore_generation_config
             ),

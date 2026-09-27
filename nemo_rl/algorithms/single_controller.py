@@ -5307,8 +5307,8 @@ class SingleControllerActor:
                     if self._policy_logprobs_required
                     else None
                 ),
-                prev_logprobs=None,
-                reference_logprobs=None,
+                prev_logprobs=kwargs.get("logprobs_policy"),
+                reference_logprobs=kwargs.get("logprobs_reference"),
             )
 
         fields_to_put = {adv_cfg.output_field: advantages}

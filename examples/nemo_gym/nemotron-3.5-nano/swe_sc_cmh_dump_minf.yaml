@@ -9,3 +9,7 @@ async_rl:
     dir: null
     rollout_text: true
     token_level: true
+    # digest: verifies prompt/generation token-id round-trips directly (sha1 +
+    # head/tail) instead of inferring health from the absence of an error
+    # string -- +1.8% on dump volume. "full" only for a single diagnostic step.
+    token_ids: digest

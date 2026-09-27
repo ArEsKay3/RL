@@ -30,6 +30,7 @@ Every writer swallows its own failures: a dump problem must not end a run.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import math
 import os
@@ -93,6 +94,24 @@ def _numeric_scalars(mapping: Any) -> dict[str, float]:
     return out
 
 
+def _as_id_list(value: Any) -> Optional[list[int]]:
+    if isinstance(value, torch.Tensor):
+        return [int(x) for x in value.flatten().tolist()]
+    if isinstance(value, (list, tuple)):
+        return [int(x) for x in value]
+    return None
+
+
+def _id_digest(ids: list[int], head_tail: int = 8) -> dict[str, Any]:
+    payload = ",".join(str(i) for i in ids).encode("ascii")
+    return {
+        "len": len(ids),
+        "sha1": hashlib.sha1(payload).hexdigest(),
+        "head": ids[:head_tail],
+        "tail": ids[-head_tail:] if len(ids) > head_tail else [],
+    }
+
+
 def _token_count(message: Mapping[str, Any]) -> int:
     token_ids = message.get("token_ids")
     if isinstance(token_ids, torch.Tensor):
@@ -102,7 +121,18 @@ def _token_count(message: Mapping[str, Any]) -> int:
     return len(token_ids)
 
 
-def _message_summary(message: Mapping[str, Any], include_text: bool) -> dict[str, Any]:
+_ROUNDTRIP_ID_KEYS = (
+    "prompt_token_ids",
+    "generation_token_ids",
+    "compact_prompt_token_ids",
+)
+
+
+def _message_summary(
+    message: Mapping[str, Any],
+    include_text: bool,
+    token_ids_mode: str = "off",
+) -> dict[str, Any]:
     summary: dict[str, Any] = {
         "role": message.get("role"),
         "n_tokens": _token_count(message),
@@ -110,6 +140,20 @@ def _message_summary(message: Mapping[str, Any], include_text: bool) -> dict[str
     for flag in ("is_invalid_tool_call", "has_malformed_thinking"):
         if flag in message:
             summary[flag] = bool(message[flag])
+    if token_ids_mode != "off":
+        own = _as_id_list(message.get("token_ids"))
+        if own is not None:
+            summary["token_ids"] = own
+        for key in _ROUNDTRIP_ID_KEYS:
+            if key not in message:
+                continue
+            ids = _as_id_list(message.get(key))
+            if ids is None:
+                summary[key] = None
+            elif token_ids_mode == "full" or key == "generation_token_ids":
+                summary[key] = ids
+            else:
+                summary[f"{key}_digest"] = _id_digest(ids)
     if include_text:
         content = message.get("content")
         if isinstance(content, str) and content:
@@ -120,9 +164,16 @@ def _message_summary(message: Mapping[str, Any], include_text: bool) -> dict[str
 class RolloutDumpWriter:
     """Append one JSON line per committed completion."""
 
-    def __init__(self, dump_dir: str, *, include_text: bool = True) -> None:
+    def __init__(
+        self,
+        dump_dir: str,
+        *,
+        include_text: bool = True,
+        token_ids_mode: str = "off",
+    ) -> None:
         self._dir = os.path.join(dump_dir, ROLLOUTS_SUBDIR)
         self._include_text = include_text
+        self._token_ids_mode = token_ids_mode
         self._failures = 0
         os.makedirs(self._dir, exist_ok=True)
 
@@ -189,7 +240,8 @@ class RolloutDumpWriter:
             else None
         )
         prompt_messages = [
-            _message_summary(message, self._include_text) for message in record.prompt
+            _message_summary(message, self._include_text, self._token_ids_mode)
+            for message in record.prompt
         ]
         rollout_metrics = _numeric_scalars(record.rollout_metrics)
         committed_at = time.time()
@@ -200,7 +252,7 @@ class RolloutDumpWriter:
                 completion.env_extras if isinstance(completion.env_extras, Mapping) else {}
             )
             messages = [
-                _message_summary(message, self._include_text)
+                _message_summary(message, self._include_text, self._token_ids_mode)
                 for message in completion.message_log
             ]
             row: dict[str, Any] = {

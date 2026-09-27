@@ -48,6 +48,15 @@ checkpointing:
   checkpoint_must_save_by: "02:23:00:00"
   model_save_format: "safetensors"
   save_consolidated: false
+  # main@9-15 added single_controller_utils/setup.py's replay-recovery check:
+  # the in_order sampler is replay-checkpoint-capable, so checkpointing.enabled
+  # now requires save_data_plane=true (data_plane.backend is already "simple",
+  # which supports it) or setup_single_controller raises ValueError (job 4023058).
+  save_data_plane: true
+  # Resume-time only (nemo_rl/algorithms/grpo.py); unrelated to the gate above.
+  # Matches the other production SWE chains' convention of starting resumes
+  # with an empty replay buffer rather than restoring one.
+  load_replay_buffer: false
 
 # =============================================================================
 # GRPO Algorithm

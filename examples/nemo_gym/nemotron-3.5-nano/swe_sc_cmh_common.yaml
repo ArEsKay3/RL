@@ -89,10 +89,10 @@ grpo:
   dynamic_sampling_max_gen_batches: 10
   batch_multiplier: 1
 
-  penalize_invalid_tool_call: true
-  invalid_tool_call_advantage: -5.0
-  penalize_malformed_thinking: true
-  malformed_thinking_advantage: -5.0
+  penalize_invalid_tool_call: false
+  invalid_tool_call_advantage: null
+  penalize_malformed_thinking: false
+  malformed_thinking_advantage: null
 
   reward_shaping:
     enabled: false
@@ -524,10 +524,10 @@ effort_levels:
 # penalize_unwanted_tokens is true.
 # =============================================================================
 reward_penalties:
-  penalize_duplicated_reasoning: true   # reasoning content == final answer
-  penalize_empty_final_answer: true     # last message output has empty content
-  penalize_unwanted_tokens: true        # an unwanted token id appears in generation
-  penalize_malformed_think_tag: true    # <think>/</think> count != 1 per turn
+  penalize_duplicated_reasoning: false  # reasoning content == final answer
+  penalize_empty_final_answer: false    # last message output has empty content
+  penalize_unwanted_tokens: false       # an unwanted token id appears in generation
+  penalize_malformed_think_tag: false   # <think>/</think> count != 1 per turn
   token_ids:
     unwanted: [2]     # </s> eos
     think_open: 12    # <think>

@@ -46,8 +46,11 @@ checkpointing:
   ft_keep_latest_k: 1
   ft_save_period: 1
   checkpoint_must_save_by: "02:23:00:00"
-  model_save_format: "safetensors"
-  save_consolidated: false
+  # model_save_format/save_consolidated removed: nemo_rl main (as of 4aaa48fab)
+  # rejects them at the top-level checkpointing config as Automodel/dtensor-only
+  # fields (nemo_rl/utils/checkpoint.py's CheckpointManager.__init__). This
+  # recipe is Megatron-backed (policy.megatron_cfg, not policy.dtensor_cfg), so
+  # they were never applicable here -- removed, not relocated.
   # main@9-15 added single_controller_utils/setup.py's replay-recovery check:
   # the in_order sampler is replay-checkpoint-capable, so checkpointing.enabled
   # now requires save_data_plane=true (data_plane.backend is already "simple",

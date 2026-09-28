@@ -1,0 +1,250 @@
+# Re-run with:  nel eval run <this file>
+# nemo-evaluator version: 0.4.0
+# created: 2026-09-07T22:30:32.242907+00:00
+# command: /scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/akamehra/.efb-runner-cache/pinned-venvs/nel-next/569ff7e80669ff9e200b15666702c11994723403/bin/nel eval run /scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/akamehra/nemo-evaluator-rundirs/nano_v35/swebench-verified-fixed/20260904_223845_df6becfd/full_config.yaml -O cluster.node_pools.gpu.partition=batch_long -O cluster.walltime=12:00:00
+# source config: /scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/akamehra/nemo-evaluator-rundirs/nano_v35/swebench-verified-fixed/20260904_223845_df6becfd/full_config.yaml
+# overrides: cluster.node_pools.gpu.partition=batch_long cluster.walltime=12:00:00
+# run_id: 20260907_223032_df6becfd
+cluster:
+  type: slurm
+  hostname: ''
+  account: nemotron_sw_post
+  walltime: '12:00:00'
+  node_pools:
+    gpu:
+      partition: batch_long
+      nodes: 1
+      ntasks_per_node: 1
+      gpus_per_node: '4'
+  sbatch_extra_flags:
+    switches: 1
+  sbatch_comment: '{"OccupiedIdleGPUsJobReaper":{"exemptIdleTimeMins":"480","reason":"benchmarking","description":"Nemotron-Nano-V3.5
+    SWEBench Verified (eval image pinned by the benchmark fragment)"}}'
+  mount_home: false
+  auto_resume: true
+  max_retries: 3
+  eval_image: gitlab-master.nvidia.com/dl/joc/competitive_evaluation/nemo-evaluator-next:0.5.0.1-harbor
+  container_env:
+    HF_HOME: /cache/huggingface
+    HF_TOKEN: ${HF_TOKEN}
+    AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+    AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+    AWS_DEFAULT_REGION: ${HARBOR_ECS_REGION:-us-east-2}
+    LLM_API_KEY: no-key-needed
+  shards: 10
+  container_mounts:
+  - /lustre/fsw/portfolios/nemotron/projects/nemotron_n3_post/eval/prompts/swebench_instruction.md:/configs/prompts/swebench_instruction.md:ro
+benchmarks:
+- name: harbor://swebench-verified@1.0
+  instruction_template: /configs/prompts/swebench_instruction.md
+  max_concurrent: 15
+  timeout: 10800.0
+  solver:
+    type: harbor
+    service: nemotron-nano-v35
+    agent: openhands-sdk
+    run_timeout: 10800
+    cmd_timeout: 1800
+    agent_kwargs:
+      max_iterations: 200
+      version: 1.17.0
+      llm_kwargs:
+        timeout: '3600'
+    timeout_strategy: max
+  sandbox:
+    type: ecs_fargate
+    cpu: '4096'
+    memory: '8192'
+    ephemeral_storage_gib: 50
+    max_task_lifetime_sec: 14400
+    codebuild_build_timeout: 60
+    log_stream_prefix: swebench-nano-v35-hsg-vllm
+    timeout: 10800.0
+    concurrency: 15
+    region: ${HARBOR_ECS_REGION:-us-east-2}
+    ecr_repository: 463701203462.dkr.ecr.us-west-2.amazonaws.com/harbor-swebench
+  repeats: 5
+output:
+  export:
+  - mlflow
+  export_config:
+    mlflow:
+      copy_logs: true
+      exclude_patterns:
+      - shard*
+      - model_traffic.jsonl
+      tags:
+        task_name: swebench-verified
+        nemo-evaluator-next-version: 0.5.0.1
+        model: rkirby-nano35-swe-v2-stream128-inorder1-minf-from0-nopg-noprefix-step-30
+        framework: vllm
+        suite: vpr
+        user: ${oc.env:USER}
+        efb_runner: run_benchmark
+        efb_config_sha: 81337a5bf7344dca582b34c9f10063d93edaea5b
+        toolchain: 569ff7e80669ff9e200b15666702c11994723403
+        cluster: aws-cmh
+        efb_command: clean replay of certified SWE-E2E config 20260907_223032_df6becfd for rkirby chain G (MINF from scratch, no prefix cache) step_30; HF export via swe_dump/tools/export_checkpoint_hf_v2.sbatch
+      tracking_uri: https://mlflow-nemo-evaluator.nvidia.com/
+      log_config_params: true
+      experiment_name: ultra-baseline-vpr
+      description: Nemotron-Nano-V3.5 SWEBench Verified (eval image pinned by the
+        benchmark fragment)
+  dir: /scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/nemo-evaluator-rundirs/nano_v35/swebench-verified-fixed
+services:
+  nemotron-nano-v35:
+    type: vllm
+    model: /scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-stream128-inorder1-cmh-64n-minf_dump-from0-nopg-noprefix-20260920/checkpoints/step_30/hf
+    served_model_name: rkirby-nano35-swe-v2-stream128-inorder1-minf-from0-nopg-noprefix-step-30
+    protocol: chat_completions
+    port: 5000
+    tensor_parallel_size: 2
+    data_parallel_size: '2'
+    num_nodes: 1
+    image: /lustre/fsw/portfolios/nemotron/projects/nemotron_n3_post/eval/containers/vllm/vllm-openai-v0.26.0-ray2.56.1-arm64.sqsh
+    startup_timeout: 3600.0
+    setup_commands:
+    - python3 -c 'import ray; assert ray.__version__ == "2.56.1"'
+    extra_args:
+    - --enable-prefix-caching
+    - --enable-chunked-prefill
+    - --enable-log-requests
+    - --trust-remote-code
+    - --kv-cache-dtype=fp8
+    - --enable-auto-tool-choice
+    - --tool-call-parser=qwen3_coder
+    - --reasoning-parser=nemotron_v3
+    - --max-num-seqs=32
+    - --max-model-len=262144
+    - --gpu-memory-utilization=0.95
+    - --mamba-cache-mode=align
+    - --data-parallel-backend=ray
+    - --data-parallel-size-local=2
+    - --api-server-count=1
+    - '--model-loader-extra-config={"enable_multithread_load": true, "num_threads":
+      96}'
+    extra_env:
+      VLLM_CACHE_ROOT: /tmp/vllm
+      VLLM_ENGINE_READY_TIMEOUT_S: '3600'
+      RAY_raylet_start_wait_time_s: '120'
+      VLLM_USE_RAY_V2_EXECUTOR_BACKEND: '0'
+      VLLM_FLASHINFER_ALLREDUCE_BACKEND: trtllm
+      VLLM_ALLREDUCE_USE_SYMM_MEM: '0'
+      NCCL_MNNVL_ENABLE: '0'
+      FLASHINFER_WORKSPACE_BASE: /tmp
+    container_mounts:
+    - /scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/cache/huggingface:/cache/huggingface
+    - /scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/cache/vllm:/cache/vllm
+    max_input_tokens: 262144
+    max_output_tokens: 262144
+    generation:
+      temperature: 1.0
+      top_p: 0.95
+    node_pool: gpu
+    proxy:
+      request_timeout: 3600
+      interceptors:
+      - name: http_pairs_dump
+        config:
+          dump_path: $${NEL_OUTPUT_DIR}/http_pairs_metrics.json
+          first_n: 50
+      - name: system_message
+        config:
+          strategy: replace
+          system_message: "You are OpenHands agent, a helpful AI assistant that can\
+            \ interact with a computer to solve tasks.\n\n<ROLE>\nYour primary role\
+            \ is to assist users by executing commands, modifying code, and solving\
+            \ technical problems effectively. You should be thorough, methodical,\
+            \ and prioritize quality over speed.\n* If the user asks a question, like\
+            \ \"why is X happening\", don't try to fix the problem. Just give an answer\
+            \ to the question.\n</ROLE>\n\n<EFFICIENCY>\n* Each action you take is\
+            \ somewhat expensive. Wherever possible, combine multiple actions into\
+            \ a single action, e.g. combine multiple bash commands into one, using\
+            \ sed and grep to edit/view multiple files at once.\n* When exploring\
+            \ the codebase, use efficient tools like find, grep, and git commands\
+            \ with appropriate filters to minimize unnecessary operations.\n</EFFICIENCY>\n\
+            \n<TROUBLESHOOTING>\n* If you've made repeated attempts to solve a problem\
+            \ but tests still fail or the user reports it's still broken:\n  1. Step\
+            \ back and reflect on 5-7 different possible sources of the problem\n\
+            \  2. Assess the likelihood of each possible cause\n  3. Methodically\
+            \ address the most likely causes, starting with the highest probability\n\
+            \  4. Document your reasoning process\n* When you run into any major issue\
+            \ while executing a plan from the user, please don't try to directly work\
+            \ around it. Instead, propose a new plan and confirm with the user before\
+            \ proceeding.\n</TROUBLESHOOTING>\n\n<PROCESS_MANAGEMENT>\n* When terminating\
+            \ processes:\n  - Do NOT use general keywords with commands like `pkill\
+            \ -f server` or `pkill -f python` as this might accidentally kill other\
+            \ important servers or processes\n  - Always use specific keywords that\
+            \ uniquely identify the target process\n  - Prefer using `ps aux` to find\
+            \ the exact process ID (PID) first, then kill that specific PID\n  - When\
+            \ possible, use more targeted approaches like finding the PID from a pidfile\
+            \ or using application-specific shutdown commands\n</PROCESS_MANAGEMENT>\n\
+            \n<TASK_MANAGEMENT>\n* You have access to the `task_tracker` tool to help\
+            \ you organize and monitor development work. Use this tool REGULARLY to\
+            \ maintain task visibility and provide users with clear progress updates.\
+            \ This tool is ESSENTIAL for systematic planning and decomposing complex\
+            \ development work into manageable components. Failing to use this tool\
+            \ for planning may result in overlooked requirements - which is unacceptable.\n\
+            * It is crucial that you update task status to \"done\" immediately upon\
+            \ completion of each work item. Do not accumulate multiple finished tasks\
+            \ before updating their status.\n* For complex, multi-phase development\
+            \ work, use `task_tracker` to establish a comprehensive plan with well-defined\
+            \ steps:\n  1. Begin by decomposing the overall objective into primary\
+            \ phases using `task_tracker`\n  2. Include detailed work items as necessary\
+            \ to break complex activities into actionable units\n  3. Update tasks\
+            \ to \"in_progress\" status when commencing work on them\n  4. Update\
+            \ tasks to \"done\" status immediately after completing each item\n  5.\
+            \ For each primary phase, incorporate additional work items as you identify\
+            \ new requirements\n  6. If you determine the plan requires substantial\
+            \ modifications, suggest revisions and obtain user confirmation before\
+            \ proceeding\n* Example workflow for debugging and resolution:\n  ```\n\
+            \  User: \"Execute the test suite and resolve any validation failures\"\
+            \n  Assistant: I'm going to use the task_tracker tool to organize the\
+            \ following work items:\n  - Execute the test suite\n  - Resolve any validation\
+            \ failures\n  I'm now going to run the test suite using the terminal.\n\
+            \  [After running tests and discovering 8 validation failures]\n  I found\
+            \ 8 validation failures that need attention. I'm going to use the task_tracker\
+            \ tool to add 8 specific items to the task list.\n  [Updating first task\
+            \ to in_progress]\n  Let me begin addressing the first validation issue...\n\
+            \  [After resolving first failure]\n  The first validation issue has been\
+            \ resolved, let me mark that task as done and proceed to the second item...\n\
+            \  ```\n* Example workflow for component development:\n  ```\n  User:\
+            \ \"Build a dashboard component that displays analytics data with interactive\
+            \ charts and filtering options\"\n  Assistant: I'll help you create an\
+            \ analytics dashboard with interactive charts and filtering. Let me first\
+            \ use the task_tracker tool to organize this development work.\n  Adding\
+            \ the following tasks to the tracker:\n  1. Analyze existing analytics\
+            \ data structure and requirements\n  2. Design dashboard layout and component\
+            \ architecture\n  3. Implement data visualization charts with interactivity\n\
+            \  4. Create filtering and search functionality\n  5. Integrate components\
+            \ and perform testing\n  Let me start by examining the current analytics\
+            \ data structure to understand what we're working with...\n  [Assistant\
+            \ proceeds with implementation step by step, updating tasks to in_progress\
+            \ and done as work progresses]\n  ```\n</TASK_MANAGEMENT>\n\n<TASK_TRACKING_PERSISTENCE>\n\
+            * IMPORTANT: If you were using the task_tracker tool before a condensation\
+            \ event, continue using it after condensation\n* Check condensation summaries\
+            \ for TASK_TRACKING sections to maintain continuity\n* If you see a condensation\
+            \ event with TASK_TRACKING, immediately use task_tracker to view and continue\
+            \ managing them\n</TASK_TRACKING_PERSISTENCE>\n"
+      - name: turn_counter
+        config:
+          max_turns: 200
+          position: system_message
+      - name: drop_params
+        config:
+          params:
+          - max_tokens
+          - max_completion_tokens
+          - max_input_tokens_per_task
+          - no_rebuild
+      - name: consolidate_system
+      - name: reasoning
+      - name: reasoning_replay
+        config:
+          mode: think_tags
+      extra_body:
+        chat_template_kwargs:
+          enable_thinking: true
+        skip_special_tokens: false
+      model_traffic:
+        capture_request_body: true

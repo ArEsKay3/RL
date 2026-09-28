@@ -1,0 +1,930 @@
+{
+ "step_5": {
+  "run_id": "20260927_023118_551c174e",
+  "run_dir": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/nemo-evaluator-rundirs/nano_v35/swebench-verified-fixed/20260927_023118_551c174e",
+  "job_ids": [
+   4033967,
+   4033968,
+   4033969,
+   4033970,
+   4033971,
+   4033972,
+   4033973,
+   4033974,
+   4033975,
+   4033976
+  ],
+  "submitted_at": "2026-09-26T19:31:18-07:00",
+  "checkpoint": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-from0-noprefix-vllm-20260926/checkpoints/step_5/hf",
+  "model_name": "rkirby-nano35-swe-v2-vllm-from0-noprefix-step-5",
+  "export_job": "4033665_5",
+  "export_note": "step_5 closed save confirmed by the run manager 19:25 PDT 2026-09-26 (140 files, iter_0000000, training_info current_step 5); export 4033665_5 on nvl72d214-T04 19:22-19:28 (5 min 58 s); verify_export.py verified 14 shards / 65827374264 bytes / 6513 tensors, world-readable",
+  "incidents": [
+   "00:52 PDT 2026-09-27: shard 3 primary, job 4033970 (nvl72d244-T11), exited 1 after 05:10:32: PREEMPTED by Slurm (sacct state PREEMPTED, exit 0:0) after 5 h 10 min on nvl72d244-T11; the shard log printed 'Shard 3 complete' on the way out but NO .shard_done marker was written and only 203 of 250 attempts were verified, so the false-.shard_done bug did not trigger; 7 'ECS task not RUNNING' lines in the log were ordinary single-attempt sandbox waits, not an abort; abort #1 of this shard; 203 verified attempts intact on disk; next continuation 4034001 (RUNNING) resumes from cache as infra retry 1/3."
+  ],
+  "result": {
+   "merged_at": "2026-09-27T09:37Z",
+   "report": "report.md + swebench-verified_1.0/eval-20260927T093628Z-swebench-verified_1.0.json",
+   "problems": 500,
+   "attempts_accounted": 2500,
+   "distinct_problem_repeat_pairs": 2500,
+   "pass_at_1": 0.4904,
+   "pass_at_1_ci95": [
+    0.4786,
+    0.5022
+   ],
+   "pass_at_1_bootstrap_ci": [
+    0.4544,
+    0.5272
+   ],
+   "pass_at_5": 0.662,
+   "pass_at_5_bootstrap_ci": [
+    0.62,
+    0.704
+   ],
+   "pass_at_3_computed_from_results_jsonl_unbiased": 0.6204,
+   "mean_reward": 0.4904,
+   "solver_failures_graded_0": 20,
+   "solver_failure_classes": {
+    "context_window_exceeded": 20
+   },
+   "solver_failure_ids": [
+    "p118 r4",
+    "p136 r1",
+    "p186 r1",
+    "p22 r4",
+    "p246 r1",
+    "p263 r1",
+    "p263 r2",
+    "p269 r0",
+    "p269 r1",
+    "p269 r2",
+    "p279 r0",
+    "p288 r1",
+    "p324 r2",
+    "p365 r1",
+    "p440 r3",
+    "p443 r0",
+    "p450 r3",
+    "p5 r3",
+    "p7 r0",
+    "p7 r2"
+   ],
+   "log_grading_0_lines": 20,
+   "eval_json_model_errors": 20,
+   "terminated_but_verified": {
+    "turn_budget_exhausted": {
+     "n": 1,
+     "passed": 0
+    },
+    "context_window_exceeded": {
+     "n": 16,
+     "passed": 5
+    }
+   },
+   "terminated_but_verified_ids": {
+    "turn_budget_exhausted": [
+     "p443 r1"
+    ],
+    "context_window_exceeded": [
+     "p108 r3",
+     "p11 r1",
+     "p188 r2",
+     "p188 r4",
+     "p194 r1",
+     "p250 r0",
+     "p300 r1",
+     "p312 r1",
+     "p314 r4",
+     "p36 r1",
+     "p36 r2",
+     "p40 r1",
+     "p437 r3",
+     "p440 r0",
+     "p440 r4",
+     "p462 r1"
+    ]
+   },
+   "infra_incidents": "1 incident: shard 3 primary 4033970 PREEMPTED by Slurm at 00:42 PDT 2026-09-27 after 5 h 10 min with 203 verified attempts; continuation 4034001 resumed from cache and finished the shard; all other 9 primaries completed on their first job; 0 attempts lost"
+  }
+ },
+ "step_10": {
+  "run_id": "20260927_023132_47a7c837",
+  "run_dir": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/nemo-evaluator-rundirs/nano_v35/swebench-verified-fixed/20260927_023132_47a7c837",
+  "job_ids": [
+   4033978,
+   4033979,
+   4033980,
+   4033981,
+   4033982,
+   4033983,
+   4033984,
+   4033985,
+   4033986,
+   4033987
+  ],
+  "submitted_at": "2026-09-26T19:31:32-07:00",
+  "checkpoint": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-from0-noprefix-vllm-20260926/checkpoints/step_10/hf",
+  "model_name": "rkirby-nano35-swe-v2-vllm-from0-noprefix-step-10",
+  "export_job": "4033665_10",
+  "export_note": "step_10 closed save confirmed by the run manager 19:25 PDT 2026-09-26 (140 files, iter_0000000, training_info current_step 10); export 4033665_10 on nvl72d209-T15 19:22-19:28 (6 min 20 s); verify_export.py verified 14 shards / 65827374264 bytes / 6513 tensors, world-readable",
+  "result": {
+   "merged_at": "2026-09-27T10:07Z",
+   "report": "report.md + swebench-verified_1.0/eval-20260927T095225Z-swebench-verified_1.0.json",
+   "problems": 500,
+   "attempts_accounted": 2500,
+   "distinct_problem_repeat_pairs": 2500,
+   "pass_at_1": 0.494,
+   "pass_at_1_ci95": [
+    0.4825,
+    0.5055
+   ],
+   "pass_at_1_bootstrap_ci": [
+    0.4568,
+    0.5312
+   ],
+   "pass_at_5": 0.668,
+   "pass_at_5_bootstrap_ci": [
+    0.628,
+    0.708
+   ],
+   "pass_at_3_computed_from_results_jsonl_unbiased": 0.622,
+   "mean_reward": 0.494,
+   "solver_failures_graded_0": 12,
+   "solver_failure_classes": {
+    "context_window_exceeded": 7,
+    "turn_budget_exhausted": 3,
+    "agent_nonzero_exit_137": 2
+   },
+   "solver_failure_ids": [
+    "p133 r4",
+    "p168 r0",
+    "p191 r2",
+    "p263 r1",
+    "p263 r4",
+    "p277 r2",
+    "p320 r4",
+    "p335 r2",
+    "p389 r3",
+    "p48 r1",
+    "p50 r4",
+    "p88 r4"
+   ],
+   "log_grading_0_lines": 12,
+   "eval_json_model_errors": 12,
+   "terminated_but_verified": {
+    "context_window_exceeded": {
+     "n": 22,
+     "passed": 2
+    },
+    "turn_budget_exhausted": {
+     "n": 3,
+     "passed": 0
+    },
+    "agent_nonzero_exit_-15": {
+     "n": 1,
+     "passed": 1
+    }
+   },
+   "terminated_but_verified_ids": {
+    "context_window_exceeded": [
+     "p11 r0",
+     "p189 r2",
+     "p23 r3",
+     "p23 r4",
+     "p250 r0",
+     "p254 r1",
+     "p269 r3",
+     "p269 r4",
+     "p283 r4",
+     "p312 r2",
+     "p312 r4",
+     "p315 r0",
+     "p328 r0",
+     "p328 r3",
+     "p380 r4",
+     "p440 r1",
+     "p440 r3",
+     "p462 r3",
+     "p487 r0",
+     "p487 r4",
+     "p5 r2",
+     "p51 r4"
+    ],
+    "turn_budget_exhausted": [
+     "p183 r1",
+     "p329 r2",
+     "p466 r3"
+    ],
+    "agent_nonzero_exit_-15": [
+     "p376 r3"
+    ]
+   },
+   "infra_incidents": "none: all 10 primaries completed on their first job"
+  }
+ },
+ "step_15": {
+  "run_id": "20260927_023145_ca7a5f2c",
+  "run_dir": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/nemo-evaluator-rundirs/nano_v35/swebench-verified-fixed/20260927_023145_ca7a5f2c",
+  "job_ids": [
+   4033989,
+   4033990,
+   4033991,
+   4033992,
+   4033993,
+   4033994,
+   4033995,
+   4033996,
+   4033997,
+   4033998
+  ],
+  "submitted_at": "2026-09-26T19:31:45-07:00",
+  "checkpoint": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-from0-noprefix-vllm-20260926/checkpoints/step_15/hf",
+  "model_name": "rkirby-nano35-swe-v2-vllm-from0-noprefix-step-15",
+  "export_job": "4033665_15",
+  "export_note": "step_15 closed save confirmed by the run manager 19:25 PDT 2026-09-26 (140 files, iter_0000000, training_info current_step 15); export 4033665_15 on nvl72d239-T18 19:22-19:28 (6 min 20 s); verify_export.py verified 14 shards / 65827374264 bytes / 6513 tensors, world-readable",
+  "result": {
+   "merged_at": "2026-09-27T10:37Z",
+   "report": "report.md + swebench-verified_1.0/eval-20260927T103610Z-swebench-verified_1.0.json",
+   "problems": 500,
+   "attempts_accounted": 2500,
+   "distinct_problem_repeat_pairs": 2500,
+   "pass_at_1": 0.492,
+   "pass_at_1_ci95": [
+    0.4807,
+    0.5033
+   ],
+   "pass_at_1_bootstrap_ci": [
+    0.4544,
+    0.5296
+   ],
+   "pass_at_5": 0.664,
+   "pass_at_5_bootstrap_ci": [
+    0.622,
+    0.704
+   ],
+   "pass_at_3_computed_from_results_jsonl_unbiased": 0.6172,
+   "mean_reward": 0.492,
+   "solver_failures_graded_0": 18,
+   "solver_failure_classes": {
+    "context_window_exceeded": 15,
+    "turn_budget_exhausted": 3
+   },
+   "solver_failure_ids": [
+    "p134 r2",
+    "p186 r0",
+    "p189 r0",
+    "p189 r2",
+    "p194 r3",
+    "p263 r0",
+    "p263 r4",
+    "p269 r1",
+    "p269 r2",
+    "p269 r3",
+    "p277 r2",
+    "p283 r1",
+    "p380 r3",
+    "p437 r2",
+    "p5 r0",
+    "p7 r3",
+    "p71 r2",
+    "p82 r1"
+   ],
+   "log_grading_0_lines": 18,
+   "eval_json_model_errors": 18,
+   "terminated_but_verified": {
+    "context_window_exceeded": {
+     "n": 20,
+     "passed": 4
+    },
+    "turn_budget_exhausted": {
+     "n": 3,
+     "passed": 1
+    }
+   },
+   "terminated_but_verified_ids": {
+    "context_window_exceeded": [
+     "p1 r1",
+     "p101 r1",
+     "p103 r1",
+     "p112 r4",
+     "p183 r2",
+     "p195 r2",
+     "p198 r3",
+     "p247 r0",
+     "p269 r0",
+     "p312 r1",
+     "p328 r0",
+     "p356 r4",
+     "p365 r4",
+     "p401 r2",
+     "p422 r1",
+     "p436 r2",
+     "p470 r0",
+     "p487 r3",
+     "p5 r1",
+     "p88 r3"
+    ],
+    "turn_budget_exhausted": [
+     "p427 r4",
+     "p461 r4",
+     "p48 r1"
+    ]
+   },
+   "infra_incidents": "none: all 10 primaries completed on their first job"
+  }
+ },
+ "step_20": {
+  "run_id": "20260927_033205_32582d4b",
+  "run_dir": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/nemo-evaluator-rundirs/nano_v35/swebench-verified-fixed/20260927_033205_32582d4b",
+  "job_ids": [
+   4034857,
+   4034858,
+   4034859,
+   4034860,
+   4034861,
+   4034862,
+   4034863,
+   4034864,
+   4034865,
+   4034866
+  ],
+  "submitted_at": "2026-09-26T20:32:05-07:00",
+  "checkpoint": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-from0-noprefix-vllm-20260926/checkpoints/step_20/hf",
+  "model_name": "rkirby-nano35-swe-v2-vllm-from0-noprefix-step-20",
+  "export_job": "4034670_20",
+  "export_note": "step_20 landed 20:17:49 PDT 2026-09-26; closed-save test passed at 20:21 (status json last_checkpoint_step 20 + completion stamp, 140 files, training_info current_step 20) and the run manager independently confirmed at 20:22; export 4034670_20 on nvl72d208-T05 20:22-20:28 (6 min 24 s); verify_export.py verified 14 shards / 65827374264 bytes / 6513 tensors, world-readable",
+  "result": {
+   "merged_at": "2026-09-27T10:37Z",
+   "report": "report.md + swebench-verified_1.0/eval-20260927T102630Z-swebench-verified_1.0.json",
+   "problems": 500,
+   "attempts_accounted": 2500,
+   "distinct_problem_repeat_pairs": 2500,
+   "pass_at_1": 0.4924,
+   "pass_at_1_ci95": [
+    0.4808,
+    0.504
+   ],
+   "pass_at_1_bootstrap_ci": [
+    0.4564,
+    0.53
+   ],
+   "pass_at_5": 0.672,
+   "pass_at_5_bootstrap_ci": [
+    0.632,
+    0.712
+   ],
+   "pass_at_3_computed_from_results_jsonl_unbiased": 0.6232,
+   "mean_reward": 0.4924,
+   "solver_failures_graded_0": 17,
+   "solver_failure_classes": {
+    "context_window_exceeded": 16,
+    "turn_budget_exhausted": 1
+   },
+   "solver_failure_ids": [
+    "p136 r2",
+    "p146 r1",
+    "p169 r3",
+    "p189 r3",
+    "p191 r2",
+    "p197 r1",
+    "p263 r0",
+    "p263 r3",
+    "p269 r3",
+    "p269 r4",
+    "p324 r2",
+    "p400 r0",
+    "p411 r0",
+    "p440 r0",
+    "p440 r1",
+    "p51 r2",
+    "p51 r4"
+   ],
+   "log_grading_0_lines": 17,
+   "eval_json_model_errors": 17,
+   "terminated_but_verified": {
+    "turn_budget_exhausted": {
+     "n": 5,
+     "passed": 0
+    },
+    "context_window_exceeded": {
+     "n": 12,
+     "passed": 3
+    }
+   },
+   "terminated_but_verified_ids": {
+    "turn_budget_exhausted": [
+     "p204 r4",
+     "p329 r1",
+     "p403 r1",
+     "p455 r1",
+     "p88 r3"
+    ],
+    "context_window_exceeded": [
+     "p171 r2",
+     "p214 r2",
+     "p309 r2",
+     "p320 r2",
+     "p324 r0",
+     "p365 r2",
+     "p380 r4",
+     "p416 r4",
+     "p440 r3",
+     "p440 r4",
+     "p65 r3",
+     "p98 r1"
+    ]
+   },
+   "infra_incidents": "none: all 10 primaries completed on their first job"
+  }
+ },
+ "step_25": {
+  "run_id": "20260927_063115_3cbbcac6",
+  "run_dir": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/nemo-evaluator-rundirs/nano_v35/swebench-verified-fixed/20260927_063115_3cbbcac6",
+  "job_ids": [
+   4037872,
+   4037873,
+   4037874,
+   4037875,
+   4037876,
+   4037877,
+   4037878,
+   4037879,
+   4037880,
+   4037881
+  ],
+  "submitted_at": "2026-09-26T23:31:15-07:00",
+  "checkpoint": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-from0-noprefix-vllm-20260926/checkpoints/step_25/hf",
+  "model_name": "rkirby-nano35-swe-v2-vllm-from0-noprefix-step-25",
+  "export_job": "4037587_25",
+  "export_note": "step_25 landed 23:16:47 PDT 2026-09-26; run manager confirmed closed save 23:17 (140 files / 369 GB, training_info current_step 25, status json last_checkpoint_step 25 + completion stamp); export 4037587_25 on nvl72d182-T11 23:18-23:24 (6 min 21 s); verify_export.py verified 14 shards / 65827374264 bytes / 6513 tensors, world-readable",
+  "incidents": [
+   "03:37 PDT 2026-09-27: shard 5 primary, job 4037877 (nvl72d092-T09), exited 1 after 03:55:38: Fargate abort: 'ECS task not RUNNING' x18, 'Evaluation aborted' x4, 7 secondary 'Session is closed' tracebacks; aborting attempt p310 r2 (ECS task not RUNNING after 303s (last: PENDING)); abort #1 of this shard; 179 verified attempts intact on disk; next continuation 4037890 (RUNNING) resumes from cache as infra retry 1/3."
+  ],
+  "result": {
+   "merged_at": "2026-09-27T13:52Z",
+   "report": "report.md + swebench-verified_1.0/eval-20260927T134353Z-swebench-verified_1.0.json",
+   "problems": 500,
+   "attempts_accounted": 2500,
+   "distinct_problem_repeat_pairs": 2500,
+   "pass_at_1": 0.4956,
+   "pass_at_1_ci95": [
+    0.4838,
+    0.5074
+   ],
+   "pass_at_1_bootstrap_ci": [
+    0.4588,
+    0.5328
+   ],
+   "pass_at_5": 0.676,
+   "pass_at_5_bootstrap_ci": [
+    0.634,
+    0.716
+   ],
+   "pass_at_3_computed_from_results_jsonl_unbiased": 0.6296,
+   "mean_reward": 0.4956,
+   "solver_failures_graded_0": 10,
+   "solver_failure_classes": {
+    "context_window_exceeded": 10
+   },
+   "solver_failure_ids": [
+    "p186 r1",
+    "p247 r1",
+    "p269 r1",
+    "p324 r1",
+    "p365 r0",
+    "p397 r3",
+    "p440 r0",
+    "p487 r4",
+    "p5 r1",
+    "p7 r0"
+   ],
+   "log_grading_0_lines": 10,
+   "eval_json_model_errors": 8,
+   "terminated_but_verified": {
+    "context_window_exceeded": {
+     "n": 12,
+     "passed": 3
+    },
+    "turn_budget_exhausted": {
+     "n": 4,
+     "passed": 1
+    },
+    "solve_timeout": {
+     "n": 2,
+     "passed": 0
+    },
+    "agent_nonzero_exit_-15": {
+     "n": 1,
+     "passed": 1
+    }
+   },
+   "terminated_but_verified_ids": {
+    "context_window_exceeded": [
+     "p23 r0",
+     "p254 r1",
+     "p264 r0",
+     "p269 r0",
+     "p276 r3",
+     "p312 r4",
+     "p324 r2",
+     "p328 r3",
+     "p377 r0",
+     "p40 r3",
+     "p411 r0",
+     "p443 r0"
+    ],
+    "turn_budget_exhausted": [
+     "p271 r1",
+     "p277 r0",
+     "p422 r1",
+     "p88 r1"
+    ],
+    "solve_timeout": [
+     "p39 r0",
+     "p39 r1"
+    ],
+    "agent_nonzero_exit_-15": [
+     "p458 r3"
+    ]
+   },
+   "infra_incidents": "1 incident: shard 5 primary 4037877 (nvl72d092-T09) FAILED after 3 h 56 min with a Fargate abort ('ECS task not RUNNING' x18, aborting attempt p310 r2); 179 verified attempts intact; continuation 4037890 resumed from cache as infra retry 1/3 and finished the shard at 05:07; all other 9 primaries completed on their first job; 0 attempts lost"
+  }
+ },
+ "step_30": {
+  "run_id": "20260927_092444_44c1d409",
+  "run_dir": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/nemo-evaluator-rundirs/nano_v35/swebench-verified-fixed/20260927_092444_44c1d409",
+  "job_ids": [
+   4041455,
+   4041456,
+   4041457,
+   4041458,
+   4041459,
+   4041460,
+   4041461,
+   4041462,
+   4041463,
+   4041464
+  ],
+  "submitted_at": "2026-09-27T02:24:44-07:00",
+  "checkpoint": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-from0-noprefix-vllm-20260926/checkpoints/step_30/hf",
+  "model_name": "rkirby-nano35-swe-v2-vllm-from0-noprefix-step-30",
+  "export_job": "4041278_30",
+  "export_note": "rung confirmed by the run manager 02:17:30 (140 files / 369 GB, training_info current_step 30, status json step 30 + completion stamp 02:08:42); export 4041278_30 COMPLETED ~6 min; verify_export.py verified (14 shards, 65827374264 bytes, 6513 tensors), world-readable; submitted by the background waiter after a first waiter was killed for host memory pressure before the export finished (no duplicate submission)",
+  "incidents": [
+   "07:11 PDT 2026-09-27: shard 7 primary, job 4041462 (nvl72d103-T09), exited 1 after 04:36:58: Fargate abort: 'ECS task not RUNNING' x18, 'Evaluation aborted' x4, 8 secondary 'Session is closed' tracebacks; aborting attempt p285 r3 (ECS task not RUNNING after 302s (last: PENDING)); abort #1 of this shard; 195 verified attempts intact on disk; next continuation 4041478 (RUNNING) resumes from cache as infra retry 1/3.",
+   "07:41 PDT 2026-09-27: shard 9 primary, job 4041464 (nvl72d114-T14), exited 1 after 05:08:42: Fargate abort: 'ECS task not RUNNING' x30, 'Evaluation aborted' x4, 6 secondary 'Session is closed' tracebacks; aborting attempt p279 r3 (ECS task not RUNNING after 306s (last: PENDING)); abort #1 of this shard; 206 verified attempts intact on disk; next continuation 4041479 (RUNNING) resumes from cache as infra retry 1/3.",
+   "08:11 PDT 2026-09-27: shard 2 primary, job 4041457 (nvl72d239-T08), exited 1 after 05:37:57: Fargate abort: 'ECS task not RUNNING' x23, 'Evaluation aborted' x4, 0 secondary 'Session is closed' tracebacks; aborting attempt p280 r4 (ECS task not RUNNING after 321s (last: )); abort #1 of this shard; 249 verified attempts intact on disk; next continuation 4041477 (RUNNING) resumes from cache as infra retry 1/3.",
+   "09:11 PDT 2026-09-27: shard 0 primary, job 4041455 (nvl72d209-T16), exited 1 after 06:44:53: Fargate abort: 'ECS task not RUNNING' x29, 'Evaluation aborted' x4, 0 secondary 'Session is closed' tracebacks; aborting attempt p397 r0 (ECS task not RUNNING after 312s (last: )); abort #1 of this shard; 249 verified attempts intact on disk; next continuation 4041484 (RUNNING) resumes from cache as infra retry 1/3.",
+   "09:58 PDT 2026-09-27: shard 7 continuation (infra retry 1/3) of 4041462, job 4041478 (nvl72d203-T08), exited 1 after 02:12:58: Fargate abort: 'ECS task not RUNNING' x34, 'Evaluation aborted' x4, 0 secondary 'Session is closed' tracebacks; aborting attempt p138 r3 (ECS task not RUNNING after 346s (last: PENDING)); abort #2 of this shard; 250 verified attempts intact on disk; next continuation 4045562 (COMPLETED) resumes from cache as infra retry 2/3. [backfilled 09:58 PDT 2026-09-27 after the fail-script dedupe fix; failure time = job end]",
+   "09:58 PDT 2026-09-27: shard 9 continuation (infra retry 1/3) of 4041464, job 4041479 (nvl72d114-T14), exited 1 after 02:05:13: Fargate abort: 'ECS task not RUNNING' x35, 'Evaluation aborted' x4, 0 secondary 'Session is closed' tracebacks; aborting attempt p52 r2 (ECS task not RUNNING after 312s (last: )); abort #2 of this shard; 246 verified attempts intact on disk; next continuation 4045986 (RUNNING) resumes from cache as infra retry 2/3. [backfilled 09:58 PDT 2026-09-27 after the fail-script dedupe fix; failure time = job end]"
+  ],
+  "result": {
+   "merged_at": "2026-09-27T17:41Z",
+   "report": "report.md + swebench-verified_1.0/eval-20260927T173023Z-swebench-verified_1.0.json",
+   "problems": 500,
+   "attempts_accounted": 2500,
+   "distinct_problem_repeat_pairs": 2500,
+   "pass_at_1": 0.5032,
+   "pass_at_1_ci95": [
+    0.4918,
+    0.5146
+   ],
+   "pass_at_1_bootstrap_ci": [
+    0.4664,
+    0.5412
+   ],
+   "pass_at_5": 0.682,
+   "pass_at_5_bootstrap_ci": [
+    0.64,
+    0.722
+   ],
+   "pass_at_3_computed_from_results_jsonl_unbiased": 0.632,
+   "mean_reward": 0.5032,
+   "solver_failures_graded_0": 8,
+   "solver_failure_classes": {
+    "context_window_exceeded": 7,
+    "turn_budget_exhausted": 1
+   },
+   "solver_failure_ids": [
+    "p140 r3",
+    "p150 r0",
+    "p22 r0",
+    "p249 r2",
+    "p279 r4",
+    "p357 r1",
+    "p411 r3",
+    "p51 r4"
+   ],
+   "log_grading_0_lines": 8,
+   "eval_json_model_errors": 3,
+   "terminated_but_verified": {
+    "context_window_exceeded": {
+     "n": 6,
+     "passed": 2
+    },
+    "turn_budget_exhausted": {
+     "n": 1,
+     "passed": 1
+    }
+   },
+   "terminated_but_verified_ids": {
+    "context_window_exceeded": [
+     "p269 r1",
+     "p269 r3",
+     "p320 r3",
+     "p365 r3",
+     "p429 r3",
+     "p5 r2"
+    ],
+    "turn_budget_exhausted": [
+     "p394 r1"
+    ]
+   },
+   "infra_incidents": "6 Fargate/ECS DescribeTasks-throttling aborts on 4 shards (shard 0 primary 4041455; shard 2 primary 4041457; shard 7 primary 4041462 + continuation 4041478; shard 9 primary 4041464 + continuation 4041479), each recovered by the afternotok continuation from cached attempts (shards 7 and 9 finished on their retry-2/3 continuations 4045562 and 4045986); 0 attempts lost; no re-queues; run manager confirmed the step_40 stop 07:27"
+  }
+ },
+ "step_35": {
+  "run_id": "20260927_122236_c379d1fa",
+  "run_dir": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/nemo-evaluator-rundirs/nano_v35/swebench-verified-fixed/20260927_122236_c379d1fa",
+  "job_ids": [
+   4044007,
+   4044008,
+   4044009,
+   4044010,
+   4044011,
+   4044012,
+   4044013,
+   4044014,
+   4044015,
+   4044016
+  ],
+  "submitted_at": "2026-09-27T05:22:36-07:00",
+  "checkpoint": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-from0-noprefix-vllm-20260926/checkpoints/step_35/hf",
+  "model_name": "rkirby-nano35-swe-v2-vllm-from0-noprefix-step-35",
+  "export_job": "4043922_35",
+  "export_note": "rung confirmed by the run manager 05:14:14 (140 files / 369 GB, training_info current_step 35, status json at rolling step_36 = step_35 permanent); export 4043922_35 COMPLETED in 6 min 08 s; verify_export.py verified (14 shards, 65827374264 bytes, 6513 tensors), world-readable; verify + submit_step.sh run in the foreground at the 05:21 tick",
+  "incidents": [
+   "08:11 PDT 2026-09-27: shard 0 primary, job 4044007 (nvl72d214-T14), exited 1 after 02:36:07: Fargate abort: 'ECS task not RUNNING' x15, 'Evaluation aborted' x4, 9 secondary 'Session is closed' tracebacks; aborting attempt p163 r3 (ECS task not RUNNING after 326s (last: PENDING)); abort #1 of this shard; 93 verified attempts intact on disk; next continuation 4044038 (RUNNING) resumes from cache as infra retry 1/3.",
+   "08:11 PDT 2026-09-27: shard 9 primary, job 4044016 (nvl72d107-T18), exited 1 after 02:41:37: Fargate abort: 'ECS task not RUNNING' x16, 'Evaluation aborted' x4, 7 secondary 'Session is closed' tracebacks; aborting attempt p301 r3 (ECS task not RUNNING after 303s (last: )); abort #1 of this shard; 96 verified attempts intact on disk; next continuation 4044046 (RUNNING) resumes from cache as infra retry 1/3.",
+   "08:55 PDT 2026-09-27: shard 4 primary, job 4044011 (nvl72d099-T17), exited 1 after 03:28:09: Fargate abort: 'ECS task not RUNNING' x31, 'Evaluation aborted' x4, 5 secondary 'Session is closed' tracebacks; aborting attempt p86 r0 (ECS task not RUNNING after 308s (last: )); abort #1 of this shard; 131 verified attempts intact on disk; next continuation 4044040 (RUNNING) resumes from cache as infra retry 1/3.",
+   "09:26 PDT 2026-09-27: shard 1 primary, job 4044008 (nvl72d188-T12), exited 1 after 03:56:47: Fargate abort: 'ECS task not RUNNING' x36, 'Evaluation aborted' x4, 9 secondary 'Session is closed' tracebacks; aborting attempt p334 r4 (ECS task not RUNNING after 331s (last: )); abort #1 of this shard; 140 verified attempts intact on disk; next continuation 4044034 (RUNNING) resumes from cache as infra retry 1/3.",
+   "09:26 PDT 2026-09-27: shard 7 primary, job 4044014 (nvl72d064-T18), exited 1 after 03:48:01: Fargate abort: 'ECS task not RUNNING' x39, 'Evaluation aborted' x4, 8 secondary 'Session is closed' tracebacks; aborting attempt p290 r3 (ECS task not RUNNING after 313s (last: )); abort #1 of this shard; 130 verified attempts intact on disk; next continuation 4044041 (RUNNING) resumes from cache as infra retry 1/3.",
+   "09:41 PDT 2026-09-27: shard 2 primary, job 4044009 (nvl72d138-T18), exited 1 after 04:15:19: Fargate abort: 'ECS task not RUNNING' x47, 'Evaluation aborted' x4, 5 secondary 'Session is closed' tracebacks; aborting attempt p2 r2 (ECS task not RUNNING after 321s (last: PENDING)); abort #1 of this shard; 163 verified attempts intact on disk; next continuation 4044039 (RUNNING) resumes from cache as infra retry 1/3.",
+   "09:41 PDT 2026-09-27: shard 3 primary, job 4044010 (nvl72d104-T16), exited 1 after 04:16:49: Fargate abort: 'ECS task not RUNNING' x37, 'Evaluation aborted' x4, 7 secondary 'Session is closed' tracebacks; aborting attempt p257 r4 (ECS task not RUNNING after 327s (last: PENDING)); abort #1 of this shard; 157 verified attempts intact on disk; next continuation 4044042 (RUNNING) resumes from cache as infra retry 1/3.",
+   "09:41 PDT 2026-09-27: shard 5 primary, job 4044012 (nvl72d238-T17), exited 1 after 04:13:01: Fargate abort: 'ECS task not RUNNING' x33, 'Evaluation aborted' x4, 9 secondary 'Session is closed' tracebacks; aborting attempt p159 r4 (ECS task not RUNNING after 303s (last: PENDING)); abort #1 of this shard; 167 verified attempts intact on disk; next continuation 4044045 (RUNNING) resumes from cache as infra retry 1/3.",
+   "09:56 PDT 2026-09-27: shard 8 primary, job 4044015 (nvl72d136-T04), exited 1 after 04:25:19: Fargate abort: 'ECS task not RUNNING' x35, 'Evaluation aborted' x4, 8 secondary 'Session is closed' tracebacks; aborting attempt p23 r2 (ECS task not RUNNING after 331s (last: )); abort #1 of this shard; 139 verified attempts intact on disk; next continuation 4044043 (RUNNING) resumes from cache as infra retry 1/3.",
+   "09:58 PDT 2026-09-27: shard 0 continuation (infra retry 1/3) of 4044007, job 4044038 (nvl72d214-T14), exited 1 after 01:38:11: Fargate abort: 'ECS task not RUNNING' x19, 'Evaluation aborted' x4, 9 secondary 'Session is closed' tracebacks; aborting attempt p389 r0 (ECS task not RUNNING after 302s (last: )); abort #2 of this shard; 127 verified attempts intact on disk; next continuation 4046311 (RUNNING) resumes from cache as infra retry 2/3. [backfilled 09:58 PDT 2026-09-27 after the fail-script dedupe fix; failure time = job end]",
+   "09:58 PDT 2026-09-27: shard 4 continuation (infra retry 1/3) of 4044011, job 4044040 (nvl72d187-T09), exited 1 after 01:00:11: Fargate abort: 'ECS task not RUNNING' x20, 'Evaluation aborted' x4, 9 secondary 'Session is closed' tracebacks; aborting attempt p103 r4 (ECS task not RUNNING after 365s (last: PENDING)); abort #2 of this shard; 150 verified attempts intact on disk; next continuation 4047049 (RUNNING) resumes from cache as infra retry 2/3. [backfilled 09:58 PDT 2026-09-27 after the fail-script dedupe fix; failure time = job end]",
+   "09:58 PDT 2026-09-27: shard 9 continuation (infra retry 1/3) of 4044016, job 4044046 (nvl72d107-T18), exited 1 after 01:22:55: Fargate abort: 'ECS task not RUNNING' x24, 'Evaluation aborted' x4, 11 secondary 'Session is closed' tracebacks; aborting attempt p101 r4 (ECS task not RUNNING after 345s (last: )); abort #2 of this shard; 136 verified attempts intact on disk; next continuation 4046390 (RUNNING) resumes from cache as infra retry 2/3. [backfilled 09:58 PDT 2026-09-27 after the fail-script dedupe fix; failure time = job end]",
+   "10:11 PDT 2026-09-27: shard 0 continuation (infra retry 2/3) of 4044038, job 4046311 (nvl72d214-T14), exited 1 after 00:27:23: Fargate abort: 'ECS task not RUNNING' x12, 'Evaluation aborted' x4, 8 secondary 'Session is closed' tracebacks; aborting attempt p228 r4 (ECS task not RUNNING after 324s (last: PROVISIONING)); abort #3 of this shard; 128 verified attempts intact on disk; next continuation 4047805 (FAILED) resumes from cache as infra retry 2/3.",
+   "10:12 PDT 2026-09-27: step_35 shard 0 chain STOPPED at 'Infra retry limit (3)' (stub 4047805) after its third Fargate abort (primary 4044007 -> 4044038 -> 4046311); 128 verified intact; RE-QUEUED ONCE by resume_dead_shards.py 35 as resume job 4048517 recorded in resume_jobs['0']; if it dies again STOP and ask rkirby.",
+   "10:26 PDT 2026-09-27: shard 9 continuation (infra retry 2/3) of 4044046, job 4046390 (nvl72d110-T14), exited 1 after 00:48:58: Fargate abort: 'ECS task not RUNNING' x16, 'Evaluation aborted' x4, 11 secondary 'Session is closed' tracebacks; aborting attempt p258 r4 (ECS task not RUNNING after 328s (last: PENDING)); abort #3 of this shard; 143 verified attempts intact on disk; next continuation 4047678 (FAILED) resumes from cache as infra retry 2/3.",
+   "10:26 PDT 2026-09-27: step_35 shard 9 chain STOPPED at 'Infra retry limit (3)' (stub 4047678) after its third Fargate abort (primary 4044016 -> 4044046 -> 4046390); 143 verified attempts intact; re-queued as resume job 4048791 recorded in resume_jobs['9'] (rkirby: re-queue until done).",
+   "10:41 PDT 2026-09-27: shard 2 continuation (infra retry 1/3) of 4044009, job 4044039 (nvl72d203-T04), exited 1 after 01:00:32: Fargate abort: 'ECS task not RUNNING' x21, 'Evaluation aborted' x4, 3 secondary 'Session is closed' tracebacks; aborting attempt p253 r0 (ECS task not RUNNING after 359s (last: )); abort #2 of this shard; 181 verified attempts intact on disk; next continuation 4047813 (RUNNING) resumes from cache as infra retry 2/3.",
+   "10:41 PDT 2026-09-27: shard 5 continuation (infra retry 1/3) of 4044012, job 4044045 (nvl72d238-T17), exited 1 after 00:57:26: Fargate abort: 'ECS task not RUNNING' x23, 'Evaluation aborted' x4, 7 secondary 'Session is closed' tracebacks; aborting attempt p337 r2 (ECS task not RUNNING after 336s (last: )); abort #2 of this shard; 182 verified attempts intact on disk; next continuation 4047776 (RUNNING) resumes from cache as infra retry 2/3.",
+   "10:56 PDT 2026-09-27: shard 8 continuation (infra retry 1/3) of 4044015, job 4044043 (nvl72d114-T01), exited 1 after 01:04:28: Fargate abort: 'ECS task not RUNNING' x18, 'Evaluation aborted' x4, 4 secondary 'Session is closed' tracebacks; aborting attempt p150 r4 (ECS task not RUNNING after 340s (last: PENDING)); abort #2 of this shard; 164 verified attempts intact on disk; next continuation 4047962 (RUNNING) resumes from cache as infra retry 2/3.",
+   "11:11 PDT 2026-09-27: shard 9 primary, job 4048791 (nvl72d218-T18), exited 1 after 00:31:49: vLLM startup death; abort #1 of this shard; 143 verified attempts intact on disk; next continuation 4048792 (FAILED) resumes from cache as infra retry 1/3.",
+   "11:11 PDT 2026-09-27: step_35 shard 9: resume 4048791 (started 10:26 on nvl72d218-T18) died after 00:31:49 with a vLLM startup death (q4fail.py class 'vLLM startup death', transient infra: the resumed job's vLLM server died before serving); stub 4048792 'Infra retry limit (3)'; 143 verified attempts intact; re-queued again as resume job 4049325 recorded in resume_jobs['9'] (2nd resume; rkirby: re-queue until done).",
+   "11:26 PDT 2026-09-27: shard 4 continuation (infra retry 2/3) of 4044040, job 4047049 (nvl72d187-T09), exited 1 after 01:24:53: Fargate abort: 'ECS task not RUNNING' x16, 'Evaluation aborted' x4, 6 secondary 'Session is closed' tracebacks; aborting attempt p452 r2 (ECS task not RUNNING after 370s (last: PENDING)); abort #3 of this shard; 190 verified attempts intact on disk; next continuation 4048085 (FAILED) resumes from cache as infra retry 2/3.",
+   "11:26 PDT 2026-09-27: shard 2 continuation (infra retry 2/3) of 4044039, job 4047813 (nvl72d236-T18), exited 1 after 00:31:50: vLLM startup death; abort #3 of this shard; 181 verified attempts intact on disk; next continuation 4048975 (FAILED) resumes from cache as infra retry 2/3.",
+   "11:26 PDT 2026-09-27: step_35 shard 2 chain STOPPED at 'Infra retry limit (3)' (stub 4048975) after its third failure (primary 4044009 and continuation 4044039 Fargate aborts, continuation 4047813 a vLLM startup death); 181 verified attempts intact; re-queued as resume job 4049439 recorded in resume_jobs['2'] (rkirby: re-queue until done).",
+   "11:26 PDT 2026-09-27: step_35 shard 4 chain STOPPED at 'Infra retry limit (3)' (stub 4048085) after its third Fargate abort (primary 4044011 -> 4044040 -> 4047049); 190 verified attempts intact; re-queued as resume job 4049440 recorded in resume_jobs['4'] (rkirby: re-queue until done)."
+  ],
+  "resume_jobs": {
+   "0": {
+    "job_id": "4048517",
+    "submitted_at": "2026-09-27T10:12:50-07:00",
+    "error": null
+   },
+   "9": {
+    "job_id": "4049325",
+    "submitted_at": "2026-09-27T11:11:02-07:00",
+    "error": null,
+    "previous": [
+     {
+      "job_id": "4048791",
+      "submitted_at": "2026-09-27T10:26:27-07:00",
+      "error": null
+     }
+    ]
+   },
+   "2": {
+    "job_id": "4049439",
+    "submitted_at": "2026-09-27T11:26:05-07:00",
+    "error": null,
+    "previous": []
+   },
+   "4": {
+    "job_id": "4049440",
+    "submitted_at": "2026-09-27T11:26:05-07:00",
+    "error": null,
+    "previous": []
+   }
+  },
+  "result": {
+   "merged_at": "2026-09-27T20:56Z",
+   "report": "report.md + swebench-verified_1.0/eval-20260927T204742Z-swebench-verified_1.0.json",
+   "problems": 500,
+   "attempts_accounted": 2500,
+   "distinct_problem_repeat_pairs": 2500,
+   "pass_at_1": 0.5016,
+   "pass_at_1_ci95": [
+    0.4906,
+    0.5126
+   ],
+   "pass_at_1_bootstrap_ci": [
+    0.4636,
+    0.54
+   ],
+   "pass_at_5": 0.656,
+   "pass_at_5_bootstrap_ci": [
+    0.614,
+    0.698
+   ],
+   "pass_at_3_computed_from_results_jsonl_unbiased": 0.6174,
+   "mean_reward": 0.5016,
+   "solver_failures_graded_0": 4,
+   "solver_failure_classes": {
+    "agent_nonzero_exit_-15": 1,
+    "context_window_exceeded": 2,
+    "agent_nonzero_exit_137": 1
+   },
+   "solver_failure_ids": [
+    "p159 r3",
+    "p230 r0",
+    "p263 r2",
+    "p5 r1"
+   ],
+   "log_grading_0_lines": 4,
+   "eval_json_model_errors": 1,
+   "terminated_but_verified": {
+    "turn_budget_exhausted": {
+     "n": 2,
+     "passed": 0
+    },
+    "context_window_exceeded": {
+     "n": 3,
+     "passed": 1
+    }
+   },
+   "terminated_but_verified_ids": {
+    "turn_budget_exhausted": [
+     "p338 r3",
+     "p468 r4"
+    ],
+    "context_window_exceeded": [
+     "p195 r0",
+     "p246 r4",
+     "p418 r4"
+    ]
+   },
+   "infra_incidents": "20 infrastructure abort events on shards 0, 1, 2, 3, 4, 5, 7, 8, 9 (18 AWS ECS DescribeTasks-throttling Fargate aborts, 2 vLLM startup deaths), each recovered from cached attempts by the afternotok continuation; 5 retry-limit stops (shards 0, 9 twice, 2, 4) re-queued under rkirby's re-queue-until-done rule, resumes per shard {\"0\": [\"4048517\"], \"9\": [\"4048791\", \"4049325\"], \"2\": [\"4049439\"], \"4\": [\"4049440\"]} all completed their shards; 0 attempts lost"
+  }
+ },
+ "step_40": {
+  "run_id": "20260927_144125_d778efca",
+  "run_dir": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/nemo-evaluator-rundirs/nano_v35/swebench-verified-fixed/20260927_144125_d778efca",
+  "job_ids": [
+   4046092,
+   4046093,
+   4046094,
+   4046095,
+   4046096,
+   4046097,
+   4046098,
+   4046099,
+   4046100,
+   4046101
+  ],
+  "submitted_at": "2026-09-27T07:41:25-07:00",
+  "checkpoint": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-from0-noprefix-vllm-20260926/checkpoints/step_40/hf",
+  "model_name": "rkirby-nano35-swe-v2-vllm-from0-noprefix-step-40",
+  "export_job": "4045886_40",
+  "export_note": "FINAL rung (endpoint cut from 60 to 40 by rkirby 06:45 PDT 2026-09-27); closed 07:21:14 (closed-save test, self-serve) and confirmed by the run manager 07:26:32 (140 files / 369 GB, training_info current_step 40, consumed_samples 1280); training stopped 07:27 (4022858/4022859/4033276/4033277 CANCELLED); export 4045886_40 COMPLETED in 6 min 22 s; verify_export.py verified (14 shards, 65827374264 bytes, 6513 tensors), world-readable; verify + submit_step.sh run in the foreground at the 07:40 tick",
+  "incidents": [
+   "08:11 PDT 2026-09-27: shard 4 primary, job 4046096 (nvl72d160-T03), exited 1 after 00:29:01: Fargate abort: 'ECS task not RUNNING' x11, 'Evaluation aborted' x4, 7 secondary 'Session is closed' tracebacks; aborting attempt p266 r2 (ECS task not RUNNING after 335s (last: PENDING)); abort #1 of this shard; 2 verified attempts intact on disk; next continuation 4046111 (RUNNING) resumes from cache as infra retry 1/3.",
+   "08:26 PDT 2026-09-27: shard 0 primary, job 4046092 (nvl72d143-T16), exited 1 after 00:34:07: Fargate abort: 'ECS task not RUNNING' x10, 'Evaluation aborted' x4, 6 secondary 'Session is closed' tracebacks; aborting attempt p383 r3 (ECS task not RUNNING after 323s (last: )); abort #1 of this shard; 4 verified attempts intact on disk; next continuation 4046110 (RUNNING) resumes from cache as infra retry 1/3.",
+   "08:26 PDT 2026-09-27: shard 1 primary, job 4046093 (nvl72d072-T14), exited 1 after 00:43:28: Fargate abort: 'ECS task not RUNNING' x18, 'Evaluation aborted' x4, 7 secondary 'Session is closed' tracebacks; aborting attempt p303 r1 (ECS task not RUNNING after 355s (last: PENDING)); abort #1 of this shard; 14 verified attempts intact on disk; next continuation 4046109 (RUNNING) resumes from cache as infra retry 1/3.",
+   "08:26 PDT 2026-09-27: shard 5 primary, job 4046097 (nvl72d230-T08), exited 1 after 00:34:29: Fargate abort: 'ECS task not RUNNING' x4, 'Evaluation aborted' x4, 7 secondary 'Session is closed' tracebacks; exhausted: An error occurred (ThrottlingException) when calling the DescribeTasks operation: Rate exceeded; abort #1 of this shard; 8 verified attempts intact on disk; next continuation 4046108 (RUNNING) resumes from cache as infra retry 1/3.",
+   "08:26 PDT 2026-09-27: shard 7 primary, job 4046099 (nvl72d204-T18), exited 1 after 00:34:19: Fargate abort: 'ECS task not RUNNING' x16, 'Evaluation aborted' x4, 3 secondary 'Session is closed' tracebacks; aborting attempt p260 r2 (ECS task not RUNNING after 335s (last: PENDING)); abort #1 of this shard; 3 verified attempts intact on disk; next continuation 4046113 (RUNNING) resumes from cache as infra retry 1/3.",
+   "08:55 PDT 2026-09-27: shard 3 primary, job 4046095 (nvl72d091-T15), exited 1 after 01:06:23: Fargate abort: 'ECS task not RUNNING' x21, 'Evaluation aborted' x4, 8 secondary 'Session is closed' tracebacks; aborting attempt p277 r2 (ECS task not RUNNING after 328s (last: PENDING)); abort #1 of this shard; 26 verified attempts intact on disk; next continuation 4046106 (RUNNING) resumes from cache as infra retry 1/3.",
+   "09:26 PDT 2026-09-27: shard 2 primary, job 4046094 (nvl72d050-T17), exited 1 after 01:30:03: Fargate abort: 'ECS task not RUNNING' x30, 'Evaluation aborted' x4, 8 secondary 'Session is closed' tracebacks; aborting attempt p153 r0 (ECS task not RUNNING after 307s (last: )); abort #1 of this shard; 45 verified attempts intact on disk; next continuation 4046107 (RUNNING) resumes from cache as infra retry 1/3.",
+   "09:41 PDT 2026-09-27: shard 8 primary, job 4046100 (nvl72d069-T18), exited 1 after 01:47:08: Fargate abort: 'ECS task not RUNNING' x29, 'Evaluation aborted' x4, 9 secondary 'Session is closed' tracebacks; aborting attempt p83 r3 (ECS task not RUNNING after 311s (last: )); abort #1 of this shard; 51 verified attempts intact on disk; next continuation 4046115 (RUNNING) resumes from cache as infra retry 1/3.",
+   "09:41 PDT 2026-09-27: shard 0 continuation (infra retry 2/3) of 4046110, job 4046549 (nvl72d241-T18), exited 1 after 00:27:56: Fargate abort: 'ECS task not RUNNING' x17, 'Evaluation aborted' x4, 5 secondary 'Session is closed' tracebacks; aborting attempt p209 r0 (ECS task not RUNNING after 315s (last: )); abort #3 of this shard; 25 verified attempts intact on disk; next continuation 4047174 (FAILED) resumes from cache as infra retry 2/3.",
+   "09:41 PDT 2026-09-27: step_40 shard 0 chain STOPPED at 'Infra retry limit (3) reached after FAILED' (follow-up 4047174 on nvl72d134-T09 exited in 19 s) after three Fargate 'ECS task not RUNNING' aborts (primary 4046092, continuations 4046110 and 4046549) under the morning's ECS API throttling; 25 verified attempts intact; RE-QUEUED ONCE per the runbook via resume_dead_shards.py 40 as job 4047843 - (see resume_jobs['0']); .nel_infra_retries stays 3 (never reset without rkirby's approval); if this shard dies again, STOP and ask rkirby",
+   "09:58 PDT 2026-09-27: shard 6 primary, job 4046098 (nvl72d112-T17), exited 1 after 02:17:03: Fargate abort: 'ECS task not RUNNING' x41, 'Evaluation aborted' x4, 10 secondary 'Session is closed' tracebacks; aborting attempt p473 r3 (ECS task not RUNNING after 322s (last: )); abort #1 of this shard; 70 verified attempts intact on disk; next continuation 4046112 (PENDING) resumes from cache as infra retry 1/3. [backfilled 09:58 PDT 2026-09-27 after the fail-script dedupe fix; failure time = job end]",
+   "09:58 PDT 2026-09-27: shard 2 continuation (infra retry 1/3) of 4046094, job 4046107 (nvl72d188-T15), exited 1 after 00:44:25: Fargate abort: 'ECS task not RUNNING' x17, 'Evaluation aborted' x4, 2 secondary 'Session is closed' tracebacks; aborting attempt p38 r2 (ECS task not RUNNING after 324s (last: )); abort #2 of this shard; 53 verified attempts intact on disk; next continuation 4047205 (RUNNING) resumes from cache as infra retry 2/3. [backfilled 09:58 PDT 2026-09-27 after the fail-script dedupe fix; failure time = job end]",
+   "09:58 PDT 2026-09-27: shard 5 continuation (infra retry 1/3) of 4046097, job 4046108 (nvl72d237-T18), exited 1 after 01:23:14: Fargate abort: 'ECS task not RUNNING' x16, 'Evaluation aborted' x4, 6 secondary 'Session is closed' tracebacks; aborting attempt p484 r4 (ECS task not RUNNING after 311s (last: PENDING)); abort #2 of this shard; 43 verified attempts intact on disk; next continuation 4046552 (RUNNING) resumes from cache as infra retry 2/3. [backfilled 09:58 PDT 2026-09-27 after the fail-script dedupe fix; failure time = job end]",
+   "09:58 PDT 2026-09-27: shard 1 continuation (infra retry 1/3) of 4046093, job 4046109 (nvl72d072-T14), exited 1 after 01:21:00: Fargate abort: 'ECS task not RUNNING' x26, 'Evaluation aborted' x4, 7 secondary 'Session is closed' tracebacks; aborting attempt p120 r1 (ECS task not RUNNING after 325s (last: )); abort #2 of this shard; 46 verified attempts intact on disk; next continuation 4046677 (RUNNING) resumes from cache as infra retry 2/3. [backfilled 09:58 PDT 2026-09-27 after the fail-script dedupe fix; failure time = job end]",
+   "09:58 PDT 2026-09-27: shard 0 continuation (infra retry 1/3) of 4046092, job 4046110 (nvl72d143-T16), exited 1 after 00:52:53: Fargate abort: 'ECS task not RUNNING' x15, 'Evaluation aborted' x4, 7 secondary 'Session is closed' tracebacks; aborting attempt p383 r2 (ECS task not RUNNING after 332s (last: )); abort #2 of this shard; 25 verified attempts intact on disk; next continuation 4046549 (FAILED) resumes from cache as infra retry 2/3. [backfilled 09:58 PDT 2026-09-27 after the fail-script dedupe fix; failure time = job end]",
+   "09:58 PDT 2026-09-27: shard 4 continuation (infra retry 1/3) of 4046096, job 4046111 (nvl72d210-T17), exited 1 after 01:30:14: Fargate abort: 'ECS task not RUNNING' x26, 'Evaluation aborted' x4, 2 secondary 'Session is closed' tracebacks; aborting attempt p364 r2 (ECS task not RUNNING after 301s (last: )); abort #2 of this shard; 49 verified attempts intact on disk; next continuation 4046479 (RUNNING) resumes from cache as infra retry 2/3. [backfilled 09:58 PDT 2026-09-27 after the fail-script dedupe fix; failure time = job end]",
+   "09:58 PDT 2026-09-27: shard 7 continuation (infra retry 1/3) of 4046099, job 4046113 (nvl72d215-T17), exited 1 after 01:20:20: Fargate abort: 'ECS task not RUNNING' x20, 'Evaluation aborted' x4, 6 secondary 'Session is closed' tracebacks; aborting attempt p298 r1 (ECS task not RUNNING after 317s (last: )); abort #2 of this shard; 37 verified attempts intact on disk; next continuation 4046561 (RUNNING) resumes from cache as infra retry 2/3. [backfilled 09:58 PDT 2026-09-27 after the fail-script dedupe fix; failure time = job end]",
+   "10:11 PDT 2026-09-27: shard 5 continuation (infra retry 2/3) of 4046108, job 4046552 (nvl72d104-T16), exited 1 after 00:29:33: Fargate abort: 'ECS task not RUNNING' x13, 'Evaluation aborted' x4, 7 secondary 'Session is closed' tracebacks; aborting attempt p265 r3 (ECS task not RUNNING after 320s (last: )); abort #3 of this shard; 43 verified attempts intact on disk; next continuation 4047834 (FAILED) resumes from cache as infra retry 2/3.",
+   "10:11 PDT 2026-09-27: shard 7 continuation (infra retry 2/3) of 4046113, job 4046561 (nvl72d215-T17), exited 1 after 00:31:59: Fargate abort: 'ECS task not RUNNING' x13, 'Evaluation aborted' x4, 6 secondary 'Session is closed' tracebacks; aborting attempt p298 r1 (ECS task not RUNNING after 307s (last: PENDING)); abort #3 of this shard; 42 verified attempts intact on disk; next continuation 4047797 (FAILED) resumes from cache as infra retry 2/3.",
+   "10:11 PDT 2026-09-27: shard 0 primary, job 4047843 (nvl72d177-T16), exited 1 after 00:28:17: Fargate abort: 'ECS task not RUNNING' x11, 'Evaluation aborted' x4, 9 secondary 'Session is closed' tracebacks; aborting attempt p209 r4 (ECS task not RUNNING after 307s (last: )); abort #1 of this shard; 26 verified attempts intact on disk; next continuation 4047852 (FAILED) resumes from cache as infra retry 1/3.",
+   "10:12 PDT 2026-09-27: step_40 shard 0: the ONE permitted resume, job 4047843 - started 09:41 on nvl72d177-T16, died after 00:28:17 with the same Fargate/ECS-throttling abort class ('ECS task not RUNNING' x11, 'Evaluation aborted' x4; 26 verified attempts intact on disk); stub 4047852 printed 'Infra retry limit (3) reached after FAILED. Stopping.'; .nel_infra_retries now 4; NOT re-queued again - STOPPED pending rkirby's decision. Do not run resume_dead_shards.py 40 (it would re-queue this shard); re-queue other step_40 shards individually.",
+   "10:12 PDT 2026-09-27: step_40 shard 5 chain STOPPED at 'Infra retry limit (3)' (stub 4047834) after its third Fargate abort (primary 4046097 -> 4046108 -> 4046552); 43 verified intact; RE-QUEUED ONCE as resume job 4048518 recorded in resume_jobs['5']; if it dies again STOP and ask rkirby.",
+   "10:12 PDT 2026-09-27: step_40 shard 7 chain STOPPED at 'Infra retry limit (3)' (stub 4047797) after its third Fargate abort (primary 4046099 -> 4046113 -> 4046561); 42 verified intact; RE-QUEUED ONCE as resume job 4048519 recorded in resume_jobs['7']; if it dies again STOP and ask rkirby.",
+   "10:17 PDT 2026-09-27: step_40 shard 0 RE-QUEUED a second time as resume job 4048653 on rkirby's instruction relayed verbatim by the run manager 10:2x ('I have not such one resume rule submit until you get it done'): no one-resume limit; re-queue at every tick until the shard completes. 26 verified attempts intact; previous resume 4047843 kept under resume_jobs['0'].previous.",
+   "10:26 PDT 2026-09-27: shard 3 continuation (infra retry 1/3) of 4046095, job 4046106 (nvl72d237-T17), exited 1 after 01:24:43: Fargate abort: 'ECS task not RUNNING' x26, 'Evaluation aborted' x4, 3 secondary 'Session is closed' tracebacks; aborting attempt p296 r4 (ECS task not RUNNING after 305s (last: )); abort #2 of this shard; 60 verified attempts intact on disk; next continuation 4047009 (RUNNING) resumes from cache as infra retry 2/3.",
+   "10:26 PDT 2026-09-27: shard 8 continuation (infra retry 1/3) of 4046100, job 4046115 (nvl72d069-T18), exited 1 after 00:50:47: Fargate abort: 'ECS task not RUNNING' x18, 'Evaluation aborted' x4, 7 secondary 'Session is closed' tracebacks; aborting attempt p325 r4 (ECS task not RUNNING after 351s (last: )); abort #2 of this shard; 65 verified attempts intact on disk; next continuation 4047687 (RUNNING) resumes from cache as infra retry 2/3.",
+   "10:56 PDT 2026-09-27: shard 7 primary, job 4048519 (nvl72d214-T14), exited 1 after 00:29:09: Fargate abort: 'ECS task not RUNNING' x10, 'Evaluation aborted' x4, 8 secondary 'Session is closed' tracebacks; aborting attempt p275 r1 (ECS task not RUNNING after 341s (last: PENDING)); abort #1 of this shard; 43 verified attempts intact on disk; next continuation 4048526 (FAILED) resumes from cache as infra retry 1/3.",
+   "10:56 PDT 2026-09-27: step_40 shard 7: resume 4048519 (started 10:13 on nvl72d214-T14) died after 00:29:09 with the same Fargate/ECS-throttling abort class; stub 4048526 'Infra retry limit (3)'; 43 verified attempts intact; re-queued again as resume job 4049129 recorded in resume_jobs['7'] (2nd resume; rkirby: re-queue until done).",
+   "11:26 PDT 2026-09-27: shard 9 primary, job 4046101 (nvl72d232-T18), exited 1 after 03:41:55: Fargate abort: 'ECS task not RUNNING' x52, 'Evaluation aborted' x4, 7 secondary 'Session is closed' tracebacks; aborting attempt p332 r2 (ECS task not RUNNING after 324s (last: PENDING)); abort #1 of this shard; 122 verified attempts intact on disk; next continuation 4046114 (RUNNING) resumes from cache as infra retry 1/3.",
+   "11:56 PDT 2026-09-27: shard 4 continuation (infra retry 2/3) of 4046111, job 4046479 (nvl72d210-T17), exited 1 after 02:00:10: Fargate abort: 'ECS task not RUNNING' x27, 'Evaluation aborted' x4, 11 secondary 'Session is closed' tracebacks; aborting attempt p435 r3 (ECS task not RUNNING after 326s (last: PENDING)); abort #3 of this shard; 117 verified attempts intact on disk; next continuation 4047856 (FAILED) resumes from cache as infra retry 2/3.",
+   "11:56 PDT 2026-09-27: step_40 shard 4 chain STOPPED at 'Infra retry limit (3)' (stub 4047856) after its third failure (primary 4046096 -> 4046111 -> 4046479); 117 verified attempts intact; re-queued as resume job 4049717 recorded in resume_jobs['4'] (rkirby: re-queue until done)."
+  ],
+  "resume_jobs": {
+   "0": {
+    "job_id": "4048653",
+    "submitted_at": "2026-09-27T10:17:36-07:00",
+    "error": null,
+    "previous": [
+     {
+      "job_id": "4047843",
+      "submitted_at": "2026-09-27T09:41:17-07:00",
+      "error": null
+     }
+    ]
+   },
+   "5": {
+    "job_id": "4048518",
+    "submitted_at": "2026-09-27T10:12:50-07:00",
+    "error": null
+   },
+   "7": {
+    "job_id": "4049129",
+    "submitted_at": "2026-09-27T10:56:05-07:00",
+    "error": null,
+    "previous": [
+     {
+      "job_id": "4048519",
+      "submitted_at": "2026-09-27T10:12:50-07:00",
+      "error": null
+     }
+    ]
+   },
+   "4": {
+    "job_id": "4049717",
+    "submitted_at": "2026-09-27T11:56:03-07:00",
+    "error": null,
+    "previous": []
+   }
+  },
+  "result": {
+   "merged_at": "2026-09-27T22:26Z",
+   "report": "report.md + swebench-verified_1.0/eval-20260927T222208Z-swebench-verified_1.0.json",
+   "problems": 500,
+   "attempts_accounted": 2500,
+   "distinct_problem_repeat_pairs": 2500,
+   "pass_at_1": 0.4956,
+   "pass_at_1_ci95": [
+    0.4842,
+    0.507
+   ],
+   "pass_at_1_bootstrap_ci": [
+    0.458,
+    0.5336
+   ],
+   "pass_at_5": 0.656,
+   "pass_at_5_bootstrap_ci": [
+    0.614,
+    0.698
+   ],
+   "pass_at_3_computed_from_results_jsonl_unbiased": 0.617,
+   "mean_reward": 0.4956,
+   "solver_failures_graded_0": 2,
+   "solver_failure_classes": {
+    "context_window_exceeded": 2
+   },
+   "solver_failure_ids": [
+    "p197 r3",
+    "p324 r3"
+   ],
+   "log_grading_0_lines": 2,
+   "eval_json_model_errors": 2,
+   "terminated_but_verified": {
+    "context_window_exceeded": {
+     "n": 3,
+     "passed": 0
+    },
+    "turn_budget_exhausted": {
+     "n": 1,
+     "passed": 0
+    }
+   },
+   "terminated_but_verified_ids": {
+    "context_window_exceeded": [
+     "p269 r4",
+     "p440 r0",
+     "p489 r3"
+    ],
+    "turn_budget_exhausted": [
+     "p58 r0"
+    ]
+   },
+   "infra_incidents": "24 infrastructure abort events on shards 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 (24 AWS ECS DescribeTasks-throttling Fargate aborts, 0 vLLM startup deaths), each recovered from cached attempts by the afternotok continuation; 6 retry-limit stops (shards 0 twice, 5, 7 twice, 4) re-queued under rkirby's re-queue-until-done rule, resumes per shard {\"0\": [\"4047843\", \"4048653\"], \"5\": [\"4048518\"], \"7\": [\"4048519\", \"4049129\"], \"4\": [\"4049717\"]} all completed their shards; 0 attempts lost; run manager confirmed the step_40 stop 07:27"
+  }
+ }
+}

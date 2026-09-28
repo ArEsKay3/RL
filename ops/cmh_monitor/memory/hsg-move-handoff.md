@@ -1,0 +1,14 @@
+---
+name: hsg-move-handoff
+description: "2026-09-28 11:53 rkirby may move back to the HSG cluster: every session must document its workstream (HANDOFF.md) and push all code to his GitHub forks (ArEsKay3/RL, ArEsKay3/Megatron-LM, Gym/Bridge forks); audit of unpushed trees and who owns what"
+metadata:
+  type: project
+---
+
+rkirby, 2026-09-28 11:53 PDT: "I might need to move back to another cluster HSG. Can you make sure all agents running experiments document what they're doing and make sure all code is checked into my forks so I can resume elsewhere?"
+
+**Audit 11:55 (ls-remote vs local HEADs).** Pushed and current: swe_dump/nemo_rl rkirby/swe-v2-dump 7f8a2b9d; swe_minf/nemo_rl rkirby/swe-v2-minf 952eaf85b; engine_loop_test rkirby/engine-loop-test 561ccba2; MLM 880de0fce = tip of rkirby/rlvr-nolap-repro on ArEsKay3/Megatron-LM. **Not on GitHub:** RL: swe_replay_splice 4f779abc (splice commit on a local branch confusingly named rkirby/swe-v2-dump - push as a NEW branch), swe_vllm_parity rkirby/swe-v2-vllm-parity 8257c406, swe_main915 rkirby/swe-main915-latest b97225bb6, swe_915 rkirby/swe-915-nomask 3a7fde92c; MLM: rkirby/vllm-parity-armV d37db1077, mlm-main915-latest 475167fa4 (origin = a ~/.claude/jobs tmp dir!), fork-915 a012970be, mlm-main-nrl-shim 951a824b7; Bridge mlm-bridge-main915-latest 1f8873bb0 (tmp origin); Gym rkirby/gym-main915 d54e6374e (submodule in swe_main915/nemo_rl, remote unknown). **Uncommitted:** the dynamic_engine.py guard in swe_dump/Megatron-LM and swe_replay_splice/Megatron-LM (ran under every swe-v2-dump MINF arm), swe_dump/nemo_rl replay_train.py + swe_sc_cmh_minf.yaml, swe_minf yaml. **Outside git entirely:** swe_dump/analysis + tools + notebooks + RUNBOOK + launchers, swe_mask_replay, swe_range_replay, swe_prefix_keep, swe_lr0, swe_915/tools + launcher, swe_main915/analysis + tools + launcher, engine_loop_test dirs, evaluation/jobs (eval runner), my monitor tooling in ~/.claude/jobs/e247f0cd/tmp.
+
+**Owners asked 11:58 (SendMessage):** VLLM parity (swe_vllm_parity RL+MLM), Get Latest Main? (swe_main915 RL/MLM/Bridge/Gym + analysis), Cross Train Experiment (splice family + swe_915 + overlays), Data Difference Deep Dive x2 (datadiff tooling/specs/masks), Log Analysis (analysis tools/reports), Data Browser (dumpbrowse). Each: push to the forks on new clearly named branches (never force-push, never checkout/stash/reset in live-mounted trees), HANDOFF.md at workspace top + in the branch, reply repo->branch->commit->pushed. Manager compiles HANDOFF_INDEX.md and pushes its own monitor tooling + the MLM guard.
+
+**Why:** code and docs must be portable to HSG; checkpoints/dumps (tens of TiB) stay on CMH Lustre. **How to apply:** when new work starts anywhere, it goes on a pushed fork branch from the start; peer replies about pushes are their claims until verified with ls-remote.

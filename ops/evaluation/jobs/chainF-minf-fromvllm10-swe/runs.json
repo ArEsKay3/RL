@@ -1,0 +1,798 @@
+{
+ "step_30": {
+  "run_id": "20260921_162059_2c4debae",
+  "run_dir": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/nemo-evaluator-rundirs/nano_v35/swebench-verified-fixed/20260921_162059_2c4debae",
+  "job_ids": [
+   "3898913",
+   "3898914",
+   "3898915",
+   "3898916",
+   "3898917",
+   "3898918",
+   "3898919",
+   "3898920",
+   "3898921",
+   "3898922"
+  ],
+  "submitted_at": "2026-09-21T09:21:23-07:00",
+  "checkpoint": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-stream128-inorder1-cmh-64n-minf_dump-fromvllm10-20260920/checkpoints/step_30/hf",
+  "model_name": "rkirby-nano35-swe-v2-stream128-inorder1-minf-fromvllm10-step-30",
+  "incidents": [
+   "12:34:29 PDT 2026-09-21: 46 jobs CANCELLED (44 primaries + 2 continuations => 46 of 60 shards dead, 14 live) by uid 157074 (vedmonds, Victoria Edmonds; SIGNAL Terminated). The recipe's afternotok continuations treat CANCELLED as 'Stopping chain' (exit 0), so those shards have no job now; their verified_log/inference_log results are intact on disk and `nel eval run <shard cfg> --resume` (i.e. `sbatch <run_dir>/shard_N/nel_eval.sbatch` with no argument) would resume from cached results. Nothing resubmitted; awaiting the user.",
+   "14:15:48 PDT: second sweep, 26 of my running jobs CANCELLED by uid 0 (root; other users hit too; batch_long now shows 320 reserved nodes) on racks nvl72d054/d032/d231/d164: resume jobs for step_15 s9, step_20 s0,1,2,5,7, step_25 s0,1,3-9, step_26 s0-6,8,9, the step_15 s3 retry 3905232 and step_10 s8 continuation 3899377. Their no-op continuations were cancelled by me and resumes re-queued (see resume_jobs)."
+  ],
+  "shards_alive_after_cancel": [
+   3,
+   7,
+   8,
+   9
+  ],
+  "shards_dead_after_cancel": [
+   0,
+   1,
+   2,
+   4,
+   5,
+   6
+  ],
+  "verified_at_cancel_tick_1239": 1973,
+  "resume_jobs": {
+   "0": {
+    "job_id": "3904295",
+    "submitted_at": "2026-09-21T13:01:42-07:00",
+    "error": null
+   },
+   "1": {
+    "job_id": "3904296",
+    "submitted_at": "2026-09-21T13:01:42-07:00",
+    "error": null
+   },
+   "2": {
+    "job_id": "3904297",
+    "submitted_at": "2026-09-21T13:01:42-07:00",
+    "error": null
+   },
+   "4": {
+    "job_id": "3904298",
+    "submitted_at": "2026-09-21T13:01:42-07:00",
+    "error": null
+   },
+   "5": {
+    "job_id": "3904299",
+    "submitted_at": "2026-09-21T13:01:42-07:00",
+    "error": null
+   },
+   "6": {
+    "job_id": "3904300",
+    "submitted_at": "2026-09-21T13:01:42-07:00",
+    "error": null
+   }
+  },
+  "result": {
+   "merged_at": "2026-09-21T14:24Z",
+   "report": "report.md + swebench-verified_1.0/eval-20260921T212402Z-swebench-verified_1.0.json",
+   "problems": 500,
+   "attempts_accounted": 2500,
+   "pass_at_1": 0.5096,
+   "pass_at_1_ci95": [
+    0.4984,
+    0.5208
+   ],
+   "pass_at_1_bootstrap_ci": [
+    0.4724,
+    0.5472
+   ],
+   "pass_at_5": 0.666,
+   "pass_at_5_bootstrap_ci": [
+    0.624,
+    0.706
+   ],
+   "pass_at_3_computed_from_results_jsonl_unbiased": 0.6274,
+   "mean_reward": 0.5096,
+   "solver_failures_graded_0": 0,
+   "infra_incidents": "6 of 10 shards cancelled by the 12:34 admin sweep and resumed from cached results (13:00-14:20); no startup failures; benign single-request ServerDisconnected errors only",
+   "solver_failure_classes_from_records": {},
+   "solver_failure_ids": [],
+   "terminated_but_verified": {},
+   "terminated_but_verified_ids": {}
+  }
+ },
+ "step_10": {
+  "run_id": "20260921_164150_45f30c03",
+  "run_dir": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/nemo-evaluator-rundirs/nano_v35/swebench-verified-fixed/20260921_164150_45f30c03",
+  "job_ids": [
+   "3899343",
+   "3899344",
+   "3899345",
+   "3899346",
+   "3899347",
+   "3899348",
+   "3899349",
+   "3899350",
+   "3899351",
+   "3899352"
+  ],
+  "submitted_at": "2026-09-21T09:42:10-07:00",
+  "checkpoint": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-stream128-inorder1-cmh-64n-minf_dump-fromvllm10-20260920/checkpoints/step_10/hf",
+  "model_name": "rkirby-nano35-swe-v2-stream128-inorder1-minf-fromvllm10-step-10",
+  "incidents": [
+   "shard 4 primary 3899347 FAILED after 12m43s on nvl72d206-T17: vLLM init DistNetworkError EADDRINUSE port 11571 (node-local port collision); auto-resume continuation 3899376 pending",
+   "12:34:29 PDT 2026-09-21: 46 jobs CANCELLED (44 primaries + 2 continuations => 46 of 60 shards dead, 14 live) by uid 157074 (vedmonds, Victoria Edmonds; SIGNAL Terminated). The recipe's afternotok continuations treat CANCELLED as 'Stopping chain' (exit 0), so those shards have no job now; their verified_log/inference_log results are intact on disk and `nel eval run <shard cfg> --resume` (i.e. `sbatch <run_dir>/shard_N/nel_eval.sbatch` with no argument) would resume from cached results. Nothing resubmitted; awaiting the user.",
+   "14:15:48 PDT: second sweep, 26 of my running jobs CANCELLED by uid 0 (root; other users hit too; batch_long now shows 320 reserved nodes) on racks nvl72d054/d032/d231/d164: resume jobs for step_15 s9, step_20 s0,1,2,5,7, step_25 s0,1,3-9, step_26 s0-6,8,9, the step_15 s3 retry 3905232 and step_10 s8 continuation 3899377. Their no-op continuations were cancelled by me and resumes re-queued (see resume_jobs)."
+  ],
+  "solver_failures_graded_0": [
+   "p440 r2: agent ConversationRunError litellm.ContextWindowExceededError (conversation exceeded 262,144 context) -> graded 0.0",
+   "p399 r1: NonZeroAgentExitCodeError exit -15 (agent process SIGTERM ~11 min after solver entry) -> graded 0.0",
+   "p325 r4: ConversationRunError litellm.RateLimitError (no 429 in vLLM server logs; client-side mapping) -> graded 0.0"
+  ],
+  "shards_alive_after_cancel": [
+   2,
+   7,
+   8
+  ],
+  "shards_dead_after_cancel": [
+   0,
+   1,
+   3,
+   4,
+   5,
+   6,
+   9
+  ],
+  "verified_at_cancel_tick_1239": 1244,
+  "resume_jobs": {
+   "0": {
+    "job_id": "3904301",
+    "submitted_at": "2026-09-21T13:01:42-07:00",
+    "error": null
+   },
+   "1": {
+    "job_id": "3904302",
+    "submitted_at": "2026-09-21T13:01:42-07:00",
+    "error": null
+   },
+   "3": {
+    "job_id": "3904303",
+    "submitted_at": "2026-09-21T13:01:42-07:00",
+    "error": null
+   },
+   "4": {
+    "job_id": "3904304",
+    "submitted_at": "2026-09-21T13:01:42-07:00",
+    "error": null
+   },
+   "5": {
+    "job_id": "3904305",
+    "submitted_at": "2026-09-21T13:01:42-07:00",
+    "error": null
+   },
+   "6": {
+    "job_id": "3904306",
+    "submitted_at": "2026-09-21T13:01:42-07:00",
+    "error": null
+   },
+   "9": {
+    "job_id": "3904307",
+    "submitted_at": "2026-09-21T13:01:42-07:00",
+    "error": null
+   },
+   "8": {
+    "job_id": "3906840",
+    "submitted_at": "2026-09-21T14:29:16-07:00",
+    "error": null
+   }
+  },
+  "result": {
+   "merged_at": "2026-09-21T17:2xPDT (auto-merge by last shard)",
+   "problems": 500,
+   "attempts_accounted": 2500,
+   "pass_at_1": 0.4944,
+   "pass_at_1_ci95": [
+    0.4832,
+    0.5056
+   ],
+   "pass_at_1_bootstrap_ci": [
+    0.4572,
+    0.5324
+   ],
+   "pass_at_5": 0.662,
+   "pass_at_5_bootstrap_ci": [
+    0.62,
+    0.704
+   ],
+   "pass_at_3_computed_from_results_jsonl_unbiased": 0.6174,
+   "mean_reward": 0.4944,
+   "solver_failures_graded_0": {
+    "total": 10,
+    "ContextWindowExceededError": 8,
+    "RateLimitError": 1,
+    "NonZeroAgentExitCodeError": 1
+   },
+   "infra_incidents": "shard 4 primary failed at vLLM init (port collision) and was retried; 7 shards cancelled by the 12:34 sweep and resumed from cache; shards 2 and 7 preempted at 13:48/14:xx and resumed; shard 8 cancelled again by the 14:15 root sweep and resumed a second time; all 2,500 attempts accounted",
+   "solver_failure_classes_from_records": {
+    "context_window_exceeded": 8,
+    "agent_nonzero_exit_-15": 1,
+    "turn_budget_exhausted": 1
+   },
+   "solver_failure_ids": [
+    "p14 r1",
+    "p263 r1",
+    "p269 r1",
+    "p325 r4",
+    "p399 r1",
+    "p440 r2",
+    "p490 r2",
+    "p5 r3",
+    "p5 r4",
+    "p75 r0"
+   ],
+   "terminated_but_verified": {
+    "solve_timeout": {
+     "n": 1,
+     "passed": 0
+    },
+    "context_window_exceeded": {
+     "n": 14,
+     "passed": 4
+    },
+    "turn_budget_exhausted": {
+     "n": 3,
+     "passed": 2
+    }
+   },
+   "terminated_but_verified_ids": {
+    "solve_timeout": [
+     "p7 r2"
+    ],
+    "context_window_exceeded": [
+     "p180 r2",
+     "p194 r3",
+     "p269 r3",
+     "p269 r4",
+     "p277 r2",
+     "p357 r4",
+     "p365 r2",
+     "p380 r0",
+     "p400 r2",
+     "p416 r1",
+     "p440 r3",
+     "p498 r4",
+     "p65 r3",
+     "p76 r0"
+    ],
+    "turn_budget_exhausted": [
+     "p422 r3",
+     "p487 r1",
+     "p71 r2"
+    ]
+   }
+  }
+ },
+ "step_15": {
+  "run_id": "20260921_165541_ebfcd098",
+  "run_dir": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/nemo-evaluator-rundirs/nano_v35/swebench-verified-fixed/20260921_165541_ebfcd098",
+  "job_ids": [
+   "3899752",
+   "3899753",
+   "3899754",
+   "3899755",
+   "3899756",
+   "3899760",
+   "3899761",
+   "3899762",
+   "3899763",
+   "3899764"
+  ],
+  "submitted_at": "2026-09-21T09:56:04-07:00",
+  "checkpoint": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-stream128-inorder1-cmh-64n-minf_dump-fromvllm10-20260920/checkpoints/step_15/hf",
+  "model_name": "rkirby-nano35-swe-v2-stream128-inorder1-minf-fromvllm10-step-15",
+  "incidents": [
+   "shard 5 primary 3899760 (nvl72d229-T02) exited 1 at 11:33 after 1h27m: eval-runner crashed with aiohttp 'RuntimeError: Session is closed' in nemo_evaluator.sandbox.ecs_fargate while agent execs were in flight (9 tracebacks, one event); 69 verified attempts preserved; continuation 3900097 resumed on nvl72d214-T11 with '69 fully cached, rest from scratch'",
+   "12:34:29 PDT 2026-09-21: 46 jobs CANCELLED (44 primaries + 2 continuations => 46 of 60 shards dead, 14 live) by uid 157074 (vedmonds, Victoria Edmonds; SIGNAL Terminated). The recipe's afternotok continuations treat CANCELLED as 'Stopping chain' (exit 0), so those shards have no job now; their verified_log/inference_log results are intact on disk and `nel eval run <shard cfg> --resume` (i.e. `sbatch <run_dir>/shard_N/nel_eval.sbatch` with no argument) would resume from cached results. Nothing resubmitted; awaiting the user.",
+   "14:15:48 PDT: second sweep, 26 of my running jobs CANCELLED by uid 0 (root; other users hit too; batch_long now shows 320 reserved nodes) on racks nvl72d054/d032/d231/d164: resume jobs for step_15 s9, step_20 s0,1,2,5,7, step_25 s0,1,3-9, step_26 s0-6,8,9, the step_15 s3 retry 3905232 and step_10 s8 continuation 3899377. Their no-op continuations were cancelled by me and resumes re-queued (see resume_jobs)."
+  ],
+  "shards_alive_after_cancel": [],
+  "shards_dead_after_cancel": [
+   0,
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   7,
+   8,
+   9
+  ],
+  "verified_at_cancel_tick_1239": 1144,
+  "resume_jobs": {
+   "0": {
+    "job_id": "3904308",
+    "submitted_at": "2026-09-21T13:01:42-07:00",
+    "error": null
+   },
+   "1": {
+    "job_id": "3904309",
+    "submitted_at": "2026-09-21T13:01:42-07:00",
+    "error": null
+   },
+   "2": {
+    "job_id": "3904310",
+    "submitted_at": "2026-09-21T13:01:42-07:00",
+    "error": null
+   },
+   "3": {
+    "job_id": "3906841",
+    "submitted_at": "2026-09-21T14:29:16-07:00",
+    "error": null
+   },
+   "4": {
+    "job_id": "3904312",
+    "submitted_at": "2026-09-21T13:01:43-07:00",
+    "error": null
+   },
+   "5": {
+    "job_id": "3904313",
+    "submitted_at": "2026-09-21T13:01:43-07:00",
+    "error": null
+   },
+   "6": {
+    "job_id": "3904314",
+    "submitted_at": "2026-09-21T13:01:43-07:00",
+    "error": null
+   },
+   "7": {
+    "job_id": "3904315",
+    "submitted_at": "2026-09-21T13:01:43-07:00",
+    "error": null
+   },
+   "8": {
+    "job_id": "3904316",
+    "submitted_at": "2026-09-21T13:01:43-07:00",
+    "error": null
+   },
+   "9": {
+    "job_id": "3906842",
+    "submitted_at": "2026-09-21T14:29:17-07:00",
+    "error": null
+   }
+  },
+  "result": {
+   "merged_at": "2026-09-21 ~18:35 PDT (auto-merge by last shard)",
+   "problems": 500,
+   "attempts_accounted": 2500,
+   "pass_at_1": 0.4952,
+   "pass_at_1_ci95": [
+    0.4838,
+    0.5066
+   ],
+   "pass_at_1_bootstrap_ci": [
+    0.4584,
+    0.5328
+   ],
+   "pass_at_5": 0.678,
+   "pass_at_5_bootstrap_ci": [
+    0.636,
+    0.718
+   ],
+   "pass_at_3_computed_from_results_jsonl_unbiased": 0.6238,
+   "mean_reward": 0.4952,
+   "solver_failures_graded_0": {
+    "total": 1,
+    "ContextWindowExceededError": 1
+   },
+   "infra_incidents": "shard 5 primary crashed mid-run (aiohttp 'Session is closed' in the Fargate client) and was resumed by its continuation; all 10 shards cancelled by the 12:34 sweep and re-queued; shards 3 and 9 cancelled again by the 14:15 root sweep and resumed a second time; shard 3's first resume died at vLLM init (TCPStore ping) and was retried; all 2,500 attempts accounted",
+   "solver_failure_classes_from_records": {
+    "context_window_exceeded": 1
+   },
+   "solver_failure_ids": [
+    "p269 r4"
+   ],
+   "terminated_but_verified": {
+    "context_window_exceeded": {
+     "n": 10,
+     "passed": 1
+    },
+    "turn_budget_exhausted": {
+     "n": 1,
+     "passed": 1
+    },
+    "solve_timeout": {
+     "n": 1,
+     "passed": 0
+    }
+   },
+   "terminated_but_verified_ids": {
+    "context_window_exceeded": [
+     "p263 r3",
+     "p312 r4",
+     "p317 r4",
+     "p324 r1",
+     "p328 r0",
+     "p328 r2",
+     "p357 r4",
+     "p40 r3",
+     "p414 r1",
+     "p416 r3"
+    ],
+    "turn_budget_exhausted": [
+     "p441 r0"
+    ],
+    "solve_timeout": [
+     "p482 r2"
+    ]
+   }
+  }
+ },
+ "step_20": {
+  "run_id": "20260921_172445_d6e41fc8",
+  "run_dir": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/nemo-evaluator-rundirs/nano_v35/swebench-verified-fixed/20260921_172445_d6e41fc8",
+  "job_ids": [
+   "3900551",
+   "3900552",
+   "3900553",
+   "3900554",
+   "3900555",
+   "3900556",
+   "3900557",
+   "3900558",
+   "3900559",
+   "3900560"
+  ],
+  "submitted_at": "2026-09-21T10:26:04-07:00",
+  "checkpoint": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-stream128-inorder1-cmh-64n-minf_dump-fromvllm10-20260920/checkpoints/step_20/hf",
+  "model_name": "rkirby-nano35-swe-v2-stream128-inorder1-minf-fromvllm10-step-20",
+  "incidents": [
+   "12:34:29 PDT 2026-09-21: 46 jobs CANCELLED (44 primaries + 2 continuations => 46 of 60 shards dead, 14 live) by uid 157074 (vedmonds, Victoria Edmonds; SIGNAL Terminated). The recipe's afternotok continuations treat CANCELLED as 'Stopping chain' (exit 0), so those shards have no job now; their verified_log/inference_log results are intact on disk and `nel eval run <shard cfg> --resume` (i.e. `sbatch <run_dir>/shard_N/nel_eval.sbatch` with no argument) would resume from cached results. Nothing resubmitted; awaiting the user.",
+   "14:15:48 PDT: second sweep, 26 of my running jobs CANCELLED by uid 0 (root; other users hit too; batch_long now shows 320 reserved nodes) on racks nvl72d054/d032/d231/d164: resume jobs for step_15 s9, step_20 s0,1,2,5,7, step_25 s0,1,3-9, step_26 s0-6,8,9, the step_15 s3 retry 3905232 and step_10 s8 continuation 3899377. Their no-op continuations were cancelled by me and resumes re-queued (see resume_jobs)."
+  ],
+  "shards_alive_after_cancel": [
+   3,
+   4,
+   6,
+   8,
+   9
+  ],
+  "shards_dead_after_cancel": [
+   0,
+   1,
+   2,
+   5,
+   7
+  ],
+  "verified_at_cancel_tick_1239": 1113,
+  "resume_jobs": {
+   "0": {
+    "job_id": "3906843",
+    "submitted_at": "2026-09-21T14:29:17-07:00",
+    "error": null
+   },
+   "1": {
+    "job_id": "3906844",
+    "submitted_at": "2026-09-21T14:29:17-07:00",
+    "error": null
+   },
+   "2": {
+    "job_id": "3906845",
+    "submitted_at": "2026-09-21T14:29:17-07:00",
+    "error": null
+   },
+   "5": {
+    "job_id": "3906846",
+    "submitted_at": "2026-09-21T14:29:17-07:00",
+    "error": null
+   },
+   "7": {
+    "job_id": "3906847",
+    "submitted_at": "2026-09-21T14:29:17-07:00",
+    "error": null
+   }
+  },
+  "result": {
+   "merged_at": "2026-09-21 18:55 PDT (auto-merge by last shard)",
+   "problems": 500,
+   "attempts_accounted": 2500,
+   "pass_at_1": 0.5152,
+   "pass_at_1_ci95": [
+    0.504,
+    0.5264
+   ],
+   "pass_at_1_bootstrap_ci": [
+    0.478,
+    0.5528
+   ],
+   "pass_at_5": 0.682,
+   "pass_at_5_bootstrap_ci": [
+    0.642,
+    0.722
+   ],
+   "pass_at_3_computed_from_results_jsonl_unbiased": 0.6384,
+   "mean_reward": 0.5152,
+   "solver_failures_graded_0": {
+    "total": 2,
+    "ContextWindowExceededError": 2
+   },
+   "infra_incidents": "5 shards cancelled by the 12:34 sweep (resumed), then cancelled again by the 14:15 root sweep (resumed a second time); the 5 original shards were preempted at 14:31 and resumed by their continuations (4 of them left transient false completion markers); the final attempt of shard 0 (p397 r2) sat 50 min without model calls before finishing at 18:55; all 2,500 attempts accounted",
+   "solver_failure_classes_from_records": {
+    "context_window_exceeded": 2
+   },
+   "solver_failure_ids": [
+    "p269 r3",
+    "p380 r3"
+   ],
+   "terminated_but_verified": {
+    "context_window_exceeded": {
+     "n": 3,
+     "passed": 1
+    }
+   },
+   "terminated_but_verified_ids": {
+    "context_window_exceeded": [
+     "p353 r1",
+     "p446 r4",
+     "p475 r3"
+    ]
+   }
+  }
+ },
+ "step_25": {
+  "run_id": "20260921_173957_591f0a06",
+  "run_dir": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/nemo-evaluator-rundirs/nano_v35/swebench-verified-fixed/20260921_173957_591f0a06",
+  "job_ids": [
+   "3901091",
+   "3901092",
+   "3901093",
+   "3901094",
+   "3901095",
+   "3901096",
+   "3901097",
+   "3901098",
+   "3901099",
+   "3901100"
+  ],
+  "submitted_at": "2026-09-21T10:40:17-07:00",
+  "checkpoint": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-stream128-inorder1-cmh-64n-minf_dump-fromvllm10-20260920/checkpoints/step_25/hf",
+  "model_name": "rkirby-nano35-swe-v2-stream128-inorder1-minf-fromvllm10-step-25",
+  "incidents": [
+   "shard 2 primary 3901093 failed at vLLM init (torch.distributed DistNetworkError: TCPStore ping failed) ~10:55; recipe afternotok continuation retries",
+   "12:34:29 PDT 2026-09-21: 46 jobs CANCELLED (44 primaries + 2 continuations => 46 of 60 shards dead, 14 live) by uid 157074 (vedmonds, Victoria Edmonds; SIGNAL Terminated). The recipe's afternotok continuations treat CANCELLED as 'Stopping chain' (exit 0), so those shards have no job now; their verified_log/inference_log results are intact on disk and `nel eval run <shard cfg> --resume` (i.e. `sbatch <run_dir>/shard_N/nel_eval.sbatch` with no argument) would resume from cached results. Nothing resubmitted; awaiting the user.",
+   "14:15:48 PDT: second sweep, 26 of my running jobs CANCELLED by uid 0 (root; other users hit too; batch_long now shows 320 reserved nodes) on racks nvl72d054/d032/d231/d164: resume jobs for step_15 s9, step_20 s0,1,2,5,7, step_25 s0,1,3-9, step_26 s0-6,8,9, the step_15 s3 retry 3905232 and step_10 s8 continuation 3899377. Their no-op continuations were cancelled by me and resumes re-queued (see resume_jobs)."
+  ],
+  "shards_alive_after_cancel": [
+   2
+  ],
+  "shards_dead_after_cancel": [
+   0,
+   1,
+   3,
+   4,
+   5,
+   6,
+   7,
+   8,
+   9
+  ],
+  "verified_at_cancel_tick_1239": 919,
+  "resume_jobs": {
+   "0": {
+    "job_id": "3906848",
+    "submitted_at": "2026-09-21T14:29:17-07:00",
+    "error": null
+   },
+   "1": {
+    "job_id": "3906849",
+    "submitted_at": "2026-09-21T14:29:17-07:00",
+    "error": null
+   },
+   "3": {
+    "job_id": "3906850",
+    "submitted_at": "2026-09-21T14:29:18-07:00",
+    "error": null
+   },
+   "4": {
+    "job_id": "3906851",
+    "submitted_at": "2026-09-21T14:29:18-07:00",
+    "error": null
+   },
+   "5": {
+    "job_id": "3906852",
+    "submitted_at": "2026-09-21T14:29:18-07:00",
+    "error": null
+   },
+   "6": {
+    "job_id": "3906853",
+    "submitted_at": "2026-09-21T14:29:18-07:00",
+    "error": null
+   },
+   "7": {
+    "job_id": "3906854",
+    "submitted_at": "2026-09-21T14:29:18-07:00",
+    "error": null
+   },
+   "8": {
+    "job_id": "3906855",
+    "submitted_at": "2026-09-21T14:29:18-07:00",
+    "error": null
+   },
+   "9": {
+    "job_id": "3906856",
+    "submitted_at": "2026-09-21T14:29:18-07:00",
+    "error": null
+   }
+  },
+  "result": {
+   "merged_at": "2026-09-21 ~18:2x PDT (auto-merge by last shard)",
+   "problems": 500,
+   "attempts_accounted": 2500,
+   "pass_at_1": 0.5036,
+   "pass_at_1_ci95": [
+    0.4927,
+    0.5145
+   ],
+   "pass_at_1_bootstrap_ci": [
+    0.4652,
+    0.5416
+   ],
+   "pass_at_5": 0.662,
+   "pass_at_5_bootstrap_ci": [
+    0.62,
+    0.704
+   ],
+   "pass_at_3_computed_from_results_jsonl_unbiased": 0.619,
+   "mean_reward": 0.5036,
+   "solver_failures_graded_0": {
+    "total": 1,
+    "ContextWindowExceededError": 1
+   },
+   "infra_incidents": "shard 2 primary failed at vLLM init (TCPStore ping) and was retried; 9 shards cancelled by the 12:34 sweep, re-queued, cancelled again by the 14:15 root sweep and resumed a second time from cached results; all 2,500 attempts accounted",
+   "solver_failure_classes_from_records": {
+    "context_window_exceeded": 1
+   },
+   "solver_failure_ids": [
+    "p437 r2"
+   ],
+   "terminated_but_verified": {
+    "context_window_exceeded": {
+     "n": 1,
+     "passed": 1
+    }
+   },
+   "terminated_but_verified_ids": {
+    "context_window_exceeded": [
+     "p7 r3"
+    ]
+   }
+  }
+ },
+ "step_26": {
+  "run_id": "20260921_175548_50a903f1",
+  "run_dir": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/nemo-evaluator-rundirs/nano_v35/swebench-verified-fixed/20260921_175548_50a903f1",
+  "job_ids": [
+   "3901476",
+   "3901477",
+   "3901478",
+   "3901479",
+   "3901480",
+   "3901481",
+   "3901482",
+   "3901483",
+   "3901484",
+   "3901485"
+  ],
+  "submitted_at": "2026-09-21T10:56:36-07:00",
+  "checkpoint": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-stream128-inorder1-cmh-64n-minf_dump-fromvllm10-20260920/hf_exports/step_26/hf",
+  "model_name": "rkirby-nano35-swe-v2-stream128-inorder1-minf-fromvllm10-step-26",
+  "incidents": [
+   "12:34:29 PDT 2026-09-21: 46 jobs CANCELLED (44 primaries + 2 continuations => 46 of 60 shards dead, 14 live) by uid 157074 (vedmonds, Victoria Edmonds; SIGNAL Terminated). The recipe's afternotok continuations treat CANCELLED as 'Stopping chain' (exit 0), so those shards have no job now; their verified_log/inference_log results are intact on disk and `nel eval run <shard cfg> --resume` (i.e. `sbatch <run_dir>/shard_N/nel_eval.sbatch` with no argument) would resume from cached results. Nothing resubmitted; awaiting the user.",
+   "14:15:48 PDT: second sweep, 26 of my running jobs CANCELLED by uid 0 (root; other users hit too; batch_long now shows 320 reserved nodes) on racks nvl72d054/d032/d231/d164: resume jobs for step_15 s9, step_20 s0,1,2,5,7, step_25 s0,1,3-9, step_26 s0-6,8,9, the step_15 s3 retry 3905232 and step_10 s8 continuation 3899377. Their no-op continuations were cancelled by me and resumes re-queued (see resume_jobs)."
+  ],
+  "shards_alive_after_cancel": [
+   7
+  ],
+  "shards_dead_after_cancel": [
+   0,
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   8,
+   9
+  ],
+  "verified_at_cancel_tick_1239": 828,
+  "resume_jobs": {
+   "0": {
+    "job_id": "3906857",
+    "submitted_at": "2026-09-21T14:29:18-07:00",
+    "error": null
+   },
+   "1": {
+    "job_id": "3906858",
+    "submitted_at": "2026-09-21T14:29:18-07:00",
+    "error": null
+   },
+   "2": {
+    "job_id": "3906859",
+    "submitted_at": "2026-09-21T14:29:18-07:00",
+    "error": null
+   },
+   "3": {
+    "job_id": "3906860",
+    "submitted_at": "2026-09-21T14:29:18-07:00",
+    "error": null
+   },
+   "4": {
+    "job_id": "3906861",
+    "submitted_at": "2026-09-21T14:29:18-07:00",
+    "error": null
+   },
+   "5": {
+    "job_id": "3906862",
+    "submitted_at": "2026-09-21T14:29:18-07:00",
+    "error": null
+   },
+   "6": {
+    "job_id": "3906863",
+    "submitted_at": "2026-09-21T14:29:18-07:00",
+    "error": null
+   },
+   "8": {
+    "job_id": "3906864",
+    "submitted_at": "2026-09-21T14:29:18-07:00",
+    "error": null
+   },
+   "9": {
+    "job_id": "3906865",
+    "submitted_at": "2026-09-21T14:29:18-07:00",
+    "error": null
+   }
+  },
+  "result": {
+   "merged_at": "2026-09-21 ~18:52 PDT (auto-merge by last shard)",
+   "problems": 500,
+   "attempts_accounted": 2500,
+   "pass_at_1": 0.5068,
+   "pass_at_1_ci95": [
+    0.4958,
+    0.5178
+   ],
+   "pass_at_1_bootstrap_ci": [
+    0.4688,
+    0.5452
+   ],
+   "pass_at_5": 0.666,
+   "pass_at_5_bootstrap_ci": [
+    0.624,
+    0.708
+   ],
+   "pass_at_3_computed_from_results_jsonl_unbiased": 0.6234,
+   "mean_reward": 0.5068,
+   "solver_failures_graded_0": {
+    "total": 2,
+    "ContextWindowExceededError": 1,
+    "NonZeroAgentExitCodeError": 1
+   },
+   "infra_incidents": "9 shards cancelled by the 12:34 sweep and again by the 14:15 root sweep, resumed twice from cached results; all 2,500 attempts accounted",
+   "solver_failure_classes_from_records": {
+    "context_window_exceeded": 1,
+    "agent_nonzero_exit_-15": 1
+   },
+   "solver_failure_ids": [
+    "p324 r2",
+    "p52 r3"
+   ],
+   "terminated_but_verified": {
+    "context_window_exceeded": {
+     "n": 1,
+     "passed": 0
+    }
+   },
+   "terminated_but_verified_ids": {
+    "context_window_exceeded": [
+     "p440 r1"
+    ]
+   }
+  }
+ }
+}

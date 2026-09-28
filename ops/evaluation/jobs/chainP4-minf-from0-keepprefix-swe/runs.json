@@ -1,0 +1,1127 @@
+{
+ "step_5": {
+  "run_id": "20260926_140232_05c0a165",
+  "run_dir": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/nemo-evaluator-rundirs/nano_v35/swebench-verified-fixed/20260926_140232_05c0a165",
+  "job_ids": [
+   4021346,
+   4021347,
+   4021348,
+   4021349,
+   4021350,
+   4021351,
+   4021352,
+   4021353,
+   4021354,
+   4021355
+  ],
+  "submitted_at": "2026-09-26T07:02:32-07:00",
+  "checkpoint": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-from0-nvshmem-keepprefix-minf-20260925/checkpoints/step_5/hf",
+  "model_name": "rkirby-nano35-swe-v2-minf-from0-keepprefix-step-5",
+  "export_job": "4021153_5",
+  "export_note": "exported 2026-09-26 06:49-06:56 PDT by my array 4021153; verified + world-readable before submission",
+  "incidents": [
+   "07:29 PDT 2026-09-26: shard 4 primary, job 4021350 (nvl72d175-T16), exited 1 after 00:25:22: Fargate abort: 'ECS task not RUNNING' x0, 'Evaluation aborted' x0, 0 secondary 'Session is closed' tracebacks; CAUSE UNCLEAR [cause added 07:30: QUOTA EXHAUSTION - the primary's log is truncated (tee and evaluator writes fail with Errno 122 Disk quota exceeded) so no fatal line was captured; each ~52 s continuation dies at the eval-runner container import (enroot needs writable scratch); the chain will burn its 3 retries in minutes -> dead shard; NOT re-queued while the quota is exceeded]; abort #1 of this shard; 0 verified attempts intact on disk; next continuation 4021366 (FAILED) resumes from cache as infra retry 1/3.",
+   "07:29 PDT 2026-09-26: shard 9 primary, job 4021355 (nvl72d191-T08), exited 1 after 00:26:05: Fargate abort: 'ECS task not RUNNING' x0, 'Evaluation aborted' x0, 0 secondary 'Session is closed' tracebacks; CAUSE UNCLEAR [cause added 07:30: QUOTA EXHAUSTION - the primary's log is truncated (tee and evaluator writes fail with Errno 122 Disk quota exceeded) so no fatal line was captured; each ~52 s continuation dies at the eval-runner container import (enroot needs writable scratch); the chain will burn its 3 retries in minutes -> dead shard; NOT re-queued while the quota is exceeded]; abort #1 of this shard; 0 verified attempts intact on disk; next continuation 4021370 (RUNNING) resumes from cache as infra retry 1/3.",
+   "07:45 PDT 2026-09-26 QUOTA COLLAPSE: Lustre block quota exceeded since ~07:08 (rkirby 100 TB); every shard write fails (Errno 122), primaries die after 25-35 min with truncated logs, continuations die in 18-55 s at the eval-runner container import; retry chains exhausted ('Infra retry limit (3)') on shards [0, 2, 4, 5, 6, 8]; shards [1, 3, 7, 9] still had a live job at 07:45 but cannot write results. 0 attempts verified for this step. NOT re-queued (quota gate); needs space freed by the user, then resume_dead_shards.py 5 once. Per-job states: sacct on the job ids/continuations.",
+   "08:30 PDT 2026-09-26 RECOVERY: quota headroom restored to ~10.8 TB (used 96,603,355,766 kB of 107,374,182,400; nothing of mine was deleted - all HF exports and run dirs intact); re-queued the 9 dead shards ONCE via resume_dead_shards.py as jobs 4022585-4022593 (shards [0, 1, 2, 3, 4, 5, 6, 8, 9]); they restart from scratch (no cached attempts) and each queues its own afternotok continuation chain again.",
+   "09:14 PDT 2026-09-26: shard 5 primary, job 4022590 (nvl72d066-T14), exited 1 after 00:33:57: Fargate abort: 'ECS task not RUNNING' x12, 'Evaluation aborted' x4, 5 secondary 'Session is closed' tracebacks; aborting attempt p484 r1 (ECS task not RUNNING after 313s (last: )); abort #1 of this shard; 12 verified attempts intact on disk; next continuation 4022634 (FAILED) resumes from cache as infra retry 1/3.",
+   "09:18 PDT 2026-09-26: with rkirby's approval ('You can reset the retry to 0'), reset <shard>/.nel_infra_retries to 0 on the re-queued shards of this step (the quota outage had consumed all 3 retries, so the first ordinary infra abort killed the chain permanently). Shard 5 (died 08:55, Fargate abort) re-queued via resume_dead_shards.py as job 4023379 with a fresh 3-retry budget.",
+   "09:29 PDT 2026-09-26: shard 1 primary, job 4022586 (nvl72d203-T12), exited 1 after 00:48:36: Fargate abort: 'ECS task not RUNNING' x13, 'Evaluation aborted' x4, 7 secondary 'Session is closed' tracebacks; aborting attempt p88 r2 (ECS task not RUNNING after 304s (last: PROVISIONING)); abort #1 of this shard; 13 verified attempts intact on disk; next continuation 4022626 (RUNNING) resumes from cache as infra retry 1/3.",
+   "10:14 PDT 2026-09-26: shard 7 continuation (infra retry 2/3) of 4022389, job 4022401 (nvl72d212-T18), exited 1 after 01:57:44: Fargate abort: 'ECS task not RUNNING' x0, 'Evaluation aborted' x0, 0 secondary 'Session is closed' tracebacks; CAUSE UNCLEAR; abort #3 of this shard; 55 verified attempts intact on disk; next continuation 4022407 (FAILED) resumes from cache as infra retry 2/3.",
+   "10:14 PDT 2026-09-26: shard 7 (one of the 4 outage survivors, never re-queued) hit 'Infra retry limit' - its 3 retries had been burned during the quota outage, so its first ordinary abort after recovery killed the chain (follow-up 4022407 exited in 19 s). Reset .nel_infra_retries to 0 under rkirby's 09:16 approval (same outage-burned case) and re-queued once via resume_dead_shards.py as job 4024321 (55 cached attempts)."
+  ],
+  "resume_jobs": {
+   "0": {
+    "job_id": "4022585",
+    "submitted_at": "2026-09-26T08:29:55-07:00",
+    "error": null
+   },
+   "1": {
+    "job_id": "4022586",
+    "submitted_at": "2026-09-26T08:29:55-07:00",
+    "error": null
+   },
+   "2": {
+    "job_id": "4022587",
+    "submitted_at": "2026-09-26T08:29:55-07:00",
+    "error": null
+   },
+   "3": {
+    "job_id": "4022588",
+    "submitted_at": "2026-09-26T08:29:56-07:00",
+    "error": null
+   },
+   "4": {
+    "job_id": "4022589",
+    "submitted_at": "2026-09-26T08:29:56-07:00",
+    "error": null
+   },
+   "5": {
+    "job_id": "4023379",
+    "submitted_at": "2026-09-26T09:18:13-07:00",
+    "error": null
+   },
+   "6": {
+    "job_id": "4022591",
+    "submitted_at": "2026-09-26T08:29:56-07:00",
+    "error": null
+   },
+   "8": {
+    "job_id": "4022592",
+    "submitted_at": "2026-09-26T08:29:56-07:00",
+    "error": null
+   },
+   "9": {
+    "job_id": "4022593",
+    "submitted_at": "2026-09-26T08:29:56-07:00",
+    "error": null
+   },
+   "7": {
+    "job_id": "4024321",
+    "submitted_at": "2026-09-26T10:14:35-07:00",
+    "error": null
+   }
+  },
+  "result": {
+   "merged_at": "2026-09-26T22:45Z",
+   "report": "report.md + swebench-verified_1.0/eval-20260926T224227Z-swebench-verified_1.0.json",
+   "problems": 500,
+   "attempts_accounted": 2500,
+   "distinct_problem_repeat_pairs": 2500,
+   "pass_at_1": 0.4932,
+   "pass_at_1_ci95": [
+    0.4816,
+    0.5048
+   ],
+   "pass_at_1_bootstrap_ci": [
+    0.456,
+    0.5308
+   ],
+   "pass_at_5": 0.662,
+   "pass_at_5_bootstrap_ci": [
+    0.62,
+    0.704
+   ],
+   "pass_at_3_computed_from_results_jsonl_unbiased": 0.6202,
+   "mean_reward": 0.4932,
+   "solver_failures_graded_0": 17,
+   "solver_failure_classes": {
+    "context_window_exceeded": 16,
+    "agent_nonzero_exit_-15": 1
+   },
+   "solver_failure_ids": [
+    "p115 r3",
+    "p168 r4",
+    "p186 r4",
+    "p263 r0",
+    "p263 r2",
+    "p263 r4",
+    "p308 r0",
+    "p339 r1",
+    "p380 r4",
+    "p387 r0",
+    "p389 r0",
+    "p409 r2",
+    "p434 r0",
+    "p50 r3",
+    "p54 r1",
+    "p60 r0",
+    "p7 r4"
+   ],
+   "log_grading_0_lines": 17,
+   "eval_json_model_errors": 17,
+   "terminated_but_verified": {
+    "context_window_exceeded": {
+     "n": 20,
+     "passed": 1
+    },
+    "turn_budget_exhausted": {
+     "n": 2,
+     "passed": 0
+    },
+    "solve_timeout": {
+     "n": 1,
+     "passed": 1
+    }
+   },
+   "terminated_but_verified_ids": {
+    "context_window_exceeded": [
+     "p189 r1",
+     "p23 r1",
+     "p255 r0",
+     "p263 r1",
+     "p269 r1",
+     "p312 r2",
+     "p324 r1",
+     "p328 r1",
+     "p365 r0",
+     "p386 r0",
+     "p407 r1",
+     "p440 r0",
+     "p440 r3",
+     "p47 r1",
+     "p476 r2",
+     "p51 r4",
+     "p58 r0",
+     "p62 r2",
+     "p88 r3",
+     "p95 r2"
+    ],
+    "turn_budget_exhausted": [
+     "p318 r1",
+     "p394 r3"
+    ],
+    "solve_timeout": [
+     "p416 r2"
+    ]
+   },
+   "infra_incidents": "Submitted 07:02 PDT 2026-09-26. 07:08-08:15: Lustre quota outage (rkirby 100 TB exceeded) broke every shard's write path (Errno 122); shards 0-6, 8, 9 exhausted their retry chains with 0 verified attempts; outage survivor shard 7 kept running. 08:30: the 9 dead shards re-queued once as jobs 4022585-4022593 (from scratch; nothing deleted). 08:55: shard 5's re-queue 4022590 died on a Fargate 'ECS task not RUNNING' x3 abort with a burned retry counter and its chain stopped; 09:18: .nel_infra_retries reset to 0 with rkirby's approval and shard 5 re-queued as 4023379 (12 cached attempts). 09:29: shard 1 job 4022586 Fargate abort #1, resumed from cache by 4022626; shard 0 likewise resumed by 4022614. 10:10: survivor shard 7's chain hit the retry limit after its third abort (counter burned by the outage); counter reset, re-queued as 4024321 with 55 cached attempts. Merged ~15:35 by the last shard; 2,500 verified attempts, none lost."
+  }
+ },
+ "step_10": {
+  "run_id": "20260926_140244_4097ae57",
+  "run_dir": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/nemo-evaluator-rundirs/nano_v35/swebench-verified-fixed/20260926_140244_4097ae57",
+  "job_ids": [
+   4021356,
+   4021357,
+   4021358,
+   4021359,
+   4021360,
+   4021361,
+   4021362,
+   4021363,
+   4021364,
+   4021365
+  ],
+  "submitted_at": "2026-09-26T07:02:44-07:00",
+  "checkpoint": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-from0-nvshmem-keepprefix-minf-20260925/checkpoints/step_10/hf",
+  "model_name": "rkirby-nano35-swe-v2-minf-from0-keepprefix-step-10",
+  "export_job": "4021153_10",
+  "export_note": "exported 2026-09-26 06:49-06:56 PDT by my array 4021153; verified + world-readable before submission",
+  "incidents": [
+   "07:29 PDT 2026-09-26: shard 2 primary, job 4021358 (nvl72d007-T13), exited 1 after 00:26:20: Fargate abort: 'ECS task not RUNNING' x0, 'Evaluation aborted' x0, 0 secondary 'Session is closed' tracebacks; CAUSE UNCLEAR [cause added 07:30: QUOTA EXHAUSTION - the primary's log is truncated (tee and evaluator writes fail with Errno 122 Disk quota exceeded) so no fatal line was captured; each ~52 s continuation dies at the eval-runner container import (enroot needs writable scratch); the chain will burn its 3 retries in minutes -> dead shard; NOT re-queued while the quota is exceeded]; abort #1 of this shard; 0 verified attempts intact on disk; next continuation 4021392 (RUNNING) resumes from cache as infra retry 1/3.",
+   "07:29 PDT 2026-09-26: shard 3 primary, job 4021359 (nvl72d007-T18), exited 1 after 00:25:13: Fargate abort: 'ECS task not RUNNING' x0, 'Evaluation aborted' x0, 0 secondary 'Session is closed' tracebacks; CAUSE UNCLEAR [cause added 07:30: QUOTA EXHAUSTION - the primary's log is truncated (tee and evaluator writes fail with Errno 122 Disk quota exceeded) so no fatal line was captured; each ~52 s continuation dies at the eval-runner container import (enroot needs writable scratch); the chain will burn its 3 retries in minutes -> dead shard; NOT re-queued while the quota is exceeded]; abort #1 of this shard; 0 verified attempts intact on disk; next continuation 4021387 (FAILED) resumes from cache as infra retry 1/3.",
+   "07:45 PDT 2026-09-26 QUOTA COLLAPSE: Lustre block quota exceeded since ~07:08 (rkirby 100 TB); every shard write fails (Errno 122), primaries die after 25-35 min with truncated logs, continuations die in 18-55 s at the eval-runner container import; retry chains exhausted ('Infra retry limit (3)') on shards [0, 1, 2, 3, 4]; shards [5, 6, 7, 8, 9] still had a live job at 07:45 but cannot write results. 0 attempts verified for this step. NOT re-queued (quota gate); needs space freed by the user, then resume_dead_shards.py 10 once. Per-job states: sacct on the job ids/continuations.",
+   "08:30 PDT 2026-09-26 RECOVERY: quota headroom restored to ~10.8 TB (used 96,603,355,766 kB of 107,374,182,400; nothing of mine was deleted - all HF exports and run dirs intact); re-queued the 7 dead shards ONCE via resume_dead_shards.py as jobs 4022594-4022600 (shards [0, 1, 2, 3, 4, 5, 7]); they restart from scratch (no cached attempts) and each queues its own afternotok continuation chain again.",
+   "09:14 PDT 2026-09-26: shard 1 primary, job 4022595 (nvl72d028-T18), exited 1 after 00:31:54: vLLM startup death; abort #1 of this shard; 0 verified attempts intact on disk; next continuation 4022632 (FAILED) resumes from cache as infra retry 1/3.",
+   "09:18 PDT 2026-09-26: with rkirby's approval ('You can reset the retry to 0'), reset <shard>/.nel_infra_retries to 0 on the re-queued shards of this step (the quota outage had consumed all 3 retries, so the first ordinary infra abort killed the chain permanently). Shard 1 (died 09:00, vLLM TCPStore timeout) re-queued via resume_dead_shards.py as job 4023380 with a fresh 3-retry budget.",
+   "10:15 PDT 2026-09-26: proactively reset .nel_infra_retries to 0 on the three outage-survivor shards 6, 8, 9 (counters had been burned to 3 by the outage-era failures, same approved case), so their next ordinary abort resumes automatically instead of killing the chain.",
+   "11:29 PDT 2026-09-26: shard 2 primary, job 4022596 (nvl72d222-T17), exited 1 after 02:47:59: Fargate abort: 'ECS task not RUNNING' x24, 'Evaluation aborted' x4, 6 secondary 'Session is closed' tracebacks; aborting attempt p244 r0 (ECS task not RUNNING after 307s (last: )); abort #1 of this shard; 107 verified attempts intact on disk; next continuation 4022636 (RUNNING) resumes from cache as infra retry 1/3."
+  ],
+  "resume_jobs": {
+   "0": {
+    "job_id": "4022594",
+    "submitted_at": "2026-09-26T08:29:56-07:00",
+    "error": null
+   },
+   "1": {
+    "job_id": "4023380",
+    "submitted_at": "2026-09-26T09:18:13-07:00",
+    "error": null
+   },
+   "2": {
+    "job_id": "4022596",
+    "submitted_at": "2026-09-26T08:29:56-07:00",
+    "error": null
+   },
+   "3": {
+    "job_id": "4022597",
+    "submitted_at": "2026-09-26T08:29:56-07:00",
+    "error": null
+   },
+   "4": {
+    "job_id": "4022598",
+    "submitted_at": "2026-09-26T08:29:56-07:00",
+    "error": null
+   },
+   "5": {
+    "job_id": "4022599",
+    "submitted_at": "2026-09-26T08:29:56-07:00",
+    "error": null
+   },
+   "7": {
+    "job_id": "4022600",
+    "submitted_at": "2026-09-26T08:29:56-07:00",
+    "error": null
+   }
+  },
+  "result": {
+   "merged_at": "2026-09-26T22:15Z",
+   "report": "report.md + swebench-verified_1.0/eval-20260926T221042Z-swebench-verified_1.0.json",
+   "problems": 500,
+   "attempts_accounted": 2500,
+   "distinct_problem_repeat_pairs": 2500,
+   "pass_at_1": 0.484,
+   "pass_at_1_ci95": [
+    0.4724,
+    0.4956
+   ],
+   "pass_at_1_bootstrap_ci": [
+    0.4468,
+    0.522
+   ],
+   "pass_at_5": 0.656,
+   "pass_at_5_bootstrap_ci": [
+    0.614,
+    0.698
+   ],
+   "pass_at_3_computed_from_results_jsonl_unbiased": 0.6126,
+   "mean_reward": 0.484,
+   "solver_failures_graded_0": 13,
+   "solver_failure_classes": {
+    "context_window_exceeded": 12,
+    "agent_nonzero_exit_137": 1
+   },
+   "solver_failure_ids": [
+    "p11 r0",
+    "p136 r4",
+    "p159 r0",
+    "p173 r3",
+    "p186 r2",
+    "p263 r0",
+    "p269 r4",
+    "p357 r0",
+    "p380 r1",
+    "p399 r0",
+    "p401 r2",
+    "p468 r3",
+    "p51 r4"
+   ],
+   "log_grading_0_lines": 8,
+   "eval_json_model_errors": 13,
+   "terminated_but_verified": {
+    "turn_budget_exhausted": {
+     "n": 6,
+     "passed": 0
+    },
+    "context_window_exceeded": {
+     "n": 9,
+     "passed": 1
+    }
+   },
+   "terminated_but_verified_ids": {
+    "turn_budget_exhausted": [
+     "p195 r0",
+     "p213 r1",
+     "p329 r3",
+     "p410 r4",
+     "p429 r4",
+     "p443 r2"
+    ],
+    "context_window_exceeded": [
+     "p198 r3",
+     "p269 r0",
+     "p269 r3",
+     "p272 r0",
+     "p328 r3",
+     "p365 r1",
+     "p394 r1",
+     "p5 r0",
+     "p51 r2"
+    ]
+   },
+   "infra_incidents": "Submitted 07:02 PDT 2026-09-26. 07:08-08:15: Lustre quota outage (rkirby 100 TB exceeded) broke every shard's write path (Errno 122); shards 0-5 and 7 exhausted their retry chains with 0 verified attempts; outage survivors shards 6, 8, 9 kept running (their log files froze at 08:15 but results kept landing) and finished with 250 each. 08:30: the 7 dead shards re-queued once as jobs 4022594-4022600 (from scratch; nothing deleted). 09:00: shard 1's re-queue 4022595 died at vLLM startup (TCPStore timeout) with a burned retry counter and its chain stopped; 09:18: .nel_infra_retries reset to 0 with rkirby's approval and shard 1 re-queued as 4023380; 10:15: survivors' counters reset proactively. 11:29: shard 2 job 4022596 Fargate 'ECS task not RUNNING' x3 abort (#1) after 107 verified attempts, resumed from cache by continuation 4022636 (infra retry 1/3). Merged ~15:10 by the last shard; 2,500 verified attempts, none lost."
+  }
+ },
+ "step_15": {
+  "run_id": "20260926_140256_8c65c072",
+  "run_dir": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/nemo-evaluator-rundirs/nano_v35/swebench-verified-fixed/20260926_140256_8c65c072",
+  "job_ids": [
+   4021376,
+   4021377,
+   4021378,
+   4021379,
+   4021380,
+   4021381,
+   4021382,
+   4021383,
+   4021384,
+   4021385
+  ],
+  "submitted_at": "2026-09-26T07:02:56-07:00",
+  "checkpoint": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-from0-nvshmem-keepprefix-minf-20260925/checkpoints/step_15/hf",
+  "model_name": "rkirby-nano35-swe-v2-minf-from0-keepprefix-step-15",
+  "export_job": "4021153_15",
+  "export_note": "exported 2026-09-26 06:49-06:56 PDT by my array 4021153; verified + world-readable before submission",
+  "incidents": [
+   "07:03-07:05 PDT 2026-09-26: shards 1-4 primaries 4021377-4021380 (rack nvl72d130 T10/T11/T16/T18) died at vLLM startup: 'Free memory on device cuda:N (255.19/276.62 GiB) on startup is less than desired GPU memory utilization (0.95, 262.79 GiB)' = ~21 GiB stale GPU memory per GPU (dirty nodes); continuations 4021406/4021405/4021407/4021403 started 07:05 on other racks as infra retry 1/3; no attempts existed.",
+   "07:45 PDT 2026-09-26 QUOTA COLLAPSE: Lustre block quota exceeded since ~07:08 (rkirby 100 TB); every shard write fails (Errno 122), primaries die after 25-35 min with truncated logs, continuations die in 18-55 s at the eval-runner container import; retry chains exhausted ('Infra retry limit (3)') on shards [1, 2, 3, 4, 5, 6, 7, 8]; shards [0, 9] still had a live job at 07:45 but cannot write results. 0 attempts verified for this step. NOT re-queued (quota gate); needs space freed by the user, then resume_dead_shards.py 15 once. Per-job states: sacct on the job ids/continuations.",
+   "08:30 PDT 2026-09-26 RECOVERY: quota headroom restored to ~10.8 TB (used 96,603,355,766 kB of 107,374,182,400; nothing of mine was deleted - all HF exports and run dirs intact); re-queued the 10 dead shards ONCE via resume_dead_shards.py as jobs 4022601-4022610 (shards [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]); they restart from scratch (no cached attempts) and each queues its own afternotok continuation chain again.",
+   "09:18 PDT 2026-09-26: with rkirby's approval ('You can reset the retry to 0'), reset <shard>/.nel_infra_retries to 0 on the re-queued shards of this step (the quota outage had consumed all 3 retries, so the first ordinary infra abort killed the chain permanently).",
+   "10:29 PDT 2026-09-26: shard 6 primary, job 4022607 (nvl72d194-T14), exited 1 after 01:57:40: Fargate abort: 'ECS task not RUNNING' x16, 'Evaluation aborted' x4, 6 secondary 'Session is closed' tracebacks; aborting attempt p473 r3 (ECS task not RUNNING after 343s (last: PENDING)); abort #1 of this shard; 75 verified attempts intact on disk; next continuation 4022643 (RUNNING) resumes from cache as infra retry 1/3."
+  ],
+  "resume_jobs": {
+   "0": {
+    "job_id": "4022601",
+    "submitted_at": "2026-09-26T08:29:56-07:00",
+    "error": null
+   },
+   "1": {
+    "job_id": "4022602",
+    "submitted_at": "2026-09-26T08:29:56-07:00",
+    "error": null
+   },
+   "2": {
+    "job_id": "4022603",
+    "submitted_at": "2026-09-26T08:29:56-07:00",
+    "error": null
+   },
+   "3": {
+    "job_id": "4022604",
+    "submitted_at": "2026-09-26T08:29:56-07:00",
+    "error": null
+   },
+   "4": {
+    "job_id": "4022605",
+    "submitted_at": "2026-09-26T08:29:56-07:00",
+    "error": null
+   },
+   "5": {
+    "job_id": "4022606",
+    "submitted_at": "2026-09-26T08:29:56-07:00",
+    "error": null
+   },
+   "6": {
+    "job_id": "4022607",
+    "submitted_at": "2026-09-26T08:29:56-07:00",
+    "error": null
+   },
+   "7": {
+    "job_id": "4022608",
+    "submitted_at": "2026-09-26T08:29:56-07:00",
+    "error": null
+   },
+   "8": {
+    "job_id": "4022609",
+    "submitted_at": "2026-09-26T08:29:56-07:00",
+    "error": null
+   },
+   "9": {
+    "job_id": "4022610",
+    "submitted_at": "2026-09-26T08:29:56-07:00",
+    "error": null
+   }
+  },
+  "result": {
+   "merged_at": "2026-09-26T21:29Z",
+   "report": "report.md + swebench-verified_1.0/eval-20260926T212240Z-swebench-verified_1.0.json",
+   "problems": 500,
+   "attempts_accounted": 2500,
+   "distinct_problem_repeat_pairs": 2500,
+   "pass_at_1": 0.502,
+   "pass_at_1_ci95": [
+    0.4908,
+    0.5132
+   ],
+   "pass_at_1_bootstrap_ci": [
+    0.4652,
+    0.5396
+   ],
+   "pass_at_5": 0.66,
+   "pass_at_5_bootstrap_ci": [
+    0.618,
+    0.702
+   ],
+   "pass_at_3_computed_from_results_jsonl_unbiased": 0.6202,
+   "mean_reward": 0.502,
+   "solver_failures_graded_0": 4,
+   "solver_failure_classes": {
+    "context_window_exceeded": 2,
+    "agent_nonzero_exit_-15": 1,
+    "turn_budget_exhausted": 1
+   },
+   "solver_failure_ids": [
+    "p168 r0",
+    "p23 r4",
+    "p269 r3",
+    "p317 r0"
+   ],
+   "log_grading_0_lines": 4,
+   "eval_json_model_errors": 4,
+   "terminated_but_verified": {
+    "context_window_exceeded": {
+     "n": 7,
+     "passed": 2
+    }
+   },
+   "terminated_but_verified_ids": {
+    "context_window_exceeded": [
+     "p189 r4",
+     "p230 r4",
+     "p245 r1",
+     "p269 r1",
+     "p324 r1",
+     "p418 r4",
+     "p487 r3"
+    ]
+   },
+   "infra_incidents": "07:03 PDT 2026-09-26: shards 1-4 primaries (rack nvl72d130) died at vLLM startup on dirty GPUs (~21 GiB stale memory per GPU), continued on other racks with no attempts lost. 07:08-08:15: Lustre quota outage (rkirby 100 TB exceeded) broke every shard's write path (Errno 122); all 10 retry chains exhausted with 0 verified attempts. 08:30: all 10 shards re-queued once as jobs 4022601-4022610 (from scratch; nothing deleted). 09:18: .nel_infra_retries reset to 0 with rkirby's approval. 10:29: shard 6 job 4022607 Fargate 'ECS task not RUNNING' x3 abort (#1) after 75 verified attempts, resumed from cache by continuation 4022643 (infra retry 1/3). Merged 14:2x by the last shard; 2,500 verified attempts, none lost."
+  }
+ },
+ "step_20": {
+  "run_id": "20260926_164420_821fb991",
+  "run_dir": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/nemo-evaluator-rundirs/nano_v35/swebench-verified-fixed/20260926_164420_821fb991",
+  "job_ids": [
+   4023918,
+   4023919,
+   4023920,
+   4023921,
+   4023922,
+   4023923,
+   4023924,
+   4023925,
+   4023926,
+   4023927
+  ],
+  "submitted_at": "2026-09-26T09:44:20-07:00",
+  "checkpoint": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-from0-nvshmem-keepprefix-minf-20260925/checkpoints/step_20/hf",
+  "model_name": "rkirby-nano35-swe-v2-minf-from0-keepprefix-step-20",
+  "export_job": "4023462_20",
+  "export_note": "rung landed 09:26 (run manager verified complete); exported 09:28-09:34 by job 4023462; verify_export.py verified + world-readable before submission",
+  "incidents": [
+   "10:44 PDT 2026-09-26: shard 9 primary, job 4023927 (nvl72d073-T15), exited 1 after 00:52:34: Fargate abort: 'ECS task not RUNNING' x24, 'Evaluation aborted' x4, 7 secondary 'Session is closed' tracebacks; aborting attempt p390 r0 (ECS task not RUNNING after 358s (last: PENDING)); abort #1 of this shard; 23 verified attempts intact on disk; next continuation 4023953 (RUNNING) resumes from cache as infra retry 1/3."
+  ],
+  "result": {
+   "merged_at": "2026-09-26T22:00Z",
+   "report": "report.md + swebench-verified_1.0/eval-20260926T215415Z-swebench-verified_1.0.json",
+   "problems": 500,
+   "attempts_accounted": 2500,
+   "distinct_problem_repeat_pairs": 2500,
+   "pass_at_1": 0.508,
+   "pass_at_1_ci95": [
+    0.4968,
+    0.5192
+   ],
+   "pass_at_1_bootstrap_ci": [
+    0.4708,
+    0.5456
+   ],
+   "pass_at_5": 0.67,
+   "pass_at_5_bootstrap_ci": [
+    0.628,
+    0.71
+   ],
+   "pass_at_3_computed_from_results_jsonl_unbiased": 0.6292,
+   "mean_reward": 0.508,
+   "solver_failures_graded_0": 3,
+   "solver_failure_classes": {
+    "context_window_exceeded": 2,
+    "turn_budget_exhausted": 1
+   },
+   "solver_failure_ids": [
+    "p249 r4",
+    "p269 r1",
+    "p332 r1"
+   ],
+   "log_grading_0_lines": 3,
+   "eval_json_model_errors": 3,
+   "terminated_but_verified": {
+    "turn_budget_exhausted": {
+     "n": 1,
+     "passed": 0
+    },
+    "context_window_exceeded": {
+     "n": 3,
+     "passed": 0
+    }
+   },
+   "terminated_but_verified_ids": {
+    "turn_budget_exhausted": [
+     "p408 r1"
+    ],
+    "context_window_exceeded": [
+     "p269 r2",
+     "p385 r4",
+     "p461 r2"
+    ]
+   },
+   "infra_incidents": "Submitted 09:44 PDT 2026-09-26 (after the quota outage; not affected by it, no re-queues). 10:44: shard 9 primary job 4023927 (nvl72d073-T15) exited 1 after 52 min on a Fargate abort ('ECS task not RUNNING' x3 -> 'Evaluation aborted'), 23 verified attempts intact; continuation 4023953 resumed from cache as infra retry 1/3 and finished the shard. Merged ~14:50 by the last shard; 2,500 verified attempts, none lost."
+  }
+ },
+ "step_25": {
+  "run_id": "20260926_184426_ca3dafc6",
+  "run_dir": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/nemo-evaluator-rundirs/nano_v35/swebench-verified-fixed/20260926_184426_ca3dafc6",
+  "job_ids": [
+   4025974,
+   4025975,
+   4025976,
+   4025977,
+   4025978,
+   4025979,
+   4025980,
+   4025981,
+   4025982,
+   4025983
+  ],
+  "submitted_at": "2026-09-26T11:44:26-07:00",
+  "checkpoint": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-from0-nvshmem-keepprefix-minf-20260925/checkpoints/step_25/hf",
+  "model_name": "rkirby-nano35-swe-v2-minf-from0-keepprefix-step-25",
+  "export_job": "4025625_25",
+  "export_note": "rung landed 11:18 (run manager verified complete); exported by job 4025625 (queued ~11:22, ran 11:28-11:34); verify_export.py verified + world-readable before submission",
+  "incidents": [
+   "11:59 PDT 2026-09-26: shard 0 primary, job 4025974 (nvl72d112-T11), exited 1 after 00:12:21: vLLM startup death; abort #1 of this shard; 0 verified attempts intact on disk; next continuation 4025986 (RUNNING) resumes from cache as infra retry 1/3.",
+   "11:59 PDT 2026-09-26: shard 8 primary, job 4025982 (nvl72d033-T17), exited 1 after 00:12:31: vLLM startup death; abort #1 of this shard; 0 verified attempts intact on disk; next continuation 4025990 (RUNNING) resumes from cache as infra retry 1/3."
+  ],
+  "result": {
+   "merged_at": "2026-09-26T23:59Z",
+   "report": "report.md + swebench-verified_1.0/eval-20260926T235450Z-swebench-verified_1.0.json",
+   "problems": 500,
+   "attempts_accounted": 2500,
+   "distinct_problem_repeat_pairs": 2500,
+   "pass_at_1": 0.5112,
+   "pass_at_1_ci95": [
+    0.4998,
+    0.5226
+   ],
+   "pass_at_1_bootstrap_ci": [
+    0.4744,
+    0.5484
+   ],
+   "pass_at_5": 0.678,
+   "pass_at_5_bootstrap_ci": [
+    0.636,
+    0.718
+   ],
+   "pass_at_3_computed_from_results_jsonl_unbiased": 0.6368,
+   "mean_reward": 0.5112,
+   "solver_failures_graded_0": 3,
+   "solver_failure_classes": {
+    "context_window_exceeded": 3
+   },
+   "solver_failure_ids": [
+    "p11 r4",
+    "p269 r2",
+    "p315 r3"
+   ],
+   "log_grading_0_lines": 3,
+   "eval_json_model_errors": 3,
+   "terminated_but_verified": {
+    "context_window_exceeded": {
+     "n": 2,
+     "passed": 0
+    }
+   },
+   "terminated_but_verified_ids": {
+    "context_window_exceeded": [
+     "p263 r1",
+     "p392 r3"
+    ]
+   },
+   "infra_incidents": "Submitted 11:44 PDT 2026-09-26 (after the quota outage; not affected by it, no re-queues). 11:57: shard 0 primary 4025974 (nvl72d112-T11) and shard 8 primary 4025982 (nvl72d033-T17) died at vLLM startup on EADDRINUSE port collisions after ~12 min with 0 attempts; continuations 4025986 and 4025990 started immediately as infra retry 1/3 and ran both shards to completion. No Fargate aborts. Merged ~16:50 by the last shard (4025986); 2,500 verified attempts, none lost."
+  }
+ },
+ "step_30": {
+  "run_id": "20260926_205927_1ca2711f",
+  "run_dir": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/nemo-evaluator-rundirs/nano_v35/swebench-verified-fixed/20260926_205927_1ca2711f",
+  "job_ids": [
+   4028201,
+   4028202,
+   4028203,
+   4028204,
+   4028205,
+   4028206,
+   4028207,
+   4028208,
+   4028209,
+   4028210
+  ],
+  "submitted_at": "2026-09-26T13:59:27-07:00",
+  "checkpoint": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-from0-nvshmem-keepprefix-minf-20260925/checkpoints/step_30/hf",
+  "model_name": "rkirby-nano35-swe-v2-minf-from0-keepprefix-step-30",
+  "export_job": "4028011_30",
+  "export_note": "step_30 landed 13:27 PDT 2026-09-26 (run manager confirmed closed save: latest_checkpoint_status.json at 31); export 4028011_30 on nvl72d216-T18 13:44-13:50 (6 min 9 s), verify_export.py verified 14 shards / 65827374264 bytes / 6513 tensors, world-readable",
+  "result": {
+   "merged_at": "2026-09-27T01:44Z",
+   "report": "report.md + swebench-verified_1.0/eval-20260927T013325Z-swebench-verified_1.0.json",
+   "problems": 500,
+   "attempts_accounted": 2500,
+   "distinct_problem_repeat_pairs": 2500,
+   "pass_at_1": 0.5072,
+   "pass_at_1_ci95": [
+    0.4958,
+    0.5186
+   ],
+   "pass_at_1_bootstrap_ci": [
+    0.47,
+    0.5452
+   ],
+   "pass_at_5": 0.682,
+   "pass_at_5_bootstrap_ci": [
+    0.642,
+    0.722
+   ],
+   "pass_at_3_computed_from_results_jsonl_unbiased": 0.6332,
+   "mean_reward": 0.5072,
+   "solver_failures_graded_0": 1,
+   "solver_failure_classes": {
+    "context_window_exceeded": 1
+   },
+   "solver_failure_ids": [
+    "p263 r3"
+   ],
+   "log_grading_0_lines": 1,
+   "eval_json_model_errors": 1,
+   "terminated_but_verified": {
+    "context_window_exceeded": {
+     "n": 2,
+     "passed": 0
+    },
+    "turn_budget_exhausted": {
+     "n": 1,
+     "passed": 0
+    }
+   },
+   "terminated_but_verified_ids": {
+    "context_window_exceeded": [
+     "p246 r3",
+     "p256 r4"
+    ],
+    "turn_budget_exhausted": [
+     "p136 r4"
+    ]
+   },
+   "infra_incidents": "Submitted 13:59 PDT 2026-09-26 (after the quota outage; not affected by it). No infrastructure incidents: all 10 primaries (4028201-4028210) ran start to finish with no vLLM startup failures, no Fargate aborts and no continuations used. Merged ~18:40 by the last shard (4028204); 2,500 verified attempts, none lost."
+  }
+ },
+ "step_35": {
+  "run_id": "20260926_221520_faa0adf6",
+  "run_dir": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/nemo-evaluator-rundirs/nano_v35/swebench-verified-fixed/20260926_221520_faa0adf6",
+  "job_ids": [
+   4029640,
+   4029641,
+   4029642,
+   4029643,
+   4029644,
+   4029645,
+   4029646,
+   4029647,
+   4029648,
+   4029649
+  ],
+  "submitted_at": "2026-09-26T15:15:20-07:00",
+  "checkpoint": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-from0-nvshmem-keepprefix-minf-20260925/checkpoints/step_35/hf",
+  "model_name": "rkirby-nano35-swe-v2-minf-from0-keepprefix-step-35",
+  "export_job": "4029299_35",
+  "export_note": "step_35 landed 14:58:36 PDT 2026-09-26 (run manager confirmed closed save: latest_checkpoint_status.json last_checkpoint_step 35 with save-completion stamp, 140 files / 369 GB); export 4029299_35 on nvl72d236-T01 15:01-15:07 (6 min 18 s), verify_export.py verified 14 shards / 65827374264 bytes / 6513 tensors, world-readable",
+  "incidents": [
+   "15:29 PDT 2026-09-26: shard 1 primary, job 4029641 (nvl72d207-T15), exited 1 after 00:08:18: Harbor dataset fetch from GitHub failed before any attempt ran: eval-runner 'git clone --filter=blob:none --depth 1 --no-checkout https://github.com/laude-institute/harbor-datasets.git' (or the following 'git checkout 86723674') returned exit 128 at ~15:23 on 5 of 10 shards simultaneously (shards 1, 3, 6, 8, 9 on racks nvl72d207/d147/d066/d219); vLLM had started normally (273.55/276.62 GiB free); the sbatch script then tore the server down (server step SIGKILLed) and exited 1; external transient (GitHub/egress), retried by the continuation chain; abort #1 of this shard; 0 verified attempts intact on disk; next continuation 4029655 (RUNNING) resumes from cache as infra retry 1/3.",
+   "15:29 PDT 2026-09-26: shard 3 primary, job 4029643 (nvl72d147-T11), exited 1 after 00:08:22: Harbor dataset fetch from GitHub failed before any attempt ran: eval-runner 'git clone --filter=blob:none --depth 1 --no-checkout https://github.com/laude-institute/harbor-datasets.git' (or the following 'git checkout 86723674') returned exit 128 at ~15:23 on 5 of 10 shards simultaneously (shards 1, 3, 6, 8, 9 on racks nvl72d207/d147/d066/d219); vLLM had started normally (273.55/276.62 GiB free); the sbatch script then tore the server down (server step SIGKILLed) and exited 1; external transient (GitHub/egress), retried by the continuation chain; abort #1 of this shard; 0 verified attempts intact on disk; next continuation 4029657 (RUNNING) resumes from cache as infra retry 1/3.",
+   "15:29 PDT 2026-09-26: shard 6 primary, job 4029646 (nvl72d066-T10), exited 1 after 00:08:23: Harbor dataset fetch from GitHub failed before any attempt ran: eval-runner 'git clone --filter=blob:none --depth 1 --no-checkout https://github.com/laude-institute/harbor-datasets.git' (or the following 'git checkout 86723674') returned exit 128 at ~15:23 on 5 of 10 shards simultaneously (shards 1, 3, 6, 8, 9 on racks nvl72d207/d147/d066/d219); vLLM had started normally (273.55/276.62 GiB free); the sbatch script then tore the server down (server step SIGKILLed) and exited 1; external transient (GitHub/egress), retried by the continuation chain; abort #1 of this shard; 0 verified attempts intact on disk; next continuation 4029658 (RUNNING) resumes from cache as infra retry 1/3.",
+   "15:29 PDT 2026-09-26: shard 8 primary, job 4029648 (nvl72d219-T15), exited 1 after 00:08:29: Harbor dataset fetch from GitHub failed before any attempt ran: eval-runner 'git clone --filter=blob:none --depth 1 --no-checkout https://github.com/laude-institute/harbor-datasets.git' (or the following 'git checkout 86723674') returned exit 128 at ~15:23 on 5 of 10 shards simultaneously (shards 1, 3, 6, 8, 9 on racks nvl72d207/d147/d066/d219); vLLM had started normally (273.55/276.62 GiB free); the sbatch script then tore the server down (server step SIGKILLed) and exited 1; external transient (GitHub/egress), retried by the continuation chain; abort #1 of this shard; 0 verified attempts intact on disk; next continuation 4029653 (RUNNING) resumes from cache as infra retry 1/3.",
+   "15:29 PDT 2026-09-26: shard 9 primary, job 4029649 (nvl72d219-T18), exited 1 after 00:08:24: Harbor dataset fetch from GitHub failed before any attempt ran: eval-runner 'git clone --filter=blob:none --depth 1 --no-checkout https://github.com/laude-institute/harbor-datasets.git' (or the following 'git checkout 86723674') returned exit 128 at ~15:23 on 5 of 10 shards simultaneously (shards 1, 3, 6, 8, 9 on racks nvl72d207/d147/d066/d219); vLLM had started normally (273.55/276.62 GiB free); the sbatch script then tore the server down (server step SIGKILLed) and exited 1; external transient (GitHub/egress), retried by the continuation chain; abort #1 of this shard; 0 verified attempts intact on disk; next continuation 4029659 (RUNNING) resumes from cache as infra retry 1/3.",
+   "15:31 PDT 2026-09-26 SUMMARY: step_35 primaries of shards 1, 3, 6, 8, 9 (jobs 4029641/4029643/4029646/4029648/4029649) all died at 15:23-15:24 on the Harbor dataset git fetch from GitHub (exit 128); the other 5 shards fetched fine and are executing; continuations 4029655/4029657/4029658/4029653/4029659 started 15:24 as infra retry 1/3 and re-attempt the fetch; 0 attempts lost."
+  ],
+  "result": {
+   "merged_at": "2026-09-27T02:45Z",
+   "report": "report.md + swebench-verified_1.0/eval-20260927T023547Z-swebench-verified_1.0.json",
+   "problems": 500,
+   "attempts_accounted": 2500,
+   "distinct_problem_repeat_pairs": 2500,
+   "pass_at_1": 0.508,
+   "pass_at_1_ci95": [
+    0.4968,
+    0.5192
+   ],
+   "pass_at_1_bootstrap_ci": [
+    0.4712,
+    0.5456
+   ],
+   "pass_at_5": 0.67,
+   "pass_at_5_bootstrap_ci": [
+    0.63,
+    0.71
+   ],
+   "pass_at_3_computed_from_results_jsonl_unbiased": 0.631,
+   "mean_reward": 0.508,
+   "solver_failures_graded_0": 3,
+   "solver_failure_classes": {
+    "context_window_exceeded": 2,
+    "agent_nonzero_exit_137": 1
+   },
+   "solver_failure_ids": [
+    "p263 r0",
+    "p269 r0",
+    "p269 r1"
+   ],
+   "log_grading_0_lines": 3,
+   "eval_json_model_errors": 3,
+   "terminated_but_verified": {
+    "context_window_exceeded": {
+     "n": 1,
+     "passed": 0
+    }
+   },
+   "terminated_but_verified_ids": {
+    "context_window_exceeded": [
+     "p440 r2"
+    ]
+   },
+   "infra_incidents": "Submitted 15:15 PDT 2026-09-26 (after the quota outage; not affected by it). 15:23-15:24: primaries of shards 1, 3, 6, 8, 9 (jobs 4029641/4029643/4029646/4029648/4029649, racks nvl72d207/d147/d066/d219) all exited 1 because the eval-runner's Harbor dataset fetch from GitHub failed (git clone/checkout exit 128) before any attempt ran; vLLM had started normally; continuations 4029655/4029657/4029658/4029659 fetched fine on retry 1/3; shard 8's continuation 4029653 hit the same git error (5 min 50 s) and its retry-2/3 continuation 4029813 (nvl72d208-T02) finished the shard. No Fargate aborts. Merged ~19:40 by the last shard; 2,500 verified attempts, none lost."
+  }
+ },
+ "step_40": {
+  "run_id": "20260927_002949_c88786ab",
+  "run_dir": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/nemo-evaluator-rundirs/nano_v35/swebench-verified-fixed/20260927_002949_c88786ab",
+  "job_ids": [
+   4032150,
+   4032151,
+   4032152,
+   4032153,
+   4032154,
+   4032155,
+   4032156,
+   4032157,
+   4032158,
+   4032159
+  ],
+  "submitted_at": "2026-09-26T17:29:49-07:00",
+  "checkpoint": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-from0-nvshmem-keepprefix-minf-20260925/checkpoints/step_40/hf",
+  "model_name": "rkirby-nano35-swe-v2-minf-from0-keepprefix-step-40",
+  "export_job": "4031963_40",
+  "export_note": "step_40 landed 17:16:55 PDT 2026-09-26, first rung of segment 4022658 (run manager confirmed closed save: status json last_checkpoint_step 40 + completion stamp, 140 files / 369 GB); export 4031963_40 on nvl72d196-T12 17:18-17:24 (6 min 42 s), verify_export.py verified 14 shards / 65827374264 bytes / 6513 tensors, world-readable",
+  "result": {
+   "merged_at": "2026-09-27T04:46Z",
+   "report": "report.md + swebench-verified_1.0/eval-20260927T044309Z-swebench-verified_1.0.json",
+   "problems": 500,
+   "attempts_accounted": 2500,
+   "distinct_problem_repeat_pairs": 2500,
+   "pass_at_1": 0.5132,
+   "pass_at_1_ci95": [
+    0.502,
+    0.5244
+   ],
+   "pass_at_1_bootstrap_ci": [
+    0.4756,
+    0.5516
+   ],
+   "pass_at_5": 0.674,
+   "pass_at_5_bootstrap_ci": [
+    0.634,
+    0.714
+   ],
+   "pass_at_3_computed_from_results_jsonl_unbiased": 0.633,
+   "mean_reward": 0.5132,
+   "solver_failures_graded_0": 0,
+   "solver_failure_classes": {},
+   "solver_failure_ids": [],
+   "log_grading_0_lines": 0,
+   "eval_json_model_errors": 0,
+   "terminated_but_verified": {
+    "context_window_exceeded": {
+     "n": 4,
+     "passed": 0
+    }
+   },
+   "terminated_but_verified_ids": {
+    "context_window_exceeded": [
+     "p263 r3",
+     "p315 r0",
+     "p440 r2",
+     "p457 r0"
+    ]
+   },
+   "infra_incidents": "Submitted 17:30 PDT 2026-09-26 (first rung of the relaunched arm's second segment 4022658; not affected by the morning quota outage). No infrastructure incidents: all 10 primaries (4032150-4032159) ran start to finish with no vLLM startup failures, no Fargate aborts, no GitHub fetch failures and no continuations used. Merged ~21:40 by the last shard; 2,500 verified attempts, none lost."
+  }
+ },
+ "step_45": {
+  "run_id": "20260927_021608_a836c144",
+  "run_dir": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/nemo-evaluator-rundirs/nano_v35/swebench-verified-fixed/20260927_021608_a836c144",
+  "job_ids": [
+   4033594,
+   4033595,
+   4033596,
+   4033597,
+   4033598,
+   4033599,
+   4033600,
+   4033601,
+   4033602,
+   4033603
+  ],
+  "submitted_at": "2026-09-26T19:16:08-07:00",
+  "checkpoint": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-from0-nvshmem-keepprefix-minf-20260925/checkpoints/step_45/hf",
+  "model_name": "rkirby-nano35-swe-v2-minf-from0-keepprefix-step-45",
+  "export_job": "4033142_45",
+  "export_note": "step_45 landed 18:45:10 PDT 2026-09-26 (run manager confirmed closed save: status json last_checkpoint_step 45 + completion stamp, 140 files / 369 GB); export 4033142_45 pended on priority 18:48-19:0x then ran 6 min 16 s on nvl72d211-T09; verify_export.py verified 14 shards / 65827374264 bytes / 6513 tensors, world-readable",
+  "result": {
+   "merged_at": "2026-09-27T07:01Z",
+   "report": "report.md + swebench-verified_1.0/eval-20260927T065707Z-swebench-verified_1.0.json",
+   "problems": 500,
+   "attempts_accounted": 2500,
+   "distinct_problem_repeat_pairs": 2500,
+   "pass_at_1": 0.5064,
+   "pass_at_1_ci95": [
+    0.4952,
+    0.5176
+   ],
+   "pass_at_1_bootstrap_ci": [
+    0.4684,
+    0.5448
+   ],
+   "pass_at_5": 0.664,
+   "pass_at_5_bootstrap_ci": [
+    0.622,
+    0.706
+   ],
+   "pass_at_3_computed_from_results_jsonl_unbiased": 0.6266,
+   "mean_reward": 0.5064,
+   "solver_failures_graded_0": 1,
+   "solver_failure_classes": {
+    "context_window_exceeded": 1
+   },
+   "solver_failure_ids": [
+    "p301 r3"
+   ],
+   "log_grading_0_lines": 1,
+   "eval_json_model_errors": 1,
+   "terminated_but_verified": {
+    "context_window_exceeded": {
+     "n": 4,
+     "passed": 0
+    },
+    "turn_budget_exhausted": {
+     "n": 1,
+     "passed": 0
+    }
+   },
+   "terminated_but_verified_ids": {
+    "context_window_exceeded": [
+     "p263 r1",
+     "p320 r2",
+     "p380 r2",
+     "p479 r0"
+    ],
+    "turn_budget_exhausted": [
+     "p469 r2"
+    ]
+   },
+   "infra_incidents": "Submitted 19:16 PDT 2026-09-26 (its export 4033142_45 pended on priority for ~15 min before running; not affected by the morning quota outage). No infrastructure incidents: all 10 primaries (4033594-4033603) ran start to finish with no vLLM startup failures, no Fargate aborts, no GitHub fetch failures and no continuations used. Merged ~23:57 PDT 2026-09-26 by the last shard (4033600); 2,500 verified attempts, none lost."
+  }
+ },
+ "step_50": {
+  "run_id": "20260927_033057_8f2fc253",
+  "run_dir": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/nemo-evaluator-rundirs/nano_v35/swebench-verified-fixed/20260927_033057_8f2fc253",
+  "job_ids": [
+   4034798,
+   4034799,
+   4034800,
+   4034801,
+   4034802,
+   4034803,
+   4034804,
+   4034805,
+   4034806,
+   4034807
+  ],
+  "submitted_at": "2026-09-26T20:30:57-07:00",
+  "checkpoint": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-from0-nvshmem-keepprefix-minf-20260925/checkpoints/step_50/hf",
+  "model_name": "rkirby-nano35-swe-v2-minf-from0-keepprefix-step-50",
+  "export_job": "4034641_50",
+  "export_note": "step_50 landed 20:15:54 PDT 2026-09-26 (run manager confirmed closed save: status json last_checkpoint_step 50 + completion stamp, 140 files / 369 GB; no stop at 50 under the step_70 extension); export 4034641_50 on nvl72d206-T12 20:18-20:24 (6 min 12 s); verify_export.py verified 14 shards / 65827374264 bytes / 6513 tensors, world-readable",
+  "result": {
+   "merged_at": "2026-09-27T08:16Z",
+   "report": "report.md + swebench-verified_1.0/eval-20260927T080333Z-swebench-verified_1.0.json",
+   "problems": 500,
+   "attempts_accounted": 2500,
+   "distinct_problem_repeat_pairs": 2500,
+   "pass_at_1": 0.526,
+   "pass_at_1_ci95": [
+    0.5148,
+    0.5372
+   ],
+   "pass_at_1_bootstrap_ci": [
+    0.4884,
+    0.564
+   ],
+   "pass_at_5": 0.684,
+   "pass_at_5_bootstrap_ci": [
+    0.642,
+    0.726
+   ],
+   "pass_at_3_computed_from_results_jsonl_unbiased": 0.6456,
+   "mean_reward": 0.526,
+   "solver_failures_graded_0": 2,
+   "solver_failure_classes": {
+    "context_window_exceeded": 2
+   },
+   "solver_failure_ids": [
+    "p269 r4",
+    "p480 r3"
+   ],
+   "log_grading_0_lines": 2,
+   "eval_json_model_errors": 2,
+   "terminated_but_verified": {
+    "context_window_exceeded": {
+     "n": 6,
+     "passed": 0
+    },
+    "turn_budget_exhausted": {
+     "n": 1,
+     "passed": 0
+    }
+   },
+   "terminated_but_verified_ids": {
+    "context_window_exceeded": [
+     "p14 r0",
+     "p269 r0",
+     "p320 r0",
+     "p487 r2",
+     "p5 r3",
+     "p65 r3"
+    ],
+    "turn_budget_exhausted": [
+     "p480 r4"
+    ]
+   },
+   "infra_incidents": "none: all 10 primaries completed on their first job"
+  }
+ },
+ "step_55": {
+  "run_id": "20260927_060120_aa4582d9",
+  "run_dir": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/nemo-evaluator-rundirs/nano_v35/swebench-verified-fixed/20260927_060120_aa4582d9",
+  "job_ids": [
+   4037326,
+   4037327,
+   4037328,
+   4037329,
+   4037330,
+   4037331,
+   4037332,
+   4037333,
+   4037334,
+   4037335
+  ],
+  "submitted_at": "2026-09-26T23:01:20-07:00",
+  "checkpoint": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-from0-nvshmem-keepprefix-minf-20260925/checkpoints/step_55/hf",
+  "model_name": "rkirby-nano35-swe-v2-minf-from0-keepprefix-step-55",
+  "export_job": "4036984_55",
+  "export_note": "step_55 landed ~22:42 PDT 2026-09-26 after a 57-min quiet window; status json already at rolling step_56 (completion stamp 22:44:33) = closed, kept rung; run manager independently confirmed 22:46 (140 files / 369 GB, training_info current_step 55); export 4036984_55 on nvl72d062-T18 22:46-22:52 (6 min 13 s); verify_export.py verified 14 shards / 65827374264 bytes / 6513 tensors, world-readable",
+  "result": {
+   "merged_at": "2026-09-27T11:16Z",
+   "report": "report.md + swebench-verified_1.0/eval-20260927T110205Z-swebench-verified_1.0.json",
+   "problems": 500,
+   "attempts_accounted": 2500,
+   "distinct_problem_repeat_pairs": 2500,
+   "pass_at_1": 0.506,
+   "pass_at_1_ci95": [
+    0.4946,
+    0.5174
+   ],
+   "pass_at_1_bootstrap_ci": [
+    0.4696,
+    0.544
+   ],
+   "pass_at_5": 0.676,
+   "pass_at_5_bootstrap_ci": [
+    0.636,
+    0.718
+   ],
+   "pass_at_3_computed_from_results_jsonl_unbiased": 0.6316,
+   "mean_reward": 0.506,
+   "solver_failures_graded_0": 1,
+   "solver_failure_classes": {
+    "context_window_exceeded": 1
+   },
+   "solver_failure_ids": [
+    "p468 r2"
+   ],
+   "log_grading_0_lines": 1,
+   "eval_json_model_errors": 1,
+   "terminated_but_verified": {
+    "context_window_exceeded": {
+     "n": 2,
+     "passed": 0
+    }
+   },
+   "terminated_but_verified_ids": {
+    "context_window_exceeded": [
+     "p11 r2",
+     "p498 r3"
+    ]
+   },
+   "infra_incidents": "none: all 10 primaries completed on their first job"
+  }
+ },
+ "step_60": {
+  "run_id": "20260927_073735_80a2c252",
+  "run_dir": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/nemo-evaluator-rundirs/nano_v35/swebench-verified-fixed/20260927_073735_80a2c252",
+  "job_ids": [
+   4039041,
+   4039042,
+   4039043,
+   4039044,
+   4039045,
+   4039046,
+   4039047,
+   4039048,
+   4039049,
+   4039050
+  ],
+  "submitted_at": "2026-09-27T00:37:35-07:00",
+  "checkpoint": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-from0-nvshmem-keepprefix-minf-20260925/checkpoints/step_60/hf",
+  "model_name": "rkirby-nano35-swe-v2-minf-from0-keepprefix-step-60",
+  "export_job": "4038883_60",
+  "export_note": "FINAL RUNG. step_60 landed 00:24:46 PDT 2026-09-27 (run manager verified 140 files / 369 GB, training_info current_step 60, status json last_checkpoint_step 60 + completion stamp); the run manager stopped the arm at 00:28 (segment 4022658 and followers 4022659-4022661 CANCELLED, confirmed by sacct; no rolling checkpoint left); export 4038883_60 on nvl72d208-T14 00:29-00:35 (6 min 08 s); verify_export.py verified 14 shards / 65827374264 bytes / 6513 tensors, world-readable",
+  "incidents": [
+   "04:30 PDT 2026-09-27: RECORD-LEVEL sandbox fault (not a shard abort): shard 7 primary 4039048, attempt p117 r1 graded 0.0 unverified at 04:17:30 after 'Agent infrastructure failure: ConnectionError: POST /exec failed after 4 attempts: Cannot connect to host 127.0.0.1:58775' 51 min into the attempt; single occurrence in this arm and none in the live chain Q\u2057 / chain P\u20572 runs; shard kept running; no re-run mechanism for one attempt in local-sbatch mode, so it counts as a 0.0 in the step_60 result (class 'other' in solverfail, reported to rkirby)"
+  ],
+  "result": {
+   "merged_at": "2026-09-27T13:01Z",
+   "report": "report.md + swebench-verified_1.0/eval-20260927T125053Z-swebench-verified_1.0.json",
+   "problems": 500,
+   "attempts_accounted": 2500,
+   "distinct_problem_repeat_pairs": 2500,
+   "pass_at_1": 0.5084,
+   "pass_at_1_ci95": [
+    0.4979,
+    0.5189
+   ],
+   "pass_at_1_bootstrap_ci": [
+    0.47,
+    0.5472
+   ],
+   "pass_at_5": 0.644,
+   "pass_at_5_bootstrap_ci": [
+    0.602,
+    0.686
+   ],
+   "pass_at_3_computed_from_results_jsonl_unbiased": 0.6134,
+   "mean_reward": 0.5084,
+   "solver_failures_graded_0": 3,
+   "solver_failure_classes": {
+    "agent_nonzero_exit_137": 1,
+    "context_window_exceeded": 1,
+    "other:Agent infrastructure failure: ConnectionError: POST /exec fa": 1
+   },
+   "solver_failure_ids": [
+    "p117 r1",
+    "p263 r0",
+    "p312 r3"
+   ],
+   "log_grading_0_lines": 3,
+   "eval_json_model_errors": 3,
+   "terminated_but_verified": {
+    "agent_nonzero_exit_137": {
+     "n": 2,
+     "passed": 1
+    },
+    "context_window_exceeded": {
+     "n": 3,
+     "passed": 0
+    }
+   },
+   "terminated_but_verified_ids": {
+    "agent_nonzero_exit_137": [
+     "p341 r0",
+     "p416 r2"
+    ],
+    "context_window_exceeded": [
+     "p216 r2",
+     "p441 r0",
+     "p482 r0"
+    ]
+   },
+   "infra_incidents": "no shard aborts: all 10 primaries completed on their first job; 1 record-level sandbox fault: shard 7 (4039048) attempt p117 r1 graded 0.0 unverified at 04:17 after 'Agent infrastructure failure: ConnectionError: POST /exec failed after 4 attempts' (single occurrence, no re-run path for one attempt in local-sbatch mode, counted as a 0.0)"
+  }
+ }
+}

@@ -1,0 +1,438 @@
+{
+ "step_20": {
+  "run_id": "20260923_013841_c00ced3e",
+  "run_dir": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/nemo-evaluator-rundirs/nano_v35/swebench-verified-fixed/20260923_013841_c00ced3e",
+  "job_ids": [
+   3938631,
+   3938632,
+   3938633,
+   3938634,
+   3938635,
+   3938636,
+   3938637,
+   3938638,
+   3938639,
+   3938640
+  ],
+  "submitted_at": "2026-09-22T18:38:58-07:00",
+  "checkpoint": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-stream128-inorder1-cmh-64n-vllm_dump-20260918/checkpoints/step_20/hf",
+  "model_name": "rkirby-nano35-swe-v2-stream128-inorder1-vllm-from0-step-20",
+  "result": {
+   "merged_at": "2026-09-23T07:04Z",
+   "report": "report.md + swebench-verified_1.0/eval-20260923T065846Z-swebench-verified_1.0.json",
+   "problems": 500,
+   "attempts_accounted": 2500,
+   "distinct_problem_repeat_pairs": 2500,
+   "pass_at_1": 0.508,
+   "pass_at_1_ci95": [
+    0.4965,
+    0.5195
+   ],
+   "pass_at_1_bootstrap_ci": [
+    0.4712,
+    0.5456
+   ],
+   "pass_at_5": 0.674,
+   "pass_at_5_bootstrap_ci": [
+    0.634,
+    0.716
+   ],
+   "pass_at_3_computed_from_results_jsonl_unbiased": 0.6328,
+   "mean_reward": 0.508,
+   "solver_failures_graded_0": 1,
+   "solver_failure_classes": {
+    "context_window_exceeded": 1
+   },
+   "solver_failure_ids": [
+    "p316 r3"
+   ],
+   "log_grading_0_lines": 1,
+   "eval_json_model_errors": 1,
+   "terminated_but_verified": {
+    "context_window_exceeded": {
+     "n": 5,
+     "passed": 0
+    }
+   },
+   "terminated_but_verified_ids": {
+    "context_window_exceeded": [
+     "p176 r0",
+     "p34 r3",
+     "p357 r4",
+     "p365 r2",
+     "p440 r4"
+    ]
+   },
+   "infra_incidents": "none: all 10 primaries (3938631-3938640) completed on their first job (4h23m-5h20m); merged by the last shard's auto-merge; no preemptions, startup failures or Fargate aborts"
+  }
+ },
+ "step_35": {
+  "run_id": "20260923_014924_403c0408",
+  "run_dir": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/nemo-evaluator-rundirs/nano_v35/swebench-verified-fixed/20260923_014924_403c0408",
+  "job_ids": [
+   3938912,
+   3938913,
+   3938914,
+   3938915,
+   3938916,
+   3938917,
+   3938918,
+   3938919,
+   3938920,
+   3938921
+  ],
+  "submitted_at": "2026-09-22T18:49:42-07:00",
+  "checkpoint": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-stream128-inorder1-cmh-64n-vllm_dump-20260918/checkpoints/step_35/hf",
+  "model_name": "rkirby-nano35-swe-v2-stream128-inorder1-vllm-from0-step-35",
+  "result": {
+   "merged_at": "2026-09-23T07:49Z",
+   "report": "report.md + swebench-verified_1.0/eval-20260923T073615Z-swebench-verified_1.0.json",
+   "problems": 500,
+   "attempts_accounted": 2500,
+   "distinct_problem_repeat_pairs": 2500,
+   "pass_at_1": 0.5112,
+   "pass_at_1_ci95": [
+    0.5001,
+    0.5223
+   ],
+   "pass_at_1_bootstrap_ci": [
+    0.4744,
+    0.5492
+   ],
+   "pass_at_5": 0.668,
+   "pass_at_5_bootstrap_ci": [
+    0.628,
+    0.71
+   ],
+   "pass_at_3_computed_from_results_jsonl_unbiased": 0.6284,
+   "mean_reward": 0.5112,
+   "solver_failures_graded_0": 0,
+   "solver_failure_classes": {},
+   "solver_failure_ids": [],
+   "log_grading_0_lines": 0,
+   "eval_json_model_errors": 0,
+   "terminated_but_verified": {
+    "context_window_exceeded": {
+     "n": 3,
+     "passed": 0
+    }
+   },
+   "terminated_but_verified_ids": {
+    "context_window_exceeded": [
+     "p269 r0",
+     "p312 r2",
+     "p443 r2"
+    ]
+   },
+   "infra_incidents": "none: all 10 primaries (3938912-3938921) completed on their first job (3h57m-5h47m); merged by the last shard's auto-merge; no preemptions, startup failures or Fargate aborts"
+  }
+ },
+ "step_30": {
+  "run_id": "20260923_020415_4e422a1d",
+  "run_dir": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/nemo-evaluator-rundirs/nano_v35/swebench-verified-fixed/20260923_020415_4e422a1d",
+  "job_ids": [
+   3939331,
+   3939332,
+   3939333,
+   3939334,
+   3939335,
+   3939336,
+   3939337,
+   3939338,
+   3939339,
+   3939340
+  ],
+  "submitted_at": "2026-09-22T19:04:31-07:00",
+  "checkpoint": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-stream128-inorder1-cmh-64n-vllm_dump-20260918/checkpoints/step_30/hf",
+  "model_name": "rkirby-nano35-swe-v2-stream128-inorder1-vllm-from0-step-30",
+  "result": {
+   "merged_at": "2026-09-23T07:34Z",
+   "report": "report.md + swebench-verified_1.0/eval-20260923T073323Z-swebench-verified_1.0.json",
+   "problems": 500,
+   "attempts_accounted": 2500,
+   "distinct_problem_repeat_pairs": 2500,
+   "pass_at_1": 0.5176,
+   "pass_at_1_ci95": [
+    0.5064,
+    0.5288
+   ],
+   "pass_at_1_bootstrap_ci": [
+    0.4804,
+    0.5552
+   ],
+   "pass_at_5": 0.676,
+   "pass_at_5_bootstrap_ci": [
+    0.634,
+    0.716
+   ],
+   "pass_at_3_computed_from_results_jsonl_unbiased": 0.6372,
+   "mean_reward": 0.5176,
+   "solver_failures_graded_0": 1,
+   "solver_failure_classes": {
+    "context_window_exceeded": 1
+   },
+   "solver_failure_ids": [
+    "p259 r2"
+   ],
+   "log_grading_0_lines": 1,
+   "eval_json_model_errors": 1,
+   "terminated_but_verified": {
+    "context_window_exceeded": {
+     "n": 1,
+     "passed": 0
+    }
+   },
+   "terminated_but_verified_ids": {
+    "context_window_exceeded": [
+     "p312 r2"
+    ]
+   },
+   "infra_incidents": "none: all 10 primaries (3939331-3939340) completed on their first job (4h07m-5h29m); merged by the last shard's auto-merge; no preemptions, startup failures or Fargate aborts"
+  }
+ },
+ "step_25": {
+  "run_id": "20260923_021911_7aa1a925",
+  "run_dir": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/nemo-evaluator-rundirs/nano_v35/swebench-verified-fixed/20260923_021911_7aa1a925",
+  "job_ids": [
+   3939654,
+   3939655,
+   3939656,
+   3939657,
+   3939658,
+   3939659,
+   3939660,
+   3939661,
+   3939662,
+   3939663
+  ],
+  "submitted_at": "2026-09-22T19:19:26-07:00",
+  "checkpoint": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-stream128-inorder1-cmh-64n-vllm_dump-20260918/checkpoints/step_25/hf",
+  "model_name": "rkirby-nano35-swe-v2-stream128-inorder1-vllm-from0-step-25",
+  "result": {
+   "merged_at": "2026-09-23T07:49Z",
+   "report": "report.md + swebench-verified_1.0/eval-20260923T073723Z-swebench-verified_1.0.json",
+   "problems": 500,
+   "attempts_accounted": 2500,
+   "distinct_problem_repeat_pairs": 2500,
+   "pass_at_1": 0.5112,
+   "pass_at_1_ci95": [
+    0.5001,
+    0.5223
+   ],
+   "pass_at_1_bootstrap_ci": [
+    0.4736,
+    0.5488
+   ],
+   "pass_at_5": 0.67,
+   "pass_at_5_bootstrap_ci": [
+    0.628,
+    0.71
+   ],
+   "pass_at_3_computed_from_results_jsonl_unbiased": 0.6296,
+   "mean_reward": 0.5112,
+   "solver_failures_graded_0": 1,
+   "solver_failure_classes": {
+    "context_window_exceeded": 1
+   },
+   "solver_failure_ids": [
+    "p283 r1"
+   ],
+   "log_grading_0_lines": 1,
+   "eval_json_model_errors": 1,
+   "terminated_but_verified": {
+    "context_window_exceeded": {
+     "n": 2,
+     "passed": 0
+    }
+   },
+   "terminated_but_verified_ids": {
+    "context_window_exceeded": [
+     "p263 r0",
+     "p498 r0"
+    ]
+   },
+   "infra_incidents": "none: all 10 primaries (3939654-3939663) completed on their first job (4h13m-5h19m); merged by the last shard's auto-merge; no preemptions, startup failures or Fargate aborts"
+  }
+ },
+ "step_15": {
+  "run_id": "20260923_023411_62bafb4e",
+  "run_dir": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/nemo-evaluator-rundirs/nano_v35/swebench-verified-fixed/20260923_023411_62bafb4e",
+  "job_ids": [
+   3939915,
+   3939916,
+   3939917,
+   3939918,
+   3939919,
+   3939920,
+   3939921,
+   3939922,
+   3939923,
+   3939924
+  ],
+  "submitted_at": "2026-09-22T19:34:26-07:00",
+  "checkpoint": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-stream128-inorder1-cmh-64n-vllm_dump-20260918/checkpoints/step_15/hf",
+  "model_name": "rkirby-nano35-swe-v2-stream128-inorder1-vllm-from0-step-15",
+  "result": {
+   "merged_at": "2026-09-23T09:04Z",
+   "report": "report.md + swebench-verified_1.0/eval-20260923T085723Z-swebench-verified_1.0.json",
+   "problems": 500,
+   "attempts_accounted": 2500,
+   "distinct_problem_repeat_pairs": 2500,
+   "pass_at_1": 0.5116,
+   "pass_at_1_ci95": [
+    0.5,
+    0.5232
+   ],
+   "pass_at_1_bootstrap_ci": [
+    0.4744,
+    0.5488
+   ],
+   "pass_at_5": 0.676,
+   "pass_at_5_bootstrap_ci": [
+    0.636,
+    0.716
+   ],
+   "pass_at_3_computed_from_results_jsonl_unbiased": 0.637,
+   "mean_reward": 0.5116,
+   "solver_failures_graded_0": 1,
+   "solver_failure_classes": {
+    "context_window_exceeded": 1
+   },
+   "solver_failure_ids": [
+    "p281 r2"
+   ],
+   "log_grading_0_lines": 1,
+   "eval_json_model_errors": 1,
+   "terminated_but_verified": {
+    "context_window_exceeded": {
+     "n": 8,
+     "passed": 3
+    },
+    "turn_budget_exhausted": {
+     "n": 1,
+     "passed": 0
+    }
+   },
+   "terminated_but_verified_ids": {
+    "context_window_exceeded": [
+     "p228 r0",
+     "p263 r0",
+     "p324 r2",
+     "p324 r4",
+     "p357 r4",
+     "p400 r3",
+     "p416 r3",
+     "p440 r3"
+    ],
+    "turn_budget_exhausted": [
+     "p408 r2"
+    ]
+   },
+   "infra_incidents": "none: all 10 primaries (3939915-3939924) completed on their first job (4h31m-6h24m); merged by the last shard's auto-merge; no preemptions, startup failures or Fargate aborts"
+  }
+ },
+ "step_5": {
+  "run_id": "20260923_024912_44327956",
+  "run_dir": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/nemo-evaluator-rundirs/nano_v35/swebench-verified-fixed/20260923_024912_44327956",
+  "job_ids": [
+   3940227,
+   3940228,
+   3940229,
+   3940230,
+   3940231,
+   3940232,
+   3940233,
+   3940234,
+   3940235,
+   3940236
+  ],
+  "submitted_at": "2026-09-22T19:49:30-07:00",
+  "checkpoint": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-stream128-inorder1-cmh-64n-vllm_dump-20260918/checkpoints/step_5/hf",
+  "model_name": "rkirby-nano35-swe-v2-stream128-inorder1-vllm-from0-step-5",
+  "result": {
+   "merged_at": "2026-09-23T09:49Z",
+   "report": "report.md + swebench-verified_1.0/eval-20260923T093534Z-swebench-verified_1.0.json",
+   "problems": 500,
+   "attempts_accounted": 2500,
+   "distinct_problem_repeat_pairs": 2500,
+   "pass_at_1": 0.4964,
+   "pass_at_1_ci95": [
+    0.4845,
+    0.5083
+   ],
+   "pass_at_1_bootstrap_ci": [
+    0.4596,
+    0.5332
+   ],
+   "pass_at_5": 0.678,
+   "pass_at_5_bootstrap_ci": [
+    0.638,
+    0.718
+   ],
+   "pass_at_3_computed_from_results_jsonl_unbiased": 0.6306,
+   "mean_reward": 0.4964,
+   "solver_failures_graded_0": 10,
+   "solver_failure_classes": {
+    "context_window_exceeded": 7,
+    "agent_nonzero_exit_-15": 1,
+    "turn_budget_exhausted": 2
+   },
+   "solver_failure_ids": [
+    "p136 r3",
+    "p214 r3",
+    "p230 r2",
+    "p269 r2",
+    "p297 r2",
+    "p327 r3",
+    "p484 r1",
+    "p54 r4",
+    "p57 r0",
+    "p7 r1"
+   ],
+   "log_grading_0_lines": 10,
+   "eval_json_model_errors": 10,
+   "terminated_but_verified": {
+    "context_window_exceeded": {
+     "n": 16,
+     "passed": 4
+    },
+    "solve_timeout": {
+     "n": 2,
+     "passed": 1
+    },
+    "turn_budget_exhausted": {
+     "n": 1,
+     "passed": 0
+    }
+   },
+   "terminated_but_verified_ids": {
+    "context_window_exceeded": [
+     "p191 r2",
+     "p269 r0",
+     "p269 r1",
+     "p279 r0",
+     "p325 r0",
+     "p365 r2",
+     "p397 r4",
+     "p416 r1",
+     "p440 r0",
+     "p440 r2",
+     "p440 r4",
+     "p475 r3",
+     "p486 r3",
+     "p5 r2",
+     "p51 r2",
+     "p58 r1"
+    ],
+    "solve_timeout": [
+     "p416 r2",
+     "p7 r0"
+    ],
+    "turn_budget_exhausted": [
+     "p399 r1"
+    ]
+   },
+   "infra_incidents": "none: all 10 primaries (3940227-3940236) completed on their first job (5h09m-6h47m); merged by the last shard's auto-merge; no preemptions, startup failures or Fargate aborts"
+  }
+ }
+}

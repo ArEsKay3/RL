@@ -1,0 +1,880 @@
+{
+ "step_32": {
+  "run_id": "20260922_141829_76b9d21c",
+  "run_dir": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/nemo-evaluator-rundirs/nano_v35/swebench-verified-fixed/20260922_141829_76b9d21c",
+  "job_ids": [
+   "3924210",
+   "3924211",
+   "3924212",
+   "3924213",
+   "3924214",
+   "3924215",
+   "3924216",
+   "3924217",
+   "3924218",
+   "3924219"
+  ],
+  "submitted_at": "2026-09-22T07:18:56-07:00",
+  "checkpoint": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-stream128-inorder1-cmh-64n-minf_dump-from0-nopg-noprefix-20260920/hf_exports/step_32/hf",
+  "model_name": "rkirby-nano35-swe-v2-stream128-inorder1-minf-from0-nopg-noprefix-step-32",
+  "result": {
+   "merged_at": "2026-09-22T23:46Z",
+   "report": "report.md + swebench-verified_1.0/eval-20260922T234147Z-swebench-verified_1.0.json",
+   "problems": 500,
+   "attempts_accounted": 2500,
+   "distinct_problem_repeat_pairs": 2500,
+   "pass_at_1": 0.4772,
+   "pass_at_1_ci95": [
+    0.4656,
+    0.4888
+   ],
+   "pass_at_1_bootstrap_ci": [
+    0.44,
+    0.5144
+   ],
+   "pass_at_5": 0.652,
+   "pass_at_5_bootstrap_ci": [
+    0.61,
+    0.694
+   ],
+   "pass_at_3_computed_from_results_jsonl_unbiased": 0.6062,
+   "mean_reward": 0.4772,
+   "solver_failures_graded_0": 8,
+   "solver_failure_classes": {
+    "context_window_exceeded": 7,
+    "max_tokens_zero": 1
+   },
+   "solver_failure_ids": [
+    "p236 r3",
+    "p263 r0",
+    "p328 r2",
+    "p380 r0",
+    "p5 r3",
+    "p57 r3",
+    "p7 r3",
+    "p7 r4"
+   ],
+   "log_grading_0_lines": 8,
+   "eval_json_model_errors": 8,
+   "terminated_but_verified": {
+    "solve_timeout": {
+     "n": 8,
+     "passed": 1
+    },
+    "context_window_exceeded": {
+     "n": 8,
+     "passed": 2
+    },
+    "turn_budget_exhausted": {
+     "n": 1,
+     "passed": 0
+    }
+   },
+   "terminated_but_verified_ids": {
+    "solve_timeout": [
+     "p195 r1",
+     "p274 r1",
+     "p313 r4",
+     "p341 r0",
+     "p376 r4",
+     "p434 r2",
+     "p482 r0",
+     "p7 r2"
+    ],
+    "context_window_exceeded": [
+     "p263 r1",
+     "p263 r3",
+     "p269 r3",
+     "p279 r1",
+     "p306 r1",
+     "p318 r3",
+     "p416 r2",
+     "p440 r1"
+    ],
+    "turn_budget_exhausted": [
+     "p201 r1"
+    ]
+   },
+   "infra_incidents": "none: all 10 primaries (3924210-3924219) completed on their first job (6h36m-9h24m; shard 7's last attempt p138 r1 ran to the 3 h solve cap, hit a Fargate provisioning timeout at verify time and was retried in full by the eval loop); no preemptions, startup failures or aborts"
+  }
+ },
+ "step_30": {
+  "run_id": "20260922_142849_2e6c545a",
+  "run_dir": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/nemo-evaluator-rundirs/nano_v35/swebench-verified-fixed/20260922_142849_2e6c545a",
+  "job_ids": [
+   "3924487",
+   "3924488",
+   "3924489",
+   "3924490",
+   "3924491",
+   "3924492",
+   "3924493",
+   "3924494",
+   "3924495",
+   "3924496"
+  ],
+  "submitted_at": "2026-09-22T07:29:06-07:00",
+  "checkpoint": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-stream128-inorder1-cmh-64n-minf_dump-from0-nopg-noprefix-20260920/checkpoints/step_30/hf",
+  "model_name": "rkirby-nano35-swe-v2-stream128-inorder1-minf-from0-nopg-noprefix-step-30",
+  "incidents": [
+   "11:41 PDT 2026-09-22: shard 7 primary 3924494 (nvl72d182-T16) exited 1 after 4h12m: p285 r1 hit three consecutive AWS Fargate sandbox provisioning timeouts ('ECS task not RUNNING after ~300s (last: PENDING)' at 11:06, 11:23, 11:39); eval_loop exhausted its 3 system-error retries and, with skip_failed=False, the orchestrator aborted the shard run, closing the shared aiohttp session, so 9 in-flight agent execs died with 'RuntimeError: Session is closed' (secondary). Same root cause as chain F step_15 shard 5 on 2026-09-21. 191 verified attempts intact on disk; recipe continuation 3924505 started 11:41:53 on nvl72d220-T01 as 'Infra retry 1/3' (follow-up 3929962 queued) and resumes from cache. Across chain G so far: 13 second-attempt sandbox retries, this is the only abort."
+  ],
+  "result": {
+   "merged_at": "2026-09-22T23:05Z",
+   "report": "report.md + swebench-verified_1.0/eval-20260922T224723Z-swebench-verified_1.0.json",
+   "problems": 500,
+   "attempts_accounted": 2500,
+   "distinct_problem_repeat_pairs": 2500,
+   "pass_at_1": 0.4816,
+   "pass_at_1_ci95": [
+    0.4698,
+    0.4934
+   ],
+   "pass_at_1_bootstrap_ci": [
+    0.4436,
+    0.5188
+   ],
+   "pass_at_5": 0.66,
+   "pass_at_5_bootstrap_ci": [
+    0.618,
+    0.702
+   ],
+   "pass_at_3_computed_from_results_jsonl_unbiased": 0.6166,
+   "mean_reward": 0.4816,
+   "solver_failures_graded_0": 9,
+   "solver_failure_classes": {
+    "context_window_exceeded": 9
+   },
+   "solver_failure_ids": [
+    "p146 r1",
+    "p263 r1",
+    "p315 r0",
+    "p380 r0",
+    "p380 r1",
+    "p387 r1",
+    "p39 r3",
+    "p484 r4",
+    "p7 r4"
+   ],
+   "log_grading_0_lines": 9,
+   "eval_json_model_errors": 7,
+   "terminated_but_verified": {
+    "context_window_exceeded": {
+     "n": 9,
+     "passed": 1
+    },
+    "turn_budget_exhausted": {
+     "n": 3,
+     "passed": 0
+    },
+    "solve_timeout": {
+     "n": 2,
+     "passed": 0
+    }
+   },
+   "terminated_but_verified_ids": {
+    "context_window_exceeded": [
+     "p120 r3",
+     "p124 r0",
+     "p21 r1",
+     "p312 r4",
+     "p328 r4",
+     "p397 r0",
+     "p422 r2",
+     "p434 r3",
+     "p450 r1"
+    ],
+    "turn_budget_exhausted": [
+     "p137 r2",
+     "p247 r0",
+     "p419 r1"
+    ],
+    "solve_timeout": [
+     "p437 r1",
+     "p482 r4"
+    ]
+   },
+   "infra_incidents": "1 incident(s), see incidents[]"
+  }
+ },
+ "step_25": {
+  "run_id": "20260922_144412_07485ed7",
+  "run_dir": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/nemo-evaluator-rundirs/nano_v35/swebench-verified-fixed/20260922_144412_07485ed7",
+  "job_ids": [
+   "3924717",
+   "3924718",
+   "3924719",
+   "3924720",
+   "3924721",
+   "3924722",
+   "3924723",
+   "3924724",
+   "3924725",
+   "3924726"
+  ],
+  "submitted_at": "2026-09-22T07:44:29-07:00",
+  "checkpoint": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-stream128-inorder1-cmh-64n-minf_dump-from0-nopg-noprefix-20260920/checkpoints/step_25/hf",
+  "model_name": "rkirby-nano35-swe-v2-stream128-inorder1-minf-from0-nopg-noprefix-step-25",
+  "result": {
+   "merged_at": "2026-09-22T23:05Z",
+   "report": "report.md + swebench-verified_1.0/eval-20260922T213028Z-swebench-verified_1.0.json",
+   "problems": 500,
+   "attempts_accounted": 2500,
+   "distinct_problem_repeat_pairs": 2500,
+   "pass_at_1": 0.48,
+   "pass_at_1_ci95": [
+    0.4685,
+    0.4915
+   ],
+   "pass_at_1_bootstrap_ci": [
+    0.4428,
+    0.5176
+   ],
+   "pass_at_5": 0.644,
+   "pass_at_5_bootstrap_ci": [
+    0.602,
+    0.686
+   ],
+   "pass_at_3_computed_from_results_jsonl_unbiased": 0.606,
+   "mean_reward": 0.48,
+   "solver_failures_graded_0": 4,
+   "solver_failure_classes": {
+    "context_window_exceeded": 4
+   },
+   "solver_failure_ids": [
+    "p22 r2",
+    "p236 r1",
+    "p422 r2",
+    "p468 r0"
+   ],
+   "log_grading_0_lines": 4,
+   "eval_json_model_errors": 4,
+   "terminated_but_verified": {
+    "context_window_exceeded": {
+     "n": 3,
+     "passed": 2
+    },
+    "solve_timeout": {
+     "n": 5,
+     "passed": 0
+    }
+   },
+   "terminated_but_verified_ids": {
+    "context_window_exceeded": [
+     "p211 r3",
+     "p312 r1",
+     "p416 r2"
+    ],
+    "solve_timeout": [
+     "p169 r1",
+     "p39 r4",
+     "p482 r2",
+     "p7 r2",
+     "p7 r4"
+    ]
+   },
+   "infra_incidents": "none: all 10 primaries completed on their first job"
+  }
+ },
+ "step_20": {
+  "run_id": "20260922_145907_f03e11ee",
+  "run_dir": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/nemo-evaluator-rundirs/nano_v35/swebench-verified-fixed/20260922_145907_f03e11ee",
+  "job_ids": [
+   "3924853",
+   "3924854",
+   "3924855",
+   "3924856",
+   "3924857",
+   "3924858",
+   "3924859",
+   "3924860",
+   "3924861",
+   "3924862"
+  ],
+  "submitted_at": "2026-09-22T07:59:23-07:00",
+  "checkpoint": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-stream128-inorder1-cmh-64n-minf_dump-from0-nopg-noprefix-20260920/checkpoints/step_20/hf",
+  "model_name": "rkirby-nano35-swe-v2-stream128-inorder1-minf-from0-nopg-noprefix-step-20",
+  "incidents": [
+   "shard 2 primary 3924855 FAILED at vLLM init on nvl72d210-T08 (torch.distributed TCPStore ping failure, transient); continuation 3924872 running on nvl72d134-T04 (infra retry 1/3)"
+  ],
+  "result": {
+   "merged_at": "2026-09-22T23:05Z",
+   "report": "report.md + swebench-verified_1.0/eval-20260922T223735Z-swebench-verified_1.0.json",
+   "problems": 500,
+   "attempts_accounted": 2500,
+   "distinct_problem_repeat_pairs": 2500,
+   "pass_at_1": 0.4788,
+   "pass_at_1_ci95": [
+    0.4675,
+    0.4901
+   ],
+   "pass_at_1_bootstrap_ci": [
+    0.44,
+    0.5168
+   ],
+   "pass_at_5": 0.648,
+   "pass_at_5_bootstrap_ci": [
+    0.606,
+    0.69
+   ],
+   "pass_at_3_computed_from_results_jsonl_unbiased": 0.6018,
+   "mean_reward": 0.4788,
+   "solver_failures_graded_0": 9,
+   "solver_failure_classes": {
+    "context_window_exceeded": 9
+   },
+   "solver_failure_ids": [
+    "p22 r4",
+    "p263 r0",
+    "p269 r1",
+    "p269 r2",
+    "p328 r1",
+    "p437 r3",
+    "p46 r3",
+    "p468 r2",
+    "p5 r1"
+   ],
+   "log_grading_0_lines": 9,
+   "eval_json_model_errors": 9,
+   "terminated_but_verified": {
+    "context_window_exceeded": {
+     "n": 9,
+     "passed": 1
+    },
+    "solve_timeout": {
+     "n": 5,
+     "passed": 0
+    },
+    "turn_budget_exhausted": {
+     "n": 2,
+     "passed": 0
+    }
+   },
+   "terminated_but_verified_ids": {
+    "context_window_exceeded": [
+     "p261 r2",
+     "p320 r3",
+     "p328 r4",
+     "p392 r0",
+     "p410 r0",
+     "p427 r3",
+     "p446 r2",
+     "p478 r2",
+     "p67 r0"
+    ],
+    "solve_timeout": [
+     "p427 r2",
+     "p434 r1",
+     "p482 r2",
+     "p7 r0",
+     "p7 r1"
+    ],
+    "turn_budget_exhausted": [
+     "p319 r2",
+     "p67 r3"
+    ]
+   },
+   "infra_incidents": "1 incident(s), see incidents[]"
+  }
+ },
+ "step_15": {
+  "run_id": "20260922_151421_eca1931a",
+  "run_dir": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/nemo-evaluator-rundirs/nano_v35/swebench-verified-fixed/20260922_151421_eca1931a",
+  "job_ids": [
+   "3925089",
+   "3925090",
+   "3925091",
+   "3925092",
+   "3925093",
+   "3925094",
+   "3925095",
+   "3925096",
+   "3925097",
+   "3925098"
+  ],
+  "submitted_at": "2026-09-22T08:14:41-07:00",
+  "checkpoint": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-stream128-inorder1-cmh-64n-minf_dump-from0-nopg-noprefix-20260920/checkpoints/step_15/hf",
+  "model_name": "rkirby-nano35-swe-v2-stream128-inorder1-minf-from0-nopg-noprefix-step-15",
+  "incidents": [
+   "13:53 PDT 2026-09-22: shard 5 primary 3925094 (nvl72d210-T07) exited 1 after 5h38m: p272 r3 hit three consecutive AWS Fargate sandbox provisioning timeouts ('ECS task not RUNNING after ~308s (last: PENDING)'; retries exhausted 13:33); with skip_failed=False the orchestrator aborted the shard run at 13:52 after the other in-flight attempts finished (no secondary 'Session is closed' tracebacks this time). Third such abort today (step_30 s7 11:41, step_5 s5 12:19). 249 of 250 verified attempts intact on disk; recipe continuation 3925112 started 13:53:40 on nvl72d216-T18 as 'Infra retry 1/3' (follow-up 3933046 queued) and resumed with '249 fully cached, rest from scratch'."
+  ],
+  "result": {
+   "merged_at": "2026-09-22T23:05Z",
+   "report": "report.md + swebench-verified_1.0/eval-20260922T213313Z-swebench-verified_1.0.json",
+   "problems": 500,
+   "attempts_accounted": 2500,
+   "distinct_problem_repeat_pairs": 2500,
+   "pass_at_1": 0.49,
+   "pass_at_1_ci95": [
+    0.4787,
+    0.5013
+   ],
+   "pass_at_1_bootstrap_ci": [
+    0.4524,
+    0.5272
+   ],
+   "pass_at_5": 0.65,
+   "pass_at_5_bootstrap_ci": [
+    0.608,
+    0.692
+   ],
+   "pass_at_3_computed_from_results_jsonl_unbiased": 0.6116,
+   "mean_reward": 0.49,
+   "solver_failures_graded_0": 8,
+   "solver_failure_classes": {
+    "context_window_exceeded": 8
+   },
+   "solver_failure_ids": [
+    "p263 r0",
+    "p269 r2",
+    "p269 r3",
+    "p305 r4",
+    "p332 r1",
+    "p376 r0",
+    "p477 r3",
+    "p7 r3"
+   ],
+   "log_grading_0_lines": 8,
+   "eval_json_model_errors": 8,
+   "terminated_but_verified": {
+    "context_window_exceeded": {
+     "n": 9,
+     "passed": 2
+    },
+    "solve_timeout": {
+     "n": 1,
+     "passed": 0
+    }
+   },
+   "terminated_but_verified_ids": {
+    "context_window_exceeded": [
+     "p116 r3",
+     "p250 r3",
+     "p324 r0",
+     "p324 r2",
+     "p357 r0",
+     "p45 r0",
+     "p5 r1",
+     "p5 r4",
+     "p96 r4"
+    ],
+    "solve_timeout": [
+     "p39 r1"
+    ]
+   },
+   "infra_incidents": "1 incident(s), see incidents[]"
+  }
+ },
+ "step_36": {
+  "run_id": "20260922_153736_d2c24cd2",
+  "run_dir": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/nemo-evaluator-rundirs/nano_v35/swebench-verified-fixed/20260922_153736_d2c24cd2",
+  "job_ids": [
+   "3925301",
+   "3925302",
+   "3925303",
+   "3925304",
+   "3925305",
+   "3925306",
+   "3925307",
+   "3925308",
+   "3925309",
+   "3925310"
+  ],
+  "submitted_at": "2026-09-22T08:37:59-07:00",
+  "checkpoint": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-stream128-inorder1-cmh-64n-minf_dump-from0-nopg-noprefix-20260920/hf_exports/step_36/hf",
+  "model_name": "rkirby-nano35-swe-v2-stream128-inorder1-minf-from0-nopg-noprefix-step-36",
+  "note": "final checkpoint of the run (training stopped after step 36)",
+  "incidents": [
+   "shards 1 and 4 primaries 3925302/3925305 FAILED at vLLM init (TCPStore ping DistNetworkError, transient) on nvl72d012-T13 / nvl72d195-T15; continuations 3925324 / 3925317 running (infra retry 1/3)",
+   "16:52 PDT 2026-09-22: shard 0 (job 3925301) p141 r4 graded 0.0 WITHOUT verification after a sandbox-side failure, not a model failure: ~6 min into the attempt the Fargate container's working directory vanished (log retrieval: 'shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory', tar rc=2, 'No trajectory file found'), so HarborSolver reported 'Agent produced no output (0 tokens, empty response)' and eval_loop graded 0.0 (skipping verify). Single occurrence across all 9 steps (22,500 attempts). Recorded in results as method=solve_failed; classifier label agent_no_output. Max pass@1 impact 1/2500 = 0.0004. Not retried (harness does not retry this path); disclosed to the user."
+  ],
+  "result": {
+   "merged_at": "2026-09-23T01:18Z",
+   "report": "report.md + swebench-verified_1.0/eval-20260923T011611Z-swebench-verified_1.0.json",
+   "problems": 500,
+   "attempts_accounted": 2500,
+   "distinct_problem_repeat_pairs": 2500,
+   "pass_at_1": 0.464,
+   "pass_at_1_ci95": [
+    0.4523,
+    0.4757
+   ],
+   "pass_at_1_bootstrap_ci": [
+    0.4284,
+    0.5008
+   ],
+   "pass_at_5": 0.642,
+   "pass_at_5_bootstrap_ci": [
+    0.6,
+    0.684
+   ],
+   "pass_at_3_computed_from_results_jsonl_unbiased": 0.5984,
+   "mean_reward": 0.464,
+   "solver_failures_graded_0": 9,
+   "solver_failure_classes": {
+    "turn_budget_exhausted": 2,
+    "agent_no_output": 1,
+    "context_window_exceeded": 6
+   },
+   "solver_failure_ids": [
+    "p130 r4",
+    "p141 r4",
+    "p263 r0",
+    "p263 r1",
+    "p434 r1",
+    "p445 r2",
+    "p468 r0",
+    "p468 r2",
+    "p5 r4"
+   ],
+   "log_grading_0_lines": 9,
+   "eval_json_model_errors": 7,
+   "terminated_but_verified": {
+    "context_window_exceeded": {
+     "n": 16,
+     "passed": 3
+    },
+    "solve_timeout": {
+     "n": 13,
+     "passed": 0
+    }
+   },
+   "terminated_but_verified_ids": {
+    "context_window_exceeded": [
+     "p11 r4",
+     "p118 r3",
+     "p263 r2",
+     "p263 r3",
+     "p269 r1",
+     "p317 r4",
+     "p318 r0",
+     "p325 r3",
+     "p328 r2",
+     "p344 r4",
+     "p365 r3",
+     "p429 r1",
+     "p440 r3",
+     "p487 r2",
+     "p59 r3",
+     "p95 r4"
+    ],
+    "solve_timeout": [
+     "p130 r0",
+     "p130 r1",
+     "p130 r3",
+     "p341 r4",
+     "p343 r3",
+     "p386 r1",
+     "p389 r0",
+     "p434 r0",
+     "p448 r3",
+     "p482 r1",
+     "p482 r4",
+     "p7 r0",
+     "p7 r1"
+    ]
+   },
+   "infra_incidents": "shards 1 and 4 primaries (3925302, 3925305) failed at vLLM startup (torch.distributed TCPStore class, transient) and were retried by the recipe (3925324, 3925317); the shard 1 retry 3925324 was PREEMPTED at 15:14 with 229/250 verified (false completion marker removed by the PREEMPTED continuation 3925598, which completed at 17:07); shard 0 p141 r4 was graded 0.0 unverified after the Fargate container's working directory vanished mid-run (class agent_no_output: a sandbox fault, not a model failure; 1 of 2,500 attempts); the other primaries completed on their first job (8h21m-9h39m); merged by shard 0's auto-merge at 18:16"
+  }
+ },
+ "step_35": {
+  "run_id": "20260922_154659_68896c34",
+  "run_dir": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/nemo-evaluator-rundirs/nano_v35/swebench-verified-fixed/20260922_154659_68896c34",
+  "job_ids": [
+   "3925532",
+   "3925533",
+   "3925534",
+   "3925535",
+   "3925536",
+   "3925537",
+   "3925538",
+   "3925539",
+   "3925540",
+   "3925541"
+  ],
+  "submitted_at": "2026-09-22T08:47:18-07:00",
+  "checkpoint": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-stream128-inorder1-cmh-64n-minf_dump-from0-nopg-noprefix-20260920/checkpoints/step_35/hf",
+  "model_name": "rkirby-nano35-swe-v2-stream128-inorder1-minf-from0-nopg-noprefix-step-35",
+  "result": {
+   "merged_at": "2026-09-23T02:01Z",
+   "report": "report.md + swebench-verified_1.0/eval-20260923T020010Z-swebench-verified_1.0.json",
+   "problems": 500,
+   "attempts_accounted": 2500,
+   "distinct_problem_repeat_pairs": 2500,
+   "pass_at_1": 0.4752,
+   "pass_at_1_ci95": [
+    0.4637,
+    0.4867
+   ],
+   "pass_at_1_bootstrap_ci": [
+    0.4388,
+    0.5128
+   ],
+   "pass_at_5": 0.65,
+   "pass_at_5_bootstrap_ci": [
+    0.608,
+    0.692
+   ],
+   "pass_at_3_computed_from_results_jsonl_unbiased": 0.6034,
+   "mean_reward": 0.4752,
+   "solver_failures_graded_0": 5,
+   "solver_failure_classes": {
+    "context_window_exceeded": 4,
+    "turn_budget_exhausted": 1
+   },
+   "solver_failure_ids": [
+    "p143 r4",
+    "p176 r3",
+    "p279 r4",
+    "p327 r0",
+    "p329 r3"
+   ],
+   "log_grading_0_lines": 5,
+   "eval_json_model_errors": 5,
+   "terminated_but_verified": {
+    "solve_timeout": {
+     "n": 12,
+     "passed": 3
+    },
+    "context_window_exceeded": {
+     "n": 19,
+     "passed": 2
+    },
+    "turn_budget_exhausted": {
+     "n": 3,
+     "passed": 0
+    }
+   },
+   "terminated_but_verified_ids": {
+    "solve_timeout": [
+     "p130 r1",
+     "p263 r3",
+     "p329 r4",
+     "p343 r0",
+     "p343 r1",
+     "p39 r1",
+     "p482 r0",
+     "p482 r1",
+     "p482 r4",
+     "p7 r1",
+     "p7 r3",
+     "p75 r4"
+    ],
+    "context_window_exceeded": [
+     "p11 r0",
+     "p138 r3",
+     "p183 r1",
+     "p185 r2",
+     "p263 r2",
+     "p269 r4",
+     "p30 r1",
+     "p308 r1",
+     "p308 r3",
+     "p328 r2",
+     "p331 r2",
+     "p392 r4",
+     "p400 r3",
+     "p410 r1",
+     "p413 r3",
+     "p5 r0",
+     "p5 r1",
+     "p65 r3",
+     "p77 r2"
+    ],
+    "turn_budget_exhausted": [
+     "p238 r3",
+     "p247 r0",
+     "p466 r2"
+    ]
+   },
+   "infra_incidents": "none: all 10 primaries (3925532-3925541) completed on their first job (7h06m-10h11m); merged by shard 8's auto-merge at ~18:58; no preemptions, startup failures or Fargate aborts"
+  }
+ },
+ "step_10": {
+  "run_id": "20260922_160256_a4f9c534",
+  "run_dir": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/nemo-evaluator-rundirs/nano_v35/swebench-verified-fixed/20260922_160256_a4f9c534",
+  "job_ids": [
+   "3925942",
+   "3925943",
+   "3925944",
+   "3925945",
+   "3925946",
+   "3925947",
+   "3925948",
+   "3925949",
+   "3925950",
+   "3925951"
+  ],
+  "submitted_at": "2026-09-22T09:03:15-07:00",
+  "checkpoint": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-stream128-inorder1-cmh-64n-minf_dump-from0-nopg-noprefix-20260920/checkpoints/step_10/hf",
+  "model_name": "rkirby-nano35-swe-v2-stream128-inorder1-minf-from0-nopg-noprefix-step-10",
+  "result": {
+   "merged_at": "2026-09-22T23:16Z",
+   "report": "report.md + swebench-verified_1.0/eval-20260922T230213Z-swebench-verified_1.0.json",
+   "problems": 500,
+   "attempts_accounted": 2500,
+   "distinct_problem_repeat_pairs": 2500,
+   "pass_at_1": 0.4908,
+   "pass_at_1_ci95": [
+    0.4794,
+    0.5022
+   ],
+   "pass_at_1_bootstrap_ci": [
+    0.4536,
+    0.5276
+   ],
+   "pass_at_5": 0.66,
+   "pass_at_5_bootstrap_ci": [
+    0.618,
+    0.702
+   ],
+   "pass_at_3_computed_from_results_jsonl_unbiased": 0.6158,
+   "mean_reward": 0.4908,
+   "solver_failures_graded_0": 11,
+   "solver_failure_classes": {
+    "context_window_exceeded": 9,
+    "agent_nonzero_exit_-15": 1,
+    "turn_budget_exhausted": 1
+   },
+   "solver_failure_ids": [
+    "p168 r2",
+    "p263 r2",
+    "p263 r4",
+    "p269 r1",
+    "p269 r4",
+    "p329 r1",
+    "p396 r3",
+    "p440 r2",
+    "p46 r4",
+    "p483 r1",
+    "p7 r4"
+   ],
+   "log_grading_0_lines": 11,
+   "eval_json_model_errors": 11,
+   "terminated_but_verified": {
+    "context_window_exceeded": {
+     "n": 8,
+     "passed": 1
+    },
+    "solve_timeout": {
+     "n": 3,
+     "passed": 0
+    },
+    "turn_budget_exhausted": {
+     "n": 4,
+     "passed": 1
+    }
+   },
+   "terminated_but_verified_ids": {
+    "context_window_exceeded": [
+     "p159 r2",
+     "p196 r4",
+     "p263 r1",
+     "p320 r4",
+     "p365 r0",
+     "p365 r1",
+     "p58 r4",
+     "p91 r3"
+    ],
+    "solve_timeout": [
+     "p159 r3",
+     "p7 r0",
+     "p7 r3"
+    ],
+    "turn_budget_exhausted": [
+     "p327 r1",
+     "p332 r4",
+     "p418 r2",
+     "p459 r2"
+    ]
+   },
+   "infra_incidents": "none: all 10 primaries (3925942-3925951) completed on their first job; no preemptions, startup failures or Fargate aborts"
+  }
+ },
+ "step_5": {
+  "run_id": "20260922_161812_8244ecad",
+  "run_dir": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/nemo-evaluator-rundirs/nano_v35/swebench-verified-fixed/20260922_161812_8244ecad",
+  "job_ids": [
+   "3926186",
+   "3926187",
+   "3926188",
+   "3926189",
+   "3926190",
+   "3926191",
+   "3926192",
+   "3926193",
+   "3926194",
+   "3926195"
+  ],
+  "submitted_at": "2026-09-22T09:18:31-07:00",
+  "checkpoint": "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-stream128-inorder1-cmh-64n-minf_dump-from0-nopg-noprefix-20260920/checkpoints/step_5/hf",
+  "model_name": "rkirby-nano35-swe-v2-stream128-inorder1-minf-from0-nopg-noprefix-step-5",
+  "incidents": [
+   "12:19 PDT 2026-09-22: shard 5 primary 3926191 (nvl72d197-T12) exited 1 after 3h01m: p264 r4 hit three consecutive AWS Fargate sandbox provisioning timeouts ('ECS task not RUNNING after ~310-320s (last: PENDING)'); eval_loop exhausted its 3 system-error retries at 12:16 and, with skip_failed=False, the orchestrator aborted the shard run at 12:19, closing the shared aiohttp session (9 secondary 'RuntimeError: Session is closed' tracebacks). Same root cause as step_30 shard 7 (11:41) and chain F step_15 shard 5 (2026-09-21). 153 verified attempts intact on disk; recipe continuation 3926233 started 12:20:14 on nvl72d206-T12 as 'Infra retry 1/3' (follow-up 3930888 queued) and resumed with '153 fully cached, rest from scratch'. Chain G so far: 16 second-attempt sandbox retries, 2 aborts."
+  ],
+  "result": {
+   "merged_at": "2026-09-22T23:46Z",
+   "report": "report.md + swebench-verified_1.0/eval-20260922T234524Z-swebench-verified_1.0.json",
+   "problems": 500,
+   "attempts_accounted": 2500,
+   "distinct_problem_repeat_pairs": 2500,
+   "pass_at_1": 0.492,
+   "pass_at_1_ci95": [
+    0.4805,
+    0.5035
+   ],
+   "pass_at_1_bootstrap_ci": [
+    0.456,
+    0.5292
+   ],
+   "pass_at_5": 0.666,
+   "pass_at_5_bootstrap_ci": [
+    0.624,
+    0.708
+   ],
+   "pass_at_3_computed_from_results_jsonl_unbiased": 0.6208,
+   "mean_reward": 0.492,
+   "solver_failures_graded_0": 8,
+   "solver_failure_classes": {
+    "context_window_exceeded": 8
+   },
+   "solver_failure_ids": [
+    "p247 r3",
+    "p247 r4",
+    "p263 r3",
+    "p380 r3",
+    "p386 r1",
+    "p399 r0",
+    "p437 r2",
+    "p70 r0"
+   ],
+   "log_grading_0_lines": 8,
+   "eval_json_model_errors": 8,
+   "terminated_but_verified": {
+    "context_window_exceeded": {
+     "n": 14,
+     "passed": 1
+    }
+   },
+   "terminated_but_verified_ids": {
+    "context_window_exceeded": [
+     "p0 r3",
+     "p211 r2",
+     "p212 r0",
+     "p263 r4",
+     "p269 r1",
+     "p309 r2",
+     "p317 r0",
+     "p320 r3",
+     "p383 r4",
+     "p440 r0",
+     "p440 r1",
+     "p440 r2",
+     "p450 r3",
+     "p95 r0"
+    ]
+   },
+   "infra_incidents": "shard 5 primary 3926191 aborted at 12:19 on a Fargate provisioning timeout (p264 r4, 3 retries exhausted; 9 secondary 'Session is closed' tracebacks); continuation 3926233 resumed from 153 cached attempts and completed at 14:11; the other 9 primaries completed on their first job (5h37m-7h28m); no preemptions"
+  }
+ }
+}

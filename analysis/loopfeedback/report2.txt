@@ -1,0 +1,151 @@
+STEP 1b - CANDIDATE DISCOVERY. Unit = first 1/2/3 words of a sentence inside a NORMAL reasoning block (loops excluded). usage = per 1,000 sentence starts.
+Growth is a least-squares slope over ALL steps of the arm (per 10 steps), with its t-statistic; A = run A (vLLM, same prompts) as control, F = chain F.
+
+--- single first words: top 20 GROWING in chain G by t-stat (min total count 600) ---
+unit                          mean/1k   step1    last G slope/10st      t A slope/10st F slope/10st  G count
+alternatively                    3.15    1.74    4.64       +0.881  +15.5       +0.717       +0.496    45220
+however                          9.21    6.72   12.11       +1.243  +11.3       +2.003       +1.903   132033
+i                               21.96   21.39   24.97       +2.149   +9.2       -0.244       -1.178   314540
+but                            161.47  142.64  191.95      +11.426   +8.3       +1.529      +11.357  2336832
+we                               8.54    6.28   13.02       +2.025   +8.2       +3.315       +3.491   123056
+given                           11.52    8.82   13.08       +1.606   +6.2       +0.985       +2.049   166429
+looking                          9.48    7.37   10.85       +0.941   +6.0       -0.653       +0.698   135765
+i'll                             6.31    5.69    5.72       +0.640   +4.6       +2.753       +2.249    90913
+thus                             0.07    0.01    0.08       +0.021   +4.5       +0.101       +0.150     1063
+here's                           0.10    0.06    0.14       +0.030   +4.4       +0.004       +0.011     1467
+typescript                       1.54    0.63    3.45       +0.460   +4.1       +0.333       +0.406    21641
+instead                          0.84    0.55    0.85       +0.138   +4.0       +0.094       -0.046    12147
+one                              1.82    1.32    2.14       +0.214   +3.9       +0.039       +0.210    26456
+so                              45.22   37.70   49.05       +1.506   +3.5       -2.511       -0.414   655660
+public                           0.46    0.44    0.79       +0.165   +3.5       +0.008       +0.144     6590
+since                            5.56    4.85    5.25       +0.416   +3.5       +0.077       +0.466    79847
+def                              1.16    0.68    1.46       +0.243   +3.5       +0.054       +0.146    16617
+python                           3.19    2.11    5.15       +0.425   +3.4       +0.090       +0.596    45767
+return                           2.53    1.65    3.12       +0.319   +3.1       +0.072       +0.287    36516
+add                              2.19    1.38    1.74       +0.323   +3.0       +0.108       +0.011    31008
+--- single first words: top 10 SHRINKING in chain G ---
+and                              4.26    5.87    2.93       -0.867  -12.4       -0.920       +1.052    61669
+unless                           1.89    2.49    0.44       -0.873  -12.2       -0.303       +0.075    28062
+this                            22.36   24.52   18.70       -2.747  -11.3       -3.650       -2.924   324008
+or                               2.57    2.98    1.82       -0.454  -11.2       +0.084       +0.237    37275
+no                               4.65    6.61    3.45       -0.913  -11.0       +0.326       +0.096    67643
+ah                               0.70    0.97    0.40       -0.191  -10.9       -0.279       -0.130    10274
+still                            0.38    0.96    0.14       -0.181  -10.4       -0.154       -0.072     5562
+it's                             1.81    2.22    1.23       -0.260   -9.8       +0.457       +0.051    26313
+actually                        21.57   26.04   18.11       -2.297   -9.5       -0.485       +0.817   312250
+oh                               0.25    0.34    0.10       -0.092   -8.8       -0.138       -0.092     3573
+
+--- first two words: top 20 GROWING in chain G by t-stat (min total count 300) ---
+unit                          mean/1k   step1    last G slope/10st      t A slope/10st F slope/10st  G count
+alternatively i                  0.80    0.38    1.48       +0.300  +13.9       +0.292       +0.138    11436
+alternatively we                 1.36    0.67    2.40       +0.504  +11.4       +0.309       +0.323    19502
+so we                            2.93    1.53    4.38       +0.839  +11.0       +0.234       +0.413    42045
+but given                        0.33    0.24    0.51       +0.093   +9.5       +0.085       +0.198     4697
+but perhaps                      0.42    0.24    0.98       +0.148   +9.4       +0.198       +0.280     5935
+i have                           0.14    0.10    0.20       +0.036   +9.4       +0.017       +0.049     2031
+so i                             1.86    1.22    2.66       +0.464   +9.2       -0.078       +0.104    26377
+but note                         0.50    0.18    0.60       +0.166   +8.8       +0.538       +0.918     7131
+however the                      5.90    4.18    7.89       +0.792   +8.8       +1.334       +0.730    84791
+we need                          2.36    1.42    3.66       +0.614   +8.8       +0.429       +0.424    33887
+i need                           5.49    5.02    6.73       +0.892   +8.1       -0.100       -0.358    78087
+we can                           3.50    2.82    6.46       +1.141   +7.7       +1.689       +1.194    50475
+i see                            7.32    7.53    9.58       +1.127   +7.5       -1.255       -1.187   104345
+but we                           2.47    2.04    3.51       +0.565   +7.4       +0.639       +1.483    35618
+but before                       0.20    0.11    0.24       +0.050   +7.2       +0.123       +0.413     2840
+instead i                        0.06    0.03    0.10       +0.022   +7.1       +0.023       +0.014      794
+given the                       10.78    7.97   12.85       +1.707   +7.0       +1.006       +1.666   155782
+i can                            1.40    1.14    1.98       +0.249   +7.0       +0.663       +0.313    19958
+however i                        0.43    0.40    0.56       +0.094   +6.9       +0.135       +0.176     6073
+but i                            3.99    3.62    4.89       +0.684   +6.8       +0.722       +1.492    57377
+--- first two words: top 10 SHRINKING in chain G ---
+this is                          8.04   10.42    6.40       -1.641  -14.1       -1.923       -1.855   116558
+and the                          1.20    1.75    0.62       -0.375  -13.6       -0.427       +0.064    17485
+unless the                       1.69    2.01    0.38       -0.794  -11.5       -0.320       -0.122    25059
+actually wait                    1.18    2.04    0.51       -0.381  -11.3       -0.530       -0.300    17015
+and it                           0.18    0.31    0.04       -0.071  -10.7       -0.062       -0.006     2650
+no output                        0.26    0.71    0.08       -0.152   -9.0       -0.125       -0.113     3782
+but they're                      0.04    0.11    0.00       -0.024   -8.8       -0.027       -0.011      601
+this means                       0.78    0.78    0.62       -0.173   -8.7       -0.207       -0.208    11337
+but earlier                      0.32    0.46    0.15       -0.085   -8.4       -0.090       +0.036     4639
+it's not                         0.21    0.26    0.13       -0.046   -8.2       +0.072       -0.014     3032
+
+--- first three words: top 20 GROWING in chain G by t-stat (min total count 150) ---
+unit                          mean/1k   step1    last G slope/10st      t A slope/10st F slope/10st  G count
+alternatively i can              0.70    0.34    1.38       +0.278  +13.8       +0.300       +0.142    10000
+alternatively we can             0.99    0.43    2.03       +0.437  +11.1       +0.273       +0.196    14171
+so we need                       1.23    0.62    1.97       +0.420  +11.1       +0.042       +0.121    17581
+so i need                        0.92    0.64    1.62       +0.280   +9.9       -0.093       +0.013    13039
+but we need                      0.91    0.51    1.48       +0.336   +9.9       +0.136       +0.298    12963
+but given the                    0.31    0.24    0.51       +0.092   +9.7       +0.082       +0.185     4478
+but i need                       0.79    0.57    1.07       +0.262   +9.5       +0.105       +0.353    11345
+let me modify                    0.75    0.41    1.15       +0.213   +9.5       -0.051       -0.123    10798
+we can change                    0.39    0.21    0.90       +0.190   +9.4       +0.202       +0.091     5547
+but note that                    0.19    0.06    0.28       +0.090   +9.2       +0.087       +0.182     2679
+but perhaps the                  0.32    0.19    0.77       +0.116   +9.1       +0.134       +0.162     4611
+so we can                        1.00    0.45    1.72       +0.336   +9.0       +0.113       +0.127    14379
+another approach is              0.15    0.05    0.36       +0.087   +8.9       -0.004       -0.001     2062
+we need to                       2.24    1.36    3.51       +0.593   +8.9       +0.417       +0.414    32167
+one approach is                  0.19    0.08    0.33       +0.083   +8.7       -0.007       +0.006     2707
+now i understand                 2.95    2.35    4.01       +0.519   +8.6       -0.540       -0.384    41927
+but the problem                  0.67    0.34    1.12       +0.216   +8.5       -0.065       -0.026     9639
+so i can                         0.33    0.18    0.52       +0.120   +8.2       +0.004       +0.012     4666
+now i need                       3.05    2.67    3.50       +0.665   +8.1       +0.229       +0.397    43216
+i need to                        5.44    4.93    6.70       +0.901   +8.1       -0.080       -0.348    77325
+--- first three words: top 10 SHRINKING in chain G ---
+this is very                     0.73    1.33    0.31       -0.341  -13.2       -0.504       -0.358    10756
+actually wait the                0.60    1.01    0.27       -0.214  -12.1       -0.250       -0.194     8624
+this suggests the                0.21    0.25    0.04       -0.093  -11.1       -0.078       -0.075     3008
+this is the                      0.87    1.32    0.57       -0.185  -10.7       -0.193       -0.227    12634
+this is strange                  0.28    0.57    0.20       -0.078   -9.9       -0.120       -0.114     4029
+this means the                   0.33    0.40    0.21       -0.102   -9.2       -0.134       -0.122     4858
+the question is                  0.05    0.08    0.02       -0.022   -9.0       -0.008       -0.013      715
+no output let                    0.17    0.42    0.04       -0.101   -8.4       -0.097       -0.082     2492
+oh i see                         0.08    0.09    0.04       -0.024   -8.1       -0.043       -0.040     1221
+this is confusing                0.30    0.35    0.27       -0.080   -8.1       -0.072       -0.048     4412
+
+--- LOOP-ENRICHED sentence starts (chain G, all steps pooled): share inside loop-like+runaway blocks vs inside normal blocks ---
+unit                         in loops /1k in normal /1k  ratio loop count
+i'm                                  31.2           1.6   18.9      74461
+i'll                                 57.2           6.3    9.0     136511
+given                                79.2          11.5    6.8     189065
+modproperty                           0.3           0.0    4.3        824
+key                                   0.8           0.1    4.2       1946
+gettrafalgarprops                     0.3           0.0    4.0        713
+engine                                0.3           0.0    3.9        712
+ithink                                0.3           0.0    3.8        661
+using                                 0.7           0.2    3.1       1777
+change                                2.0           0.6    3.0       4735
+i                                    62.1          21.8    2.8     148300
+tlsconfig                             0.2           0.0    2.8        434
+sourcescontent                        0.1           0.0    2.5        353
+mappings                              0.1           0.0    2.4        353
+withfield                             0.1           0.0    2.4        342
+
+unit                         in loops /1k in normal /1k  ratio loop count
+i'm going                            21.5           0.4   39.9      51433
+but i'll                             10.2           0.2   31.9      24338
+i'll make                             5.6           0.2   19.5      13318
+i'll output                           5.2           0.2   17.6      12483
+i'm out                               4.7           0.2   16.5      11265
+i'll provide                          4.7           0.2   16.2      11160
+i'll stop                             1.9           0.0   16.2       4630
+i'll just                             2.6           0.1   14.3       6196
+i'll try                              5.4           0.3   13.3      12860
+i'll revert                           2.7           0.1   12.8       6361
+i'll write                            6.7           0.5   11.8      15923
+i think                              56.4           4.8   11.5     134632
+but i'm                               4.0           0.3   10.9       9612
+i'll submit                           1.8           0.1   10.7       4417
+the bind                              1.2           0.0   10.4       2958
+
+--- CYCLE SENTENCES: top repeated sentence of each loop-like/runaway block; generic ones = appear as a top sentence in >= 3 distinct rollouts (chain G) ---
+rollouts  repeats  sentence (first 90 chars)
+      13     7927  but that's not possible.
+       4     2496  but that's a big change.
+       3     2546  but that doesn't make sense.
+       3     1396  but that's not the root cause.
+       3     1068  but that didn't work.
+       3     1297  but that's not a good fix.
+       3     4790  but that's already the case.
+       3     2509  but it already does that.
+(distinct loop blocks in chain G: 688; with a generic top sentence: 35)

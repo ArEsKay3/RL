@@ -1,0 +1,16 @@
+CHAIN K (vLLM from scratch, seed 1234) so far, next to the other arms at the same steps.  share = loop tokens / all generated tokens (%), strict = loop tokens / reasoning tokens (%).
+step K rollouts | K loops P(loop|roll) E[size|loop] | K share A share G share I share main share | K strict A strict G strict I strict | K rank (1=lowest)
+   1        512 |       2        0.39%       34,456 |     0.5     3.5     0.6     1.9            |      1.1      7.3      1.3      4.2 | 1 of 4
+   2        512 |      12        0.78%       33,230 |     3.7     2.5     0.0     0.9        1.0 |      7.6      5.2      0.0      2.0 | 5 of 5
+   3        512 |       2        0.39%      101,331 |     1.5     0.0     1.9     0.4        2.3 |      3.0      0.0      3.8      0.8 | 3 of 5
+   4        512 |       5        0.98%       52,879 |     1.9     0.7     1.2     2.4        2.4 |      3.8      1.4      2.3      4.7 | 3 of 5
+   5        512 |      12        1.95%       51,877 |     3.5     0.8     1.4     1.8        0.9 |      6.7      1.6      2.6      3.4 | 5 of 5
+   6        512 |       5        0.98%       62,683 |     2.4     0.0     0.4     2.9        3.9 |      5.2      0.0      0.8      6.1 | 3 of 5
+
+POOLED over K's complete steps 1-6:
+  K: loops 38, blocks 300,898, P(loop|block) 1.26e-04, P(loop|rollout) 0.91%, E[size|loop] 49,228, median 40,996, loop/gen 2.25%, loop/reason 4.62%
+  A: step-mean loop/gen over the same steps = 1.24%  (per step: 3.5 2.5 0.0 0.7 0.8 0.0)
+  G: step-mean loop/gen over the same steps = 0.90%  (per step: 0.6 0.0 1.9 1.2 1.4 0.4)
+  I: step-mean loop/gen over the same steps = 1.73%  (per step: 1.9 0.9 0.4 2.4 1.8 2.9)
+  main: step-mean loop/gen over the same steps = 2.08%  (per step: 1.0 2.3 2.4 0.9 3.9)
+  K: step-mean loop/gen = 2.24%

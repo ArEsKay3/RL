@@ -1,0 +1,118 @@
+{
+ "P": {
+  "exp": "nano35-swe-v2-splice-minf-runMdata-to20-20260924",
+  "engine": "MINF",
+  "source": "M",
+  "replay_end": 20,
+  "label": "chain P",
+  "kind": "splice"
+ },
+ "Q": {
+  "exp": "nano35-swe-v2-splice-vllm-runMdata-to20-20260924",
+  "engine": "vLLM",
+  "source": "M",
+  "replay_end": 20,
+  "label": "chain Q",
+  "kind": "splice"
+ },
+ "R": {
+  "exp": "nano35-swe-v2-splice-vllm-runGdata-to10-20260924",
+  "engine": "vLLM",
+  "source": "G",
+  "replay_end": 10,
+  "label": "chain R",
+  "kind": "splice"
+ },
+ "Rp": {
+  "exp": "nano35-swe-v2-splice-vllm-runGdata-to16-20260924",
+  "engine": "vLLM",
+  "source": "G",
+  "replay_end": 16,
+  "label": "chain R′",
+  "kind": "splice"
+ },
+ "Pp": {
+  "exp": "nano35-swe-v2-fromP20-lr0-minf-20260924",
+  "engine": "MINF",
+  "source": "P",
+  "replay_end": 20,
+  "label": "chain P′",
+  "kind": "lr0"
+ },
+ "Qp": {
+  "exp": "nano35-swe-v2-fromP20-lr0-vllm-20260924",
+  "engine": "vLLM",
+  "source": "P",
+  "replay_end": 20,
+  "label": "chain Q′",
+  "kind": "lr0"
+ },
+ "Pt": {
+  "exp": "nano35-swe-v2-fromP20-nvshmem-keepprefix-minf-20260925",
+  "engine": "MINF",
+  "source": "P",
+  "replay_end": 20,
+  "label": "chain P‴",
+  "kind": "resume",
+  "design": "chain P step 20 resumed with normal training (lr 3e-6, optimizer state loaded), MINF generation with the prefix cache KEPT across weight updates (invalidate_prefix_cache_on_weight_update=false), nvshmem refit"
+ },
+ "X": {
+  "exp": "nano35-swe-v2-splice-vllm-runGdata-to10-maskX-rewarded-deep-20260927",
+  "engine": "vLLM",
+  "source": "G",
+  "replay_end": 10,
+  "label": "chain X",
+  "kind": "splice",
+  "note": "masked replay, test: the 127 rewarded chain G rollouts that contain a >4,096-token think turn are given sample_mask 0 (rows kept in their groups)"
+ },
+ "Y": {
+  "exp": "nano35-swe-v2-splice-vllm-runGdata-to10-maskY-random-rewarded-20260927",
+  "engine": "vLLM",
+  "source": "G",
+  "replay_end": 10,
+  "label": "chain Y",
+  "kind": "splice",
+  "note": "masked replay, control: 127 random rewarded chain G rollouts without a deep think turn are masked instead"
+ },
+ "Z": {
+  "exp": "nano35-swe-v2-splice-vllm-runMdata-to10-maskZ-punished-deep-20260927",
+  "engine": "vLLM",
+  "source": "M",
+  "replay_end": 10,
+  "label": "chain Z",
+  "kind": "splice",
+  "note": "masked replay, mirror: chain M steps 1-10 with its 213 punished deep-think rollouts masked"
+ },
+ "AA": {
+  "exp": "nano35-swe-v2-splice-vllm-runGdata-8to10-20260928",
+  "engine": "vLLM",
+  "source": "G",
+  "replay_end": 10,
+  "replay_steps": [
+   8,
+   9,
+   10
+  ],
+  "label": "chain AA",
+  "kind": "splice",
+  "note": "step-range ablation: only chain G steps 8-10 are replayed (unmasked); steps 1-7 and 11-25 are live vLLM"
+ },
+ "AB": {
+  "exp": "nano35-swe-v2-splice-vllm-runGdata-1to7-20260928",
+  "engine": "vLLM",
+  "source": "G",
+  "replay_end": 7,
+  "replay_steps": [
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   7
+  ],
+  "label": "chain AB",
+  "kind": "splice",
+  "note": "step-range ablation: chain G steps 1-7 replayed, live vLLM from step 8"
+ }
+}

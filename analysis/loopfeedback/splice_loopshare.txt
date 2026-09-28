@@ -1,0 +1,87 @@
+LOOP-TOKEN SHARE, CROSS-TRAIN (SPLICE) RUNS WITH THEIR ASSOCIATED ARMS
+share = tokens in repetitive reasoning blocks (block >= 1,000 tokens, zlib ratio < 0.10) / ALL generated tokens of the step's 512 trained rollouts.
+chain P = MINF engine, fresh from the base model; steps 1-20 replay chain M's recorded rollouts (no generation by this engine), live MINF generation on the other steps.  EXP nano35-swe-v2-splice-minf-runMdata-to20-20260924
+chain Q = vLLM engine, fresh from the base model; steps 1-20 replay chain M's recorded rollouts (no generation by this engine), live vLLM generation on the other steps.  EXP nano35-swe-v2-splice-vllm-runMdata-to20-20260924
+chain R = vLLM engine, fresh from the base model; steps 1-10 replay chain G's recorded rollouts (no generation by this engine), live vLLM generation on the other steps.  EXP nano35-swe-v2-splice-vllm-runGdata-to10-20260924
+chain R′ = vLLM engine, fresh from the base model; steps 1-16 replay chain G's recorded rollouts (no generation by this engine), live vLLM generation on the other steps.  EXP nano35-swe-v2-splice-vllm-runGdata-to16-20260924
+chain P′ = MINF engine, weights frozen at chain P step 20 (lr = 0, optimizer state not loaded); live MINF generation from step 21 on, same prompts per step as every arm.  EXP nano35-swe-v2-fromP20-lr0-minf-20260924
+chain Q′ = vLLM engine, weights frozen at chain P step 20 (lr = 0, optimizer state not loaded); live vLLM generation from step 21 on, same prompts per step as every arm.  EXP nano35-swe-v2-fromP20-lr0-vllm-20260924
+chain P‴ = chain P step 20 resumed with normal training (lr 3e-6, optimizer state loaded), MINF generation with the prefix cache KEPT across weight updates (invalidate_prefix_cache_on_weight_update=false), nvshmem refit; live from step 21, same prompts per step as every arm.  EXP nano35-swe-v2-fromP20-nvshmem-keepprefix-minf-20260925
+chain X = vLLM engine, fresh from the base model; steps 1-10 replay chain G's recorded rollouts (no generation by this engine), live vLLM generation on the other steps; masked replay, test: the 127 rewarded chain G rollouts that contain a >4,096-token think turn are given sample_mask 0 (rows kept in their groups).  EXP nano35-swe-v2-splice-vllm-runGdata-to10-maskX-rewarded-deep-20260927
+chain Y = vLLM engine, fresh from the base model; steps 1-10 replay chain G's recorded rollouts (no generation by this engine), live vLLM generation on the other steps; masked replay, control: 127 random rewarded chain G rollouts without a deep think turn are masked instead.  EXP nano35-swe-v2-splice-vllm-runGdata-to10-maskY-random-rewarded-20260927  [no dumps yet]
+chain Z = vLLM engine, fresh from the base model; steps 1-10 replay chain M's recorded rollouts (no generation by this engine), live vLLM generation on the other steps; masked replay, mirror: chain M steps 1-10 with its 213 punished deep-think rollouts masked.  EXP nano35-swe-v2-splice-vllm-runMdata-to10-maskZ-punished-deep-20260927  [no dumps yet]
+chain AA = vLLM engine, fresh from the base model; steps 8-10 replay chain G's recorded rollouts (no generation by this engine), live vLLM generation on the other steps; step-range ablation: only chain G steps 8-10 are replayed (unmasked); steps 1-7 and 11-25 are live vLLM.  EXP nano35-swe-v2-splice-vllm-runGdata-8to10-20260928
+chain AB = vLLM engine, fresh from the base model; steps 1-7 replay chain G's recorded rollouts (no generation by this engine), live vLLM generation on the other steps; step-range ablation: chain G steps 1-7 replayed, live vLLM from step 8.  EXP nano35-swe-v2-splice-vllm-runGdata-1to7-20260928  [no dumps yet]
+comparators: M = chain M vLLM from0 r1 (source of the replayed rollouts) | N = chain N vLLM from0 r2 | G = chain G MINF from0 no-pfx | I = chain I MINF from0 pfx r1 | J = chain J MINF from0 pfx r2 | A = run A vLLM from0 | K = chain K vLLM from0 seed 1234 | D = chain D vLLM from MINF step 10 (comparator for R, R′)
+'r' after a value = replayed step (equals the source arm by construction; tooling check).  '*' = partial step (< 512 rollouts).
+
+step |      P %      Q %      R %     Rp %     Pp %     Qp %     Pt %      X %      Y %      Z %     AA %     AB % |    M %    N %    G %    I %    J %    A %    K %    D %
+   1 |     2.0r     2.0r     0.6r     0.6r                                0.6r                       1.3           |   2.0    1.5    0.6    1.9    1.8    3.5    0.5        
+   2 |     0.9r     0.9r     0.0r     0.0r                                0.0r                       1.6           |   0.9    0.0    0.0    0.9    1.9    2.5    3.7        
+   3 |     2.6r     2.6r     1.9r     1.9r                                1.9r                       1.1           |   2.6    1.3    1.9    0.4    4.0    0.0    1.5        
+   4 |     2.1r     2.1r     1.2r     1.2r                                1.2r                       2.9           |   2.1    3.1    1.2    2.4    3.4    0.7    1.9        
+   5 |     1.4r     1.4r     1.4r     1.4r                                1.4r                       1.2           |   1.4    2.0    1.4    1.8    0.0    0.8    3.5        
+   6 |     1.8r     1.8r     0.4r     0.4r                                0.4r                       0.1           |   1.8    2.5    0.4    2.9    0.7    0.0    2.4        
+   7 |     6.2r     6.2r     6.7r     6.7r                                6.7r                       3.8           |   6.2    5.3    6.7    4.6    3.3    2.7    4.4        
+   8 |     9.4r     9.4r     9.2r     9.2r                                9.2r                       9.2r          |   9.4    9.1    9.2   12.8   10.9    7.5    9.7        
+   9 |     2.8r     2.8r     1.6r     1.6r                                1.6r                       1.6r          |   2.8    2.3    1.6    0.7    3.1    0.0    3.4        
+  10 |     1.9r     1.9r     1.2r     1.2r                                1.2r                       1.2r          |   1.9    1.0    1.2    1.7    0.3    1.8    0.7        
+  11 |     1.5r     1.5r     3.3      1.4r                                2.9                                      |   1.5    3.7    1.4    2.0    5.1    3.7    4.6    1.9 
+  12 |     2.2r     2.2r     1.1      2.8r                                5.0                                      |   2.2    1.4    2.8    4.3    0.1    1.2    3.8    0.0 
+  13 |     3.0r     3.0r     3.5      2.0r                                2.4                                      |   3.0    1.1    2.0    1.8    1.2    1.1    0.5    0.9 
+  14 |     0.8r     0.8r     2.7      2.6r                                1.8                                      |   0.8    1.9    2.6    2.6    3.4    1.0    2.2    3.0 
+  15 |     1.3r     1.3r     9.5      7.6r                                1.4                                      |   1.3    1.7    7.6    3.5    1.9    2.4    2.5    7.3 
+  16 |     3.2r     3.2r     6.2      9.4r                                4.6                                      |   3.2    3.8    9.4    4.2    2.3    1.5    1.9    3.4 
+  17 |     3.0r     3.0r     5.3      6.3                                 1.1                                      |   3.0    1.1    4.9    2.0    2.6    1.0    1.8    4.4 
+  18 |     0.2r     0.2r     3.8      2.7                                 0.0                                      |   0.2    0.0    3.0    1.9    1.6    0.7    0.0    1.6 
+  19 |     4.6r     4.6r    12.8     15.4                                 4.1                                      |   4.6    5.2    9.8    8.6    9.1    3.9    6.1    9.3 
+  20 |     1.7r     1.7r     2.7     10.2                                 1.8                                      |   1.7    0.9    4.8    0.3    2.0    0.0    0.1    4.6 
+  21 |     0.6      0.6      1.6      7.5      0.6      0.5      1.2      2.4                                      |   0.8    1.1    5.9    2.4    0.5    0.0    0.5    4.5 
+  22 |     1.8      0.0      7.4     10.5*     3.3      2.6      1.7      4.1                                      |   0.4    2.2    8.0    5.1    2.9    0.0    0.0   11.3 
+  23 |     0.4      0.0      2.5               0.9      0.9      0.5      0.8                                      |   0.0    0.0    4.8    1.9    0.5    0.0    1.1    9.3 
+  24 |     0.9      0.2      6.7               0.6      0.0      0.2      0.6                                      |   0.0    0.0    9.6    6.7    0.2    0.0    0.0    6.3 
+  25 |     1.6      0.5     10.1               0.6      0.6      0.0      1.1                                      |   0.6    0.0   10.3   10.5    0.0    1.0    0.6   17.8 
+  26 |     0.0      0.0      4.6               0.1      0.2      0.3      0.0                                      |   0.0    0.0    8.4    6.2    0.6    0.0    0.3   12.7 
+  27 |     2.0      0.0                        0.0      0.4      0.1      0.0                                      |                14.5   11.1    1.3    0.1    0.0   29.2 
+  28 |     0.1      0.0                        0.9      1.1      0.3      0.7                                      |                 9.4   11.0    0.0    0.1    1.1   24.0 
+  29 |     0.1      0.7                        0.7      0.0      0.0      0.0                                      |                12.5    7.6    0.0    0.1          26.4 
+  30 |     4.8      0.0                        6.8      4.6      0.0      0.0                                      |                20.9   19.5    1.8    0.5          29.2 
+  31 |     1.7      0.1                        1.0      0.0      0.1      0.0                                      |                14.0   17.0    0.2    0.6               
+  32 |     0.5*     0.0                        0.0      0.4      0.0                                               |                 9.4   21.5    2.9    0.6               
+  33 |              0.0                        0.6      0.5      0.0                                               |                15.0    9.2    0.0    0.0               
+  34 |              1.1*                       0.9      0.0      0.0                                               |                13.1   11.0    0.0    0.3               
+  35 |                                         2.3      1.6      0.0                                               |                28.0   20.5    0.3    0.1               
+  36 |                                                  0.0*     0.2                                               |                25.6   17.4    0.0    1.1               
+  37 |                                                           0.3                                               |                       26.1*   0.1    0.7               
+  38 |                                                           1.0                                               |                               0.4    0.1               
+  39 |                                                           1.2                                               |                               0.0    0.4               
+  40 |                                                           0.0                                               |                               0.0    3.1               
+  41 |                                                           0.3                                               |                               0.6    0.0               
+  42 |                                                           0.1                                               |                               0.0    0.1               
+  43 |                                                           0.0                                               |                               0.0    0.0               
+  44 |                                                           1.1                                               |                               0.0    0.0*              
+  45 |                                                           0.0                                               |                               0.0                      
+  46 |                                                           2.2                                               |                               0.0                      
+  47 |                                                           0.0                                               |                               0.4                      
+  48 |                                                           0.9                                               |                               0.0                      
+  49 |                                                           0.1                                               |                               0.2                      
+  50 |                                                           0.5                                               |                               0.7                      
+
+replay check chain P vs chain M on steps 1-20: max |difference| = 0.00 percentage points over 20 steps
+live steps chain P: 21: 0.6% (512 rollouts), 22: 1.8% (512 rollouts), 23: 0.4% (512 rollouts), 24: 0.9% (512 rollouts), 25: 1.6% (512 rollouts), 26: 0.0% (512 rollouts), 27: 2.0% (512 rollouts), 28: 0.1% (512 rollouts), 29: 0.1% (512 rollouts), 30: 4.8% (512 rollouts), 31: 1.7% (512 rollouts), 32: 0.5% (128 rollouts)
+replay check chain Q vs chain M on steps 1-20: max |difference| = 0.00 percentage points over 20 steps
+live steps chain Q: 21: 0.6% (512 rollouts), 22: 0.0% (512 rollouts), 23: 0.0% (512 rollouts), 24: 0.2% (512 rollouts), 25: 0.5% (512 rollouts), 26: 0.0% (512 rollouts), 27: 0.0% (512 rollouts), 28: 0.0% (512 rollouts), 29: 0.7% (512 rollouts), 30: 0.0% (512 rollouts), 31: 0.1% (512 rollouts), 32: 0.0% (512 rollouts), 33: 0.0% (512 rollouts), 34: 1.1% (400 rollouts)
+replay check chain R vs chain G on steps 1-10: max |difference| = 0.00 percentage points over 10 steps
+live steps chain R: 11: 3.3% (512 rollouts), 12: 1.1% (512 rollouts), 13: 3.5% (512 rollouts), 14: 2.7% (512 rollouts), 15: 9.5% (512 rollouts), 16: 6.2% (512 rollouts), 17: 5.3% (512 rollouts), 18: 3.8% (512 rollouts), 19: 12.8% (512 rollouts), 20: 2.7% (512 rollouts), 21: 1.6% (512 rollouts), 22: 7.4% (512 rollouts), 23: 2.5% (512 rollouts), 24: 6.7% (512 rollouts), 25: 10.1% (512 rollouts), 26: 4.6% (512 rollouts)
+replay check chain R′ vs chain G on steps 1-16: max |difference| = 0.00 percentage points over 16 steps
+live steps chain R′: 17: 6.3% (512 rollouts), 18: 2.7% (512 rollouts), 19: 15.4% (512 rollouts), 20: 10.2% (512 rollouts), 21: 7.5% (512 rollouts), 22: 10.5% (480 rollouts)
+live steps chain P′: 21: 0.6% (512 rollouts), 22: 3.3% (512 rollouts), 23: 0.9% (512 rollouts), 24: 0.6% (512 rollouts), 25: 0.6% (512 rollouts), 26: 0.1% (512 rollouts), 27: 0.0% (512 rollouts), 28: 0.9% (512 rollouts), 29: 0.7% (512 rollouts), 30: 6.8% (512 rollouts), 31: 1.0% (512 rollouts), 32: 0.0% (512 rollouts), 33: 0.6% (512 rollouts), 34: 0.9% (512 rollouts), 35: 2.3% (512 rollouts)
+live steps chain Q′: 21: 0.5% (512 rollouts), 22: 2.6% (512 rollouts), 23: 0.9% (512 rollouts), 24: 0.0% (512 rollouts), 25: 0.6% (512 rollouts), 26: 0.2% (512 rollouts), 27: 0.4% (512 rollouts), 28: 1.1% (512 rollouts), 29: 0.0% (512 rollouts), 30: 4.6% (512 rollouts), 31: 0.0% (512 rollouts), 32: 0.4% (512 rollouts), 33: 0.5% (512 rollouts), 34: 0.0% (512 rollouts), 35: 1.6% (512 rollouts), 36: 0.0% (128 rollouts)
+live steps chain P‴: 21: 1.2% (512 rollouts), 22: 1.7% (512 rollouts), 23: 0.5% (512 rollouts), 24: 0.2% (512 rollouts), 25: 0.0% (512 rollouts), 26: 0.3% (512 rollouts), 27: 0.1% (512 rollouts), 28: 0.3% (512 rollouts), 29: 0.0% (512 rollouts), 30: 0.0% (512 rollouts), 31: 0.1% (512 rollouts), 32: 0.0% (512 rollouts), 33: 0.0% (512 rollouts), 34: 0.0% (512 rollouts), 35: 0.0% (512 rollouts), 36: 0.2% (512 rollouts), 37: 0.3% (512 rollouts), 38: 1.0% (512 rollouts), 39: 1.2% (512 rollouts), 40: 0.0% (512 rollouts), 41: 0.3% (512 rollouts), 42: 0.1% (512 rollouts), 43: 0.0% (512 rollouts), 44: 1.1% (512 rollouts), 45: 0.0% (512 rollouts), 46: 2.2% (512 rollouts), 47: 0.0% (512 rollouts), 48: 0.9% (512 rollouts), 49: 0.1% (512 rollouts), 50: 0.5% (512 rollouts)
+replay check chain X vs chain G on steps 1-10: max |difference| = 0.00 percentage points over 10 steps
+live steps chain X: 11: 2.9% (512 rollouts), 12: 5.0% (512 rollouts), 13: 2.4% (512 rollouts), 14: 1.8% (512 rollouts), 15: 1.4% (512 rollouts), 16: 4.6% (512 rollouts), 17: 1.1% (512 rollouts), 18: 0.0% (512 rollouts), 19: 4.1% (512 rollouts), 20: 1.8% (512 rollouts), 21: 2.4% (512 rollouts), 22: 4.1% (512 rollouts), 23: 0.8% (512 rollouts), 24: 0.6% (512 rollouts), 25: 1.1% (512 rollouts), 26: 0.0% (512 rollouts), 27: 0.0% (512 rollouts), 28: 0.7% (512 rollouts), 29: 0.0% (512 rollouts), 30: 0.0% (512 rollouts), 31: 0.0% (512 rollouts)
+live steps chain Y: none yet
+live steps chain Z: none yet
+replay check chain AA vs chain G on steps 8-10: max |difference| = 0.00 percentage points over 3 steps
+live steps chain AA: 1: 1.3% (512 rollouts), 2: 1.6% (512 rollouts), 3: 1.1% (512 rollouts), 4: 2.9% (512 rollouts), 5: 1.2% (512 rollouts), 6: 0.1% (512 rollouts), 7: 3.8% (512 rollouts)
+live steps chain AB: none yet

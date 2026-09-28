@@ -1,0 +1,134 @@
+STEP 2+3 - PUSH vs RESPONSE per candidate unit.
+push(s) = sum over sentence starts of the unit in training batch s of adv*(1-p) [p = sampling prob of the unit's first token], divided by the same sum over ALL
+          sentence starts at step s: a signed share in [-1,1]; positive = update s pushes the model to start sentences with this unit more.
+usage(s) = occurrences per 1,000 sentence starts in NORMAL blocks of batch s. dUsage(s+k) = usage(s+k)-usage(s+k-1).
+corr = Pearson correlation over all steps of push(s) with dUsage(s+1) and dUsage(s+2); 'G-A' uses chain G minus run A on the common steps (same prompts).
+baseline = corr(dUsage(s), dUsage(s+1)) of the arm itself (autocorrelation of the response).
+
+unit                arm steps mean usage usage 1st usage last mean push push>0 steps | corr k=1 corr k=2 baseline |  G-A k=1  G-A k=2
+given            chain G    36      11.52      8.82      13.08   -0.0029            0 |    +0.17    -0.04    -0.72 |    +0.05    +0.02
+given             run A    27      10.28      9.26      10.83   -0.0022            1 |    +0.33    -0.20    -0.71 |     +nan     +nan
+given            chain F    25      12.20     11.40      14.19   -0.0031            0 |    -0.01    +0.31    -0.59 |     +nan     +nan
+given             run B    19      10.32     12.13      16.20   -0.0020            0 |    +0.11    -0.32    -0.42 |     +nan     +nan
+given            chain D    20       8.91     11.77       7.26   -0.0020            0 |    +0.34    -0.37    -0.77 |     +nan     +nan
+
+actually         chain G    36      21.57     26.04      18.11   -0.0029            4 |    +0.22    -0.04    -0.49 |    +0.22    +0.10
+actually          run A    27      24.31     25.40      22.26   -0.0027            4 |    +0.08    +0.05    -0.53 |     +nan     +nan
+actually         chain F    25      24.12     25.22      24.85   -0.0026            4 |    +0.36    -0.02    -0.54 |     +nan     +nan
+actually          run B    19      20.74     22.64      22.00   -0.0021            2 |    +0.46    -0.15    -0.12 |     +nan     +nan
+actually         chain D    20      17.53     23.12      12.01   -0.0023            3 |    -0.00    +0.03    -0.56 |     +nan     +nan
+
+wait             chain G    36      18.08     20.21      17.07   -0.0037            3 |    -0.15    +0.00    -0.57 |    -0.02    -0.34
+wait              run A    27      18.04     20.17      12.03   -0.0034            0 |    -0.21    -0.11    -0.65 |     +nan     +nan
+wait             chain F    25      17.75     18.96      15.61   -0.0029            0 |    -0.04    +0.16    -0.53 |     +nan     +nan
+wait              run B    19      17.77     18.75      19.78   -0.0031            1 |    +0.43    -0.14    -0.30 |     +nan     +nan
+wait             chain D    20      17.64     19.57      17.17   -0.0037            0 |    +0.08    +0.35    -0.37 |     +nan     +nan
+
+but              chain G    36     161.47    142.64     191.95   -0.0159            2 |    -0.20    -0.03    -0.57 |    -0.07    -0.06
+but               run A    27     151.59    148.91     155.90   -0.0146            1 |    -0.06    +0.07    -0.63 |     +nan     +nan
+but              chain F    25     164.53    156.01     175.40   -0.0138            1 |    +0.03    -0.16    -0.42 |     +nan     +nan
+but               run B    19     162.36    160.71     168.03   -0.0160            0 |    +0.14    +0.06    -0.54 |     +nan     +nan
+but              chain D    20     161.25    158.39     161.09   -0.0178            0 |    +0.21    +0.32    -0.55 |     +nan     +nan
+
+however          chain G    36       9.21      6.72      12.11   -0.0011            5 |    +0.28    -0.20    -0.36 |    +0.36    +0.16
+however           run A    27       9.08      7.07      13.24   -0.0006            8 |    -0.04    -0.08    -0.29 |     +nan     +nan
+however          chain F    25      10.10      8.37      13.17   -0.0010            5 |    -0.09    +0.25    -0.19 |     +nan     +nan
+however           run B    19       8.67      7.94      12.85   -0.0008            4 |    +0.38    -0.49    -0.06 |     +nan     +nan
+however          chain D    20       7.14      7.68       5.66   -0.0005            8 |    +0.03    -0.02    -0.43 |     +nan     +nan
+
+although         chain G    36       0.01      0.01       0.00   -0.0000            5 |    +0.57    -0.23    -0.58 |    -0.26    -0.05
+although          run A    27       0.01      0.00       0.00   +0.0000            6 |    -0.01    -0.10    -0.59 |     +nan     +nan
+although         chain F    25       0.01      0.00       0.02   +0.0000            5 |    +0.01    +0.04    -0.62 |     +nan     +nan
+although          run B    19       0.01      0.00       0.00   -0.0000            2 |    -0.23    -0.50    -0.61 |     +nan     +nan
+although         chain D    20       0.01      0.00       0.00   +0.0000            4 |    -0.03    +0.15    -0.60 |     +nan     +nan
+
+hmm              chain G    36       1.28      1.60       1.26   -0.0002           12 |    -0.37    -0.07    -0.47 |    +0.12    -0.02
+hmm               run A    27       1.11      1.63       0.45   -0.0001           10 |    -0.13    +0.23    -0.40 |     +nan     +nan
+hmm              chain F    25       0.86      1.05       0.59   -0.0002            8 |    -0.02    +0.02    -0.43 |     +nan     +nan
+hmm               run B    19       0.96      1.02       1.01   -0.0001            8 |    -0.02    -0.12    -0.24 |     +nan     +nan
+hmm              chain D    20       0.89      1.10       0.77   -0.0000            9 |    -0.27    +0.24    -0.51 |     +nan     +nan
+
+let              chain G    36     152.34    186.28     149.42   -0.0129            2 |    +0.35    -0.03    -0.28 |    +0.03    -0.18
+let               run A    27     143.07    180.49     100.35   -0.0109            2 |    -0.11    -0.21    -0.42 |     +nan     +nan
+let              chain F    25     132.53    147.86     113.69   -0.0096            1 |    +0.24    +0.10    -0.45 |     +nan     +nan
+let               run B    19     119.21    144.90     112.08   -0.0097            3 |    +0.33    -0.00    -0.19 |     +nan     +nan
+let              chain D    20     128.93    151.57     103.70   -0.0127            0 |    +0.21    -0.31    -0.32 |     +nan     +nan
+
+i                chain G    36      21.96     21.39      24.97   -0.0033            4 |    -0.06    +0.34    -0.33 |    -0.07    +0.00
+i                 run A    27      19.66     21.34      16.31   -0.0026            3 |    +0.01    -0.30    -0.35 |     +nan     +nan
+i                chain F    25      19.23     19.93      16.10   -0.0035            0 |    +0.27    +0.09    -0.40 |     +nan     +nan
+i                 run B    19      14.82     17.59      17.47   -0.0023            2 |    -0.11    +0.18    -0.27 |     +nan     +nan
+i                chain D    20      17.62     19.19      16.84   -0.0027            2 |    +0.32    -0.22    -0.39 |     +nan     +nan
+
+so               chain G    36      45.22     37.70      49.05   -0.0056            3 |    -0.24    +0.26    -0.29 |    -0.28    -0.19
+so                run A    27      41.00     39.34      38.67   -0.0055            2 |    +0.13    -0.00    -0.44 |     +nan     +nan
+so               chain F    25      41.88     43.21      41.81   -0.0044            3 |    -0.32    +0.06    -0.35 |     +nan     +nan
+so                run B    19      51.22     45.93      51.06   -0.0060            1 |    +0.02    -0.02    -0.49 |     +nan     +nan
+so               chain D    20      47.06     45.81      46.82   -0.0056            1 |    -0.01    +0.13    -0.68 |     +nan     +nan
+
+now              chain G    36      30.15     37.79      29.30   +0.0000           18 |    +0.18    +0.08    -0.33 |    +0.10    +0.17
+now               run A    27      28.43     35.48      24.91   +0.0001           14 |    +0.23    -0.36    -0.41 |     +nan     +nan
+now              chain F    25      28.08     25.63      30.81   +0.0003           16 |    +0.35    -0.15    -0.36 |     +nan     +nan
+now               run B    19      25.02     25.66      33.17   +0.0001            8 |    +0.17    -0.02    -0.07 |     +nan     +nan
+now              chain D    20      23.83     26.86      17.24   +0.0001           12 |    +0.04    -0.41    -0.40 |     +nan     +nan
+
+this             chain G    36      22.36     24.52      18.70   -0.0033            3 |    -0.12    +0.21    -0.41 |    -0.23    -0.04
+this              run A    27      24.29     26.26      15.01   -0.0033            2 |    -0.12    +0.29    -0.48 |     +nan     +nan
+this             chain F    25      22.90     25.28      18.25   -0.0029            2 |    -0.05    -0.31    -0.47 |     +nan     +nan
+this              run B    19      15.99     23.57      10.56   -0.0022            2 |    +0.08    +0.13    -0.24 |     +nan     +nan
+this             chain D    20      20.90     22.77      20.73   -0.0031            1 |    +0.15    -0.38    -0.26 |     +nan     +nan
+
+maybe            chain G    36       5.31      6.28       3.85   -0.0023            1 |    +0.15    -0.17    -0.63 |    +0.29    -0.10
+maybe             run A    27       6.23      6.95       5.86   -0.0021            1 |    -0.02    +0.06    -0.55 |     +nan     +nan
+maybe            chain F    25       6.75      5.69       7.98   -0.0027            0 |    +0.01    +0.18    -0.63 |     +nan     +nan
+maybe             run B    19       5.16      5.28       6.08   -0.0017            0 |    +0.37    -0.08    -0.37 |     +nan     +nan
+maybe            chain D    20       5.17      5.79       5.05   -0.0018            0 |    -0.10    +0.25    -0.36 |     +nan     +nan
+
+alternatively    chain G    36       3.15      1.74       4.64   -0.0007            4 |    -0.08    +0.07    -0.62 |    -0.02    +0.04
+alternatively     run A    27       2.63      1.92       4.49   -0.0006            3 |    +0.31    +0.01    -0.44 |     +nan     +nan
+alternatively    chain F    25       3.00      2.26       3.45   -0.0006            1 |    +0.42    -0.17    -0.50 |     +nan     +nan
+alternatively     run B    19       3.04      2.66       3.82   -0.0006            2 |    +0.06    -0.26    -0.70 |     +nan     +nan
+alternatively    chain D    20       2.74      2.53       2.94   -0.0005            3 |    +0.20    +0.16    -0.61 |     +nan     +nan
+
+given the time   chain G    36       6.26      4.17       9.74   -0.0022            0 |    +0.18    +0.03    -0.67 |    -0.12    +0.15
+given the time    run A    27       4.94      4.48       6.01   -0.0016            0 |    +0.39    -0.19    -0.64 |     +nan     +nan
+given the time   chain F    25       5.83      6.35       6.28   -0.0021            1 |    +0.21    +0.02    -0.62 |     +nan     +nan
+given the time    run B    19       4.77      6.51       5.45   -0.0016            0 |    +0.42    -0.21    -0.61 |     +nan     +nan
+given the time   chain D    20       4.36      6.30       4.02   -0.0017            0 |    +0.48    -0.32    -0.69 |     +nan     +nan
+
+let me try       chain G    36       8.15     13.63       7.02   -0.0016            3 |    +0.39    -0.10    -0.56 |    +0.16    -0.21
+let me try        run A    27       7.96     13.90       4.30   -0.0016            1 |    +0.03    -0.02    -0.59 |     +nan     +nan
+let me try       chain F    25       6.89      8.44       4.92   -0.0014            1 |    -0.04    +0.29    -0.54 |     +nan     +nan
+let me try        run B    19       5.92      8.22       4.58   -0.0009            1 |    +0.45    -0.11    -0.52 |     +nan     +nan
+let me try       chain D    20       7.43      8.70       6.95   -0.0013            1 |    +0.39    -0.14    -0.56 |     +nan     +nan
+
+but the test     chain G    36       9.83      7.71      12.71   -0.0014            5 |    -0.02    +0.25    -0.46 |    +0.01    +0.15
+but the test      run A    27       8.16      7.10       8.56   -0.0010            5 |    +0.18    +0.24    -0.49 |     +nan     +nan
+but the test     chain F    25       7.34      9.34       5.44   -0.0010            4 |    +0.07    +0.12    -0.46 |     +nan     +nan
+but the test      run B    19      12.23      9.67      12.57   -0.0017            2 |    -0.13    +0.13    -0.63 |     +nan     +nan
+but the test     chain D    20      12.67     11.21      14.69   -0.0019            4 |    -0.17    +0.37    -0.55 |     +nan     +nan
+
+i think          chain G    36       4.78      4.85       4.03   -0.0015            1 |    +0.17    -0.08    -0.57 |    +0.19    -0.38
+i think           run A    27       5.31      4.99       4.27   -0.0012            1 |    +0.16    -0.37    -0.65 |     +nan     +nan
+i think          chain F    25       5.56      5.78       5.07   -0.0016            0 |    -0.19    +0.36    -0.60 |     +nan     +nan
+i think           run B    19       4.60      5.34       6.82   -0.0010            0 |    +0.10    -0.15    -0.58 |     +nan     +nan
+i think          chain D    20       5.10      5.21       5.83   -0.0013            2 |    -0.07    +0.11    -0.51 |     +nan     +nan
+
+let me check     chain G    36      58.02     72.43      50.76   -0.0081            1 |    +0.40    -0.10    -0.26 |    -0.01    -0.31
+let me check      run A    27      53.10     71.12      33.10   -0.0060            2 |    -0.13    -0.12    -0.29 |     +nan     +nan
+let me check     chain F    25      45.95     59.44      34.90   -0.0049            1 |    +0.29    +0.17    -0.31 |     +nan     +nan
+let me check      run B    19      46.38     58.77      40.57   -0.0056            1 |    +0.45    -0.09    -0.19 |     +nan     +nan
+let me check     chain D    20      52.18     61.96      40.75   -0.0080            0 |    +0.32    -0.24    -0.22 |     +nan     +nan
+
+but that         chain G    36       5.80      3.85       6.34   -0.0003            5 |    +0.13    -0.24    -0.69 |    +0.26    -0.28
+but that          run A    27       4.78      4.11       4.83   -0.0002            4 |    -0.04    -0.09    -0.58 |     +nan     +nan
+but that         chain F    25       5.45      4.26       6.00   -0.0003            4 |    +0.39    -0.16    -0.54 |     +nan     +nan
+but that          run B    19       4.45      4.24       6.31   -0.0002            4 |    +0.19    +0.22    -0.32 |     +nan     +nan
+but that         chain D    20       4.27      4.44       4.32   -0.0002            5 |    +0.35    -0.09    -0.47 |     +nan     +nan
+
+let me           chain G    36     151.35    185.73     148.05   -0.0129            2 |    +0.37    -0.03    -0.26 |    +0.05    -0.19
+let me            run A    27     142.15    179.89      99.86   -0.0108            2 |    -0.12    -0.21    -0.40 |     +nan     +nan
+let me           chain F    25     131.58    147.01     113.01   -0.0096            1 |    +0.24    +0.11    -0.42 |     +nan     +nan
+let me            run B    19     118.40    143.94     111.72   -0.0097            3 |    +0.33    +0.01    -0.17 |     +nan     +nan
+let me           chain D    20     128.06    150.66     102.50   -0.0126            0 |    +0.19    -0.30    -0.29 |     +nan     +nan
+

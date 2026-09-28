@@ -1,0 +1,70 @@
+parsed 27499 blocks (0 malformed lines skipped)
+HOW LOOPS END. Per arm, all steps pooled. 'self-exited loop' = repetitive block (zlib<0.10, >=1000 tok) that closed with </think>; 'runaway' = cut by the context window;
+'baseline' = 3 % random sample of normal blocks >= 300 tokens. exit tok = last token before </think>; p = its sampling probability; 'fork exit' = exit tok sampled at p < 0.05.
+
+arm                        class         n tok p50 zlib p50 cycle p50  match | p(</think>) p50    p25   <0.5 | exit tok = .  = .nn  other | p(exit tok) p50 fork exit p(prev tok) p50 | p(.) in blk p(.nn) in blk share .nn
+chain G (MINF from0)       looplike    293   19435    0.027       308   0.85 |           0.993  0.899  13.7% |        90.7%   0.0%   9.3% |           0.679     31.4%           1.000 |       0.993         0.995      0.38
+chain G (MINF from0)       runaway     395   85960    0.013       435   0.94 |             nan    nan   0.0% |         0.0%   0.0% 100.0% |             nan      0.0%             nan |       0.998         0.998      0.36
+chain G (MINF from0)       baseline   5633     618    0.374       220   0.04 |           0.997  0.943   6.1% |        92.2%   0.0%   7.8% |           0.938      1.2%           0.991 |       0.863         0.830      0.24
+
+run A (vLLM from0)         looplike     66   14480    0.036       331   0.85 |           0.994  0.932   8.3% |        89.6%   0.0%  10.4% |           0.438     16.7%           0.999 |       0.985         0.991      0.38
+run A (vLLM from0)         runaway      89    5861    0.156       405   0.90 |             nan    nan   0.0% |         0.0%   0.0% 100.0% |             nan      0.0%             nan |       0.994         0.995      0.34
+run A (vLLM from0)         baseline   4531     629    0.377       219   0.04 |           0.997  0.942   5.6% |        92.4%   0.0%   7.6% |           0.926      1.3%           0.986 |       0.850         0.823      0.26
+
+chain F (MINF fr vLLM10)   looplike     37   12285    0.035       171   0.76 |           0.992  0.834  14.8% |        81.5%   0.0%  18.5% |           0.618     22.2%           0.999 |       0.885         0.926      0.08
+chain F (MINF fr vLLM10)   runaway      42    2418    0.114       278   0.76 |             nan    nan   0.0% |         0.0%   0.0% 100.0% |             nan      0.0%             nan |       0.979         0.993      0.32
+chain F (MINF fr vLLM10)   baseline   4356     650    0.377       217   0.03 |           0.998  0.956   5.8% |        93.4%   0.0%   6.6% |           0.922      1.1%           0.988 |       0.831         0.830      0.29
+
+run B (MINF fr MINF10)     looplike    145   18049    0.042       252   0.69 |           0.985  0.876   8.4% |        89.9%   0.0%  10.1% |           0.640     27.7%           1.000 |       0.984         0.974      0.23
+run B (MINF fr MINF10)     runaway     176   50082    0.020       393   0.82 |             nan    nan   0.0% |         0.0%   0.0% 100.0% |             nan      0.0%             nan |       0.993         0.992      0.28
+run B (MINF fr MINF10)     baseline   3523     687    0.355       223   0.04 |           0.994  0.916   7.4% |        92.8%   0.0%   7.2% |           0.904      1.3%           0.985 |       0.841         0.794      0.23
+
+chain D (vLLM fr MINF10)   looplike    481   13191    0.036       277   0.78 |           0.992  0.887   9.9% |        91.6%   0.0%   8.4% |           0.835     20.2%           1.000 |       0.985         0.987      0.34
+chain D (vLLM fr MINF10)   runaway     502   69551    0.015       505   0.87 |             nan    nan   0.0% |         0.0%   0.0% 100.0% |             nan      0.0%             nan |       0.995         0.995      0.36
+chain D (vLLM fr MINF10)   baseline   3954     671    0.355       229   0.04 |           0.995  0.927   6.9% |        91.8%   0.0%   8.2% |           0.924      1.1%           0.993 |       0.852         0.818      0.24
+
+chain I (MINF from0 pfx)   looplike    100   18327    0.032       352   0.77 |           0.996  0.938   6.5% |        88.3%   0.0%  11.7% |           0.131     41.6%           1.000 |       0.989         0.992      0.40
+chain I (MINF from0 pfx)   runaway     129   36276    0.026       429   0.87 |             nan    nan   0.0% |         0.0%   0.0% 100.0% |             nan      0.0%             nan |       0.994         0.995      0.37
+chain I (MINF from0 pfx)   baseline   3047     596    0.375       228   0.04 |           0.996  0.937   5.4% |        91.4%   0.0%   8.6% |           0.903      1.4%           0.987 |       0.851         0.818      0.25
+
+SELF-EXITED LOOPS, chain G, split by how the exit happened: 'fork' = last token before </think> had p < 0.05 (the loop's usual continuation was overridden by a rare sample); 'smooth' = p >= 0.05.
+  fork exits    n=  64  tokens p50   20408  p(</think>) p50 0.997  exit tok: '.' 86%, '```' 3%, ':' 3%, '\n' 3%
+  smooth exits  n= 140  tokens p50   12335  p(</think>) p50 0.983  exit tok: '.' 93%, '`.' 3%, '\n' 1%, '`' 1%
+
+SELF-EXITED LOOPS in chain G by step (all steps): n, median tokens, median p(</think>) at the exit, share of fork exits, and share of loops whose cycle ends in '.\n\n' (share_dnn_sf > 0.5).
+step   n tok p50 p(</think>) p50 fork exit .nn-cycles | runaways runaway tok p50
+   1   2    3696           0.985        0%         0% |        4              48
+   3   1   22619           0.999        0%         0% |        3          108359
+   4   2    3742           0.959        0%         0% |        6             308
+   5   0       0             nan        0%         0% |        3           80490
+   6   5    5151           0.997       20%         0% |        4             209
+   7   2  116217           0.158       50%         0% |        8            2790
+   8   7   17870           0.997       29%         0% |       18           53897
+   9   3    6079           0.999        0%         0% |        5            2244
+  10   1   22549           0.995      100%         0% |        5            1569
+  11   1   13297           0.075        0%         0% |        6             351
+  12   2    2459           0.982        0%         0% |        5           81270
+  13   5   25684           0.781       20%         0% |        4           34832
+  14   4   17935           1.000        0%         0% |        5            1593
+  15   6   26928           0.938       50%         0% |       11           90206
+  16   7   35031           0.983       71%        29% |       12           84175
+  17   6   19755           0.970       50%         0% |        3          130687
+  18   1   14090           0.999      100%         0% |        4           72967
+  19   1   26860           0.019      100%         0% |       14          105785
+  20   1   56760           0.999      100%         0% |        8           79614
+  21   3   65993           0.976       33%         0% |        5          121037
+  22   2   10934           0.984      100%         0% |        8           96692
+  23   5    8697           0.996       20%         0% |        8           58269
+  24  15    3432           0.995        7%         0% |       14           79848
+  25   4    2987           0.999       25%        75% |        9           99262
+  26   4   15907           0.904       75%         0% |        9          102319
+  27   8   14616           0.957       62%         0% |       22           69295
+  28  10   11564           0.992        0%         0% |       13           58101
+  29   5   10456           0.967       20%         0% |       14           89818
+  30   8   20675           0.999       38%         0% |       26          113553
+  31  15   27487           0.935       33%         7% |       18           58690
+  32   9   17374           0.993       44%         0% |       14           76560
+  33  17    7968           0.997       29%         6% |       18           96461
+  34   8   11169           0.982       62%         0% |       15          101197
+  35  18   14704           0.996       22%        22% |       35          119547
+  36  16   21720           0.963       19%        12% |       39           98324

@@ -1,0 +1,337 @@
+#!/usr/bin/env python3
+import argparse, json, os, re, sys, threading, time, zlib, glob, urllib.parse
+from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+WS = os.path.abspath(os.path.join(HERE, "..", ".."))
+DEFAULT_ROOT = "/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs"
+DEFAULT_CACHE = os.path.join(WS, "analysis", "dumpbrowse_cache")
+ARM_DESC = {"A": "run A: vLLM from scratch", "B": "run B: MINF from MINF step 10", "C": "chain C: MINF from MINF step 10, no prefix cache",
+            "D": "chain D: vLLM from MINF step 10", "F": "chain F: MINF from vLLM step 10", "G": "chain G: MINF from scratch, no prefix cache",
+            "I": "chain I: MINF from scratch, prefix cache on, replica 1", "J": "chain J: MINF from scratch, prefix cache on, replica 2",
+            "K": "chain K: vLLM from scratch, seed 1234", "L": "chain L: MINF from chain K step 10, prefix cache on, seed 1234",
+            "M": "chain M: vLLM from scratch, replica 1 (chain J argument set)", "N": "chain N: vLLM from scratch, replica 2 (chain J argument set)",
+            "P": "chain P: MINF engine, chain M rollouts replayed for steps 1-20, live from 21", "Q": "chain Q: vLLM engine, chain M rollouts replayed for steps 1-20, live from 21",
+            "R": "chain R: vLLM engine, chain G rollouts replayed for steps 1-10, live from 11", "Rp": "chain R′: vLLM engine, chain G rollouts replayed for steps 1-16, live from 17"}
+SECRET_KEY = re.compile(r"(api_key|token|secret|password)", re.I)
+SECRET_YAML = re.compile(r"(?im)^(\s*[\w\-]*(?:api_key|secret|password)[\w\-]*\s*:\s*)(\S.*)$")
+FILE_RE = re.compile(r"^[\w.\-]+\.jsonl$")
+ELIDE = 20000
+
+def load_labels():
+    lab = {}
+    jt = os.path.join(WS, "analysis", "loopfeedback", "jobs.txt")
+    if os.path.exists(jt):
+        for line in open(jt):
+            p = line.split()
+            if len(p) >= 2: lab[p[1]] = p[0]
+    sa = os.path.join(WS, "analysis", "loopfeedback", "splice_arms.json")
+    if os.path.exists(sa):
+        for a, c in json.load(open(sa)).items(): lab[c["exp"]] = a
+    return lab
+
+class Index:
+    def __init__(self, path, cache_path):
+        self.path, self.cache_path = path, cache_path
+        self.offsets, self.lengths, self.summaries = [], [], []
+        self.size_indexed = 0
+        self.state = "idle"; self.done = 0; self.total = 0; self.error = None
+        self.lock = threading.Lock()
+        if os.path.exists(cache_path):
+            try:
+                d = json.load(open(cache_path))
+                self.offsets, self.lengths, self.summaries, self.size_indexed = d["offsets"], d["lengths"], d["summaries"], d["size_indexed"]
+            except Exception: pass
+
+    def stale(self):
+        try: return os.path.getsize(self.path) > self.size_indexed
+        except OSError: return False
+
+    def status(self):
+        return {"state": self.state, "done": self.done, "total": self.total, "n_records": len(self.offsets), "size_indexed": self.size_indexed,
+                "size_now": os.path.getsize(self.path) if os.path.exists(self.path) else 0, "error": self.error}
+
+    def start(self):
+        with self.lock:
+            if self.state == "running": return
+            self.state = "running"; self.error = None
+        threading.Thread(target=self._run, daemon=True).start()
+
+    def _run(self):
+        try:
+            size = os.path.getsize(self.path)
+            start = (self.offsets[-1] + self.lengths[-1] + 1) if self.offsets else 0
+            self.total = size; self.done = start
+            CH = 64 << 20
+            with open(self.path, "rb") as f:
+                f.seek(start); pos = start; buf = b""
+                while True:
+                    chunk = f.read(CH)
+                    if not chunk: break
+                    buf += chunk; s = 0
+                    while True:
+                        nl = buf.find(b"\n", s)
+                        if nl < 0: break
+                        line = buf[s:nl]
+                        if line.strip():
+                            self.offsets.append(pos + s); self.lengths.append(nl - s); self.summaries.append(summarize(line, len(self.offsets) - 1))
+                        s = nl + 1
+                    buf = buf[s:]; pos += s; self.done = pos
+            self.size_indexed = pos
+            tmp = self.cache_path + ".tmp"
+            json.dump({"offsets": self.offsets, "lengths": self.lengths, "summaries": self.summaries, "size_indexed": self.size_indexed}, open(tmp, "w"))
+            os.replace(tmp, self.cache_path)
+            self.state = "done"
+        except Exception as e:
+            self.state = "error"; self.error = repr(e)
+
+    def read(self, i):
+        with open(self.path, "rb") as f:
+            f.seek(self.offsets[i]); return f.read(self.lengths[i])
+
+TAIL_KEYS = ["resolved", "patch_exists", "agent_error_kind", "agent_timed_out", "eval_timed_out", "oom_killed", "eval_oom_killed", "openhands_run_time", "total_model_call_time"]
+def summarize(line, i):
+    s = {"i": i, "bytes": len(line)}
+    try:
+        cut = line.find(b'"messages"')
+        head = json.loads(line[:cut].rstrip().rstrip(b",") + b"}") if cut > 0 else json.loads(line)
+    except Exception:
+        try: head = json.loads(line)
+        except Exception as e:
+            s["error"] = repr(e); return s
+    for k in ["sample_id", "group_id", "completion_index", "target_step", "start_weight_version", "end_weight_version", "committed_at", "prompt_idx", "environment", "reward", "truncated", "num_assistant_turns", "generation_length", "total_tokens"]:
+        if k in head: s[k] = head[k]
+    pm = head.get("prompt_metadata") or {}
+    s["instance_id"] = pm.get("instance_id"); s["repo"] = pm.get("repo")
+    tail = line[-400000:]
+    for k in TAIL_KEYS:
+        m = re.search(rb'"%s":\s*("(?:[^"\\]|\\.)*"|[^,}\]]+)' % k.encode(), tail)
+        if m:
+            try: s[k] = json.loads(m.group(1))
+            except Exception: s[k] = m.group(1).decode("utf-8", "replace")
+    return s
+
+def redact(obj, key=None):
+    if isinstance(obj, dict): return {k: redact(v, k) for k, v in obj.items()}
+    if isinstance(obj, list): return [redact(v, key) for v in obj]
+    if isinstance(obj, str):
+        if key and SECRET_KEY.search(key) and not key.startswith("return_") and not key.startswith("request_"): return "«redacted»"
+        if "api_key" in obj or "password" in obj or "secret" in obj: return SECRET_YAML.sub(r"\1«redacted»", obj)
+    return obj
+
+def elide(obj, path=""):
+    if isinstance(obj, dict): return {k: elide(v, f"{path}.{k}" if path else k) for k, v in obj.items()}
+    if isinstance(obj, list): return [elide(v, f"{path}.{i}") for i, v in enumerate(obj)]
+    if isinstance(obj, str) and len(obj) > ELIDE: return {"__elided__": True, "len": len(obj), "path": path, "head": obj[:2000]}
+    return obj
+
+def get_path(obj, path):
+    for p in path.split("."):
+        if p == "": continue
+        obj = obj[int(p)] if isinstance(obj, list) else obj[p]
+    return obj
+
+def zratio(text):
+    b = text.encode("utf-8", "replace")
+    return round(len(zlib.compress(b, 6)) / len(b), 3) if len(b) >= 64 else None
+
+def turns_of(rec):
+    out = ((rec.get("full_result") or {}).get("response") or {}).get("output") or []
+    msgs = rec.get("messages") or []
+    ptm = (rec.get("full_result") or {}).get("per_turn_metrics") or {}
+    usages = ptm.get("token_usages") or []; lats = ptm.get("response_latencies") or []
+    turns = []; cur = None
+    def new():
+        return {"k": len(turns), "reasoning": "", "message": "", "calls": [], "outputs": [], "generation_str": None, "prompt_str_len": None}
+    for o in out:
+        t = o.get("type")
+        if t == "reasoning":
+            if cur is not None and (cur["reasoning"] or cur["calls"] or cur["message"]): turns.append(cur)
+            cur = new(); cur["reasoning"] = "".join(x.get("text", "") for x in (o.get("summary") or []))
+            if o.get("content"): cur["reasoning"] += "".join(x.get("text", "") for x in o["content"] if isinstance(x, dict))
+        elif t == "message":
+            if cur is None: cur = new()
+            cur["message"] += "".join(x.get("text", "") for x in (o.get("content") or []) if isinstance(x, dict))
+        elif t == "function_call":
+            if cur is None: cur = new()
+            cur["calls"].append({"name": o.get("name"), "arguments": o.get("arguments"), "call_id": o.get("call_id"), "status": o.get("status")})
+            if o.get("generation_str") is not None: cur["generation_str"] = o["generation_str"]
+            if o.get("prompt_str") is not None: cur["prompt_str_len"] = len(o["prompt_str"])
+        elif t == "function_call_output":
+            if cur is None: cur = new()
+            cur["outputs"].append({"call_id": o.get("call_id"), "output": o.get("output"), "status": o.get("status")})
+            turns.append(cur); cur = None
+    if cur is not None: turns.append(cur)
+    res = []
+    for k, t in enumerate(turns):
+        am = msgs[2 * k + 1] if 2 * k + 1 < len(msgs) else {}
+        um = msgs[2 * k + 2] if 2 * k + 2 < len(msgs) else {}
+        u = usages[k] if k < len(usages) else {}; l = lats[k] if k < len(lats) else {}
+        gen = t["generation_str"]; think_closed = None if gen is None else ("</think>" in gen)
+        res.append({"k": k, "reasoning_len": len(t["reasoning"]), "reasoning_zlib": zratio(t["reasoning"]), "reasoning": t["reasoning"][:4000],
+                    "message": t["message"][:4000], "message_len": len(t["message"]),
+                    "calls": [{"name": c["name"], "arguments": (c["arguments"] or "")[:4000], "arguments_len": len(c["arguments"] or ""), "status": c["status"]} for c in t["calls"]],
+                    "outputs": [{"output": (o["output"] or "")[:4000], "output_len": len(o["output"] or ""), "status": o["status"]} for o in t["outputs"]],
+                    "generation_len": None if gen is None else len(gen), "generation_zlib": None if gen is None else zratio(gen), "think_closed": think_closed,
+                    "prompt_str_len": t["prompt_str_len"], "assistant_n_tokens": am.get("n_tokens"), "is_invalid_tool_call": am.get("is_invalid_tool_call"),
+                    "has_malformed_thinking": am.get("has_malformed_thinking"), "user_n_tokens": um.get("n_tokens"),
+                    "prompt_tokens": u.get("prompt_tokens"), "completion_tokens": u.get("completion_tokens"), "cache_read_tokens": u.get("cache_read_tokens"),
+                    "latency": l.get("latency"), "timestamp": l.get("timestamp")})
+    return res
+
+def turn_paths(rec):
+    out = ((rec.get("full_result") or {}).get("response") or {}).get("output") or []
+    paths = {}; k = -1
+    for j, o in enumerate(out):
+        t = o.get("type")
+        if t == "reasoning": k += 1; paths.setdefault(k, {})["reasoning"] = f"full_result.response.output.{j}.summary.0.text"
+        elif t == "function_call":
+            if k < 0: k = 0
+            paths.setdefault(k, {})["generation_str"] = f"full_result.response.output.{j}.generation_str"; paths[k]["prompt_str"] = f"full_result.response.output.{j}.prompt_str"; paths[k]["arguments"] = f"full_result.response.output.{j}.arguments"
+        elif t == "function_call_output":
+            if k < 0: k = 0
+            paths.setdefault(k, {})["output"] = f"full_result.response.output.{j}.output"
+        elif t == "message":
+            if k < 0: k = 0
+            paths.setdefault(k, {})["message"] = f"full_result.response.output.{j}.content.0.text"
+    return paths
+
+class App:
+    def __init__(self, root, cache):
+        self.root, self.cache = root, cache
+        self.labels = load_labels(); self.indexes = {}; self.lock = threading.Lock(); self._runs = (0, None)
+        self.sem = threading.BoundedSemaphore(2)
+
+    def runs(self):
+        if time.time() - self._runs[0] < 20 and self._runs[1] is not None: return self._runs[1]
+        res = []
+        for d in sorted(glob.glob(os.path.join(self.root, "*", "dumps", "rollouts"))):
+            files = [f for f in os.listdir(d) if FILE_RE.match(f)]
+            if not files: continue
+            name = os.path.basename(os.path.dirname(os.path.dirname(d)))
+            tot = 0; latest = 0
+            for f in files:
+                try: st = os.stat(os.path.join(d, f)); tot += st.st_size; latest = max(latest, st.st_mtime)
+                except OSError: pass
+            a = self.labels.get(name)
+            res.append({"name": name, "arm": a, "label": ARM_DESC.get(a) if a else None, "n_files": len(files), "total_bytes": tot, "latest_mtime": latest})
+        res.sort(key=lambda r: -r["latest_mtime"])
+        self._runs = (time.time(), res); return res
+
+    def run_dir(self, run):
+        if not re.match(r"^[\w.\-]+$", run): raise KeyError(run)
+        d = os.path.join(self.root, run, "dumps", "rollouts")
+        if not os.path.isdir(d): raise KeyError(run)
+        return d
+
+    def files(self, run):
+        d = self.run_dir(run); res = []
+        for f in sorted(os.listdir(d)):
+            if not FILE_RE.match(f): continue
+            p = os.path.join(d, f); st = os.stat(p)
+            m = re.search(r"(\d+)", f); step0 = int(m.group(1)) if m else None
+            idx = self.indexes.get((run, f)); cache_ok = os.path.exists(self._cache_path(run, f))
+            res.append({"name": f, "target_step": step0, "train_step": (step0 + 1) if step0 is not None else None, "size": st.st_size, "mtime": st.st_mtime,
+                        "indexed": bool(idx and idx.offsets) or cache_ok, "n_records": len(idx.offsets) if idx else None, "status": idx.status() if idx else None})
+        return res
+
+    def _cache_path(self, run, f): return os.path.join(self.cache, f"{run}__{f}.idx.json")
+
+    def index(self, run, f, start=True):
+        if not FILE_RE.match(f): raise KeyError(f)
+        p = os.path.join(self.run_dir(run), f)
+        if not os.path.exists(p): raise KeyError(f)
+        with self.lock:
+            idx = self.indexes.get((run, f))
+            if idx is None: idx = self.indexes[(run, f)] = Index(p, self._cache_path(run, f))
+        if start and idx.state != "running" and (not idx.offsets or idx.stale()): idx.start()
+        return idx
+
+    def record(self, run, f, i):
+        idx = self.index(run, f, start=False)
+        if i < 0 or i >= len(idx.offsets): raise IndexError(i)
+        return json.loads(idx.read(i))
+
+def fmt_error(code, msg): return code, {"error": msg}
+
+class Handler(BaseHTTPRequestHandler):
+    app = None
+    def log_message(self, fmt, *args): pass
+    def send_json(self, obj, code=200):
+        b = json.dumps(obj).encode()
+        self.send_response(code); self.send_header("Content-Type", "application/json"); self.send_header("Content-Length", str(len(b))); self.end_headers(); self.wfile.write(b)
+    def send_bytes(self, b, ctype, code=200, fname=None):
+        self.send_response(code); self.send_header("Content-Type", ctype); self.send_header("Content-Length", str(len(b)))
+        if fname: self.send_header("Content-Disposition", f'attachment; filename="{fname}"')
+        self.end_headers(); self.wfile.write(b)
+    def do_GET(self):
+        u = urllib.parse.urlparse(self.path); q = {k: v[0] for k, v in urllib.parse.parse_qs(u.query).items()}
+        try:
+            if u.path in ("/", "/index.html"):
+                return self.send_bytes(open(os.path.join(HERE, "app.html"), "rb").read(), "text/html; charset=utf-8")
+            if u.path == "/api/runs": return self.send_json(self.app.runs())
+            if u.path == "/api/files": return self.send_json(self.app.files(q["run"]))
+            if u.path == "/api/index":
+                idx = self.app.index(q["run"], q["file"], start=q.get("start", "1") == "1"); return self.send_json(idx.status())
+            if u.path == "/api/records":
+                idx = self.app.index(q["run"], q["file"], start=True)
+                rows = idx.summaries
+                if not rows: return self.send_json({"status": idx.status(), "rows": [], "n": 0})
+                if q.get("filter"):
+                    fl = q["filter"].lower(); rows = [r for r in rows if fl in json.dumps({k: v for k, v in r.items() if k != "bytes"}).lower()]
+                for k in ("reward", "truncated", "agent_error_kind", "resolved"):
+                    if q.get(k) not in (None, "", "any"):
+                        want = q[k]; rows = [r for r in rows if str(r.get(k)).lower() == want.lower()]
+                sort = q.get("sort", "i"); desc = q.get("desc", "0") == "1"
+                def key(r):
+                    v = r.get(sort); return (v is None, v if isinstance(v, (int, float)) else str(v))
+                rows = sorted(rows, key=key, reverse=desc)
+                off = int(q.get("offset", 0)); lim = int(q.get("limit", 100))
+                return self.send_json({"status": idx.status(), "n": len(rows), "rows": rows[off:off + lim]})
+            if u.path == "/api/record":
+                rec = self.app.record(q["run"], q["file"], int(q["i"]))
+                return self.send_json({"i": int(q["i"]), "n": len(self.app.index(q["run"], q["file"], start=False).offsets), "record": elide(redact(rec)), "turn_paths": turn_paths(rec)})
+            if u.path == "/api/turns":
+                rec = self.app.record(q["run"], q["file"], int(q["i"]))
+                return self.send_json({"turns": turns_of(rec), "paths": turn_paths(rec)})
+            if u.path == "/api/value":
+                rec = self.app.record(q["run"], q["file"], int(q["i"]))
+                v = get_path(redact(rec), q["path"])
+                return self.send_json({"path": q["path"], "value": v})
+            if u.path == "/api/raw":
+                idx = self.app.index(q["run"], q["file"], start=False); i = int(q["i"])
+                return self.send_bytes(json.dumps(redact(json.loads(idx.read(i)))).encode(), "application/json", fname=f"{q['file']}.{i}.json")
+            if u.path == "/api/group":
+                idx = self.app.index(q["run"], q["file"], start=False)
+                return self.send_json([r for r in idx.summaries if r.get("group_id") == q["group_id"]])
+            if u.path == "/api/search":
+                ql = q.get("q", "").lower(); run = q.get("run"); res = []
+                for cp in glob.glob(os.path.join(self.app.cache, "*.idx.json")):
+                    base = os.path.basename(cp)[:-len(".idx.json")]; r, _, f = base.partition("__")
+                    if run and r != run: continue
+                    try: d = json.load(open(cp))
+                    except Exception: continue
+                    for s in d["summaries"]:
+                        if ql in str(s.get("instance_id", "")).lower() or ql in str(s.get("sample_id", "")).lower() or ql in str(s.get("group_id", "")).lower() or ql == str(s.get("prompt_idx")):
+                            res.append({"run": r, "file": f, **s})
+                    if len(res) > 2000: break
+                return self.send_json(res)
+            self.send_json({"error": "not found"}, 404)
+        except (KeyError, IndexError, ValueError) as e:
+            self.send_json({"error": f"bad request: {e!r}"}, 400)
+        except Exception as e:
+            self.send_json({"error": repr(e)}, 500)
+
+def main():
+    ap = argparse.ArgumentParser(description="Browse SWE dump rollout jsonl files")
+    ap.add_argument("--root", default=DEFAULT_ROOT); ap.add_argument("--cache", default=DEFAULT_CACHE)
+    ap.add_argument("--host", default="127.0.0.1"); ap.add_argument("--port", type=int, default=8765)
+    a = ap.parse_args()
+    os.makedirs(a.cache, exist_ok=True)
+    Handler.app = App(a.root, a.cache)
+    srv = ThreadingHTTPServer((a.host, a.port), Handler); srv.daemon_threads = True
+    print(f"dumpbrowse serving {a.root} on http://{a.host}:{a.port}  (cache {a.cache})", flush=True)
+    try: srv.serve_forever()
+    except KeyboardInterrupt: pass
+
+if __name__ == "__main__": main()

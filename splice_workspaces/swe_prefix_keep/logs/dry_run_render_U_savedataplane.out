@@ -1,0 +1,50 @@
+engine: minf  config: examples/nemo_gym/nemotron-3.5-nano/swe_sc_cmh_dump_minf.yaml
+nemo_rl: de12a8e36 (rkirby/swe-main915) dirty=2
+Megatron-LM mount: c04ebc896 -> /opt/nemo-rl/3rdparty/Megatron-Bridge-workspace/Megatron-Bridge/3rdparty/Megatron-LM
+prefix_caching: true
+container: /scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/containers/nemo-rl_fd45cb8-67127697-gym.sqsh
+wandb: ultra-v3-swe-e2e-convergence / nano35-swe-main915-64n-minf-20260926
+env.should_mask_flagged_samples: false
+dumps: /scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-main915-64n-minf-20260926/dumps  gym results: /scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-main915-64n-minf-20260926/gym_results
+  Mount: nemo_rl → /opt/nemo-rl/nemo_rl
+  Mount: configs → /opt/nemo-rl/examples/configs
+  Mount: Nano 3.5 recipes → /opt/nemo-rl/examples/nemo_gym/nemotron-3.5-nano
+  Mount: Gym → /opt/nemo-rl/3rdparty/Gym-workspace/Gym
+  Extra mounts: /scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/workspaces/swe_main915:/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/workspaces/swe_main915,/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/akamehra/swe_e2e_corrected:/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/akamehra/swe_e2e_corrected,/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs:/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs,/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/persistent_cache:/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/persistent_cache,/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_pre/users/rkirby/hf_home:/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_pre/users/rkirby/hf_home,/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/workspaces/swe_main915/nemo_rl/examples/run_grpo_single_controller.py:/opt/nemo-rl/examples/run_grpo_single_controller.py,/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/workspaces/swe_main915/Megatron-LM:/opt/nemo-rl/3rdparty/Megatron-Bridge-workspace/Megatron-Bridge/3rdparty/Megatron-LM
+
+================================================================
+  Nemotron 3.5 Nano — nano35-swe-main915-64n-minf-20260926 (64-node)
+================================================================
+  Job name:    nano35-swe-main915-64n-minf-20260926  (singleton — only one runs at a time)
+  Config:      examples/nemo_gym/nemotron-3.5-nano/swe_sc_cmh_dump_minf.yaml
+  Nodes:       64 total
+    Training:  32  (128 GPUs)
+    vLLM gen:  32  (128 GPUs)
+    Gym:       0  (0 GPUs)
+  Walltime:    8:00:00
+  Batch script: /scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/workspaces/swe_main915/nemo_rl/ray.sub
+
+  Checkpoints: /scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-main915-64n-minf-20260926/checkpoints  (stable — auto-resumes across jobs)
+  Run dir:     /scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-main915-64n-minf-20260926/runs/20260927-1305
+  Logs:        /scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-main915-64n-minf-20260926/runs/20260927-1305/logs
+  Slurm logs:  /scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-main915-64n-minf-20260926/runs/20260927-1305/slurm
+  W&B:         ultra-v3-swe-e2e-convergence / nano35-swe-main915-64n-minf-20260926 (enabled=True)
+
+  Model:       /scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/akamehra/swe_e2e_corrected/base_model/step_18/hf
+  Train data:  /scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/akamehra/swe_e2e_corrected/data/large_root_cause_curriculum_with_mercor_ots_plus_singlefile_swerebench_overlap_fix.jsonl
+  Val data:    /scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/akamehra/swe_e2e_corrected/data/swe_public_datasets_val_swebench.jsonl
+  Container:   /scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/containers/nemo-rl_fd45cb8-67127697-gym.sqsh
+  Custom vLLM: 0
+  Sandbox:     /scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/akamehra/containers/nemo-skills-sandbox-no-sync.sqsh
+
+  Monitor:  squeue -u $USER -n nano35-swe-main915-64n-minf-20260926
+  Logs:     tail -f /scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-main915-64n-minf-20260926/runs/20260927-1305/slurm/*.out
+  Latest:   ls -la /scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-main915-64n-minf-20260926/runs/latest
+
+================================================================
+
+DRY_RUN=1 — printing TRAIN_CMD and exiting without submission.
+
+--- TRAIN_CMD ---
+cd /opt/nemo-rl && date ; OMP_NUM_THREADS=16 RAY_DEDUP_LOGS=1 WANDB_INIT_TIMEOUT=300 VLLM_CACHE_ROOT=/tmp/nemo_rl_vllm_cache NRL_VLLM_CACHE_SEED_DIR=/tmp/nemo_rl_vllm_cache_warm DG_JIT_CACHE_DIR=/tmp/nemo_rl_vllm_cache/deep_gemm TORCHINDUCTOR_CACHE_DIR=/tmp/nemo_rl_inductor_cache TRITON_CACHE_DIR=/tmp/nemo_rl_triton_cache UV_CACHE_DIR=/tmp/nemo-gym-uv-cache-${SLURM_JOB_ID:-default} UV_LOCK_TIMEOUT=1800 RAY_ENABLE_UV_RUN_RUNTIME_ENV=0 UV_HTTP_TIMEOUT=10 VLLM_USE_FLASHINFER_MOE_FP8=1 VLLM_FLASHINFER_MOE_BACKEND=latency NRL_VLLM_ASYNC_TIMEOUT_SECONDS=1800 NRL_WG_USE_RAY_REF=1 HF_HOME=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_pre/users/rkirby/hf_home HF_TOKEN=<masked> NRL_USE_FASTOKENS=1 uv run --no-sync ./examples/run_grpo_single_controller.py --config examples/nemo_gym/nemotron-3.5-nano/swe_sc_cmh_dump_minf.yaml policy.model_name=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/akamehra/swe_e2e_corrected/base_model/step_18/hf cluster.num_nodes=64 cluster.segment_size=16 policy.generation.colocated.resources.num_nodes=32 env.nemo_gym.num_gpu_nodes=0 checkpointing.checkpoint_dir=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-main915-64n-minf-20260926/checkpoints  data.train.data_path=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/akamehra/swe_e2e_corrected/data/large_root_cause_curriculum_with_mercor_ots_plus_singlefile_swerebench_overlap_fix.jsonl data.validation.data_path=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/akamehra/swe_e2e_corrected/data/swe_public_datasets_val_swebench.jsonl    sif_dir=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/akamehra/swe_e2e_corrected/sif env.nemo_gym.nemo_gym_log_dir=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-main915-64n-minf-20260926/runs/20260927-1305/logs/nemo_gym logger.log_dir=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-main915-64n-minf-20260926/runs/20260927-1305/logs logger.wandb_enabled=True logger.wandb.name=nano35-swe-main915-64n-minf-20260926 logger.wandb.project=ultra-v3-swe-e2e-convergence grpo.max_num_steps=1000000  policy.megatron_cfg.tensor_model_parallel_size=4 policy.megatron_cfg.context_parallel_size=4 policy.megatron_cfg.expert_model_parallel_size=32 grpo.num_prompts_per_step=32 policy.train_global_batch_size=512 async_rl.min_groups_for_streaming_train=8 async_rl.max_buffered_rollouts=96 async_rl.dump.dir=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-main915-64n-minf-20260926/dumps +env.nemo_gym.results_dir=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-main915-64n-minf-20260926/gym_results policy.megatron_cfg.distributed_data_parallel_config.overlap_param_gather=false policy.generation.mcore_generation_config.enable_prefix_caching=true +checkpointing.save_data_plane=true
+--- end ---

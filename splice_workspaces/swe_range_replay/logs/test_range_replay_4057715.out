@@ -1,0 +1,128 @@
+START Sun Sep 27 21:38:25 PDT 2026 node=cpu-0002
+srun: lua: Checking requeue policy with options:
+== config path: chain AA (steps 8:10)
+config: examples/nemo_gym/nemotron-3.5-nano/swe_sc_cmh_dump_vllm.yaml
+28 overrides:
+  policy.model_name=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/akamehra/swe_e2e_corrected/base_model/step_18/hf
+  cluster.num_nodes=64
+  cluster.segment_size=16
+  policy.generation.colocated.resources.num_nodes=32
+  env.nemo_gym.num_gpu_nodes=0
+  checkpointing.checkpoint_dir=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-splice-vllm-runGdata-8to10-20260928/checkpoints
+  data.train.data_path=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/akamehra/swe_e2e_corrected/data/large_root_cause_curriculum_with_mercor_ots_plus_singlefile_swerebench_overlap_fix.jsonl
+  data.validation.data_path=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/akamehra/swe_e2e_corrected/data/swe_public_datasets_val_swebench.jsonl
+  sif_dir=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/akamehra/swe_e2e_corrected/sif
+  env.nemo_gym.nemo_gym_log_dir=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-splice-vllm-runGdata-8to10-20260928/runs/20260927-2116/logs/nemo_gym
+  logger.log_dir=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-splice-vllm-runGdata-8to10-20260928/runs/20260927-2116/logs
+  logger.wandb_enabled=True
+  logger.wandb.name=nano35-swe-v2-splice-vllm-runGdata-8to10-20260928
+  logger.wandb.project=ultra-v3-swe-e2e-convergence
+  grpo.max_num_steps=1000000
+  policy.megatron_cfg.tensor_model_parallel_size=4
+  policy.megatron_cfg.context_parallel_size=4
+  policy.megatron_cfg.expert_model_parallel_size=32
+  grpo.num_prompts_per_step=32
+  policy.train_global_batch_size=512
+  async_rl.min_groups_for_streaming_train=8
+  async_rl.max_buffered_rollouts=96
+  async_rl.dump.dir=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-splice-vllm-runGdata-8to10-20260928/dumps
+  +env.nemo_gym.results_dir=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-splice-vllm-runGdata-8to10-20260928/gym_results
+  +foreign_rollout.source_run=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-stream128-inorder1-cmh-64n-minf_dump-from0-nopg-noprefix-20260920
+  +foreign_rollout.steps=8:10
+  +checkpointing.load_replay_buffer=false
+  policy.megatron_cfg.distributed_data_parallel_config.overlap_param_gather=false
+MasterConfig constructed: MasterConfig
+foreign_rollout on MasterConfig: {'source_run': '/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-stream128-inorder1-cmh-64n-minf_dump-from0-nopg-noprefix-20260920', 'steps': '8:10'}
+resolved: foreign_rollout = {'source_run': '/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-stream128-inorder1-cmh-64n-minf_dump-from0-nopg-noprefix-20260920', 'steps': '8:10'} | parsed range = [8, 9, 10]
+resolved: load_replay_buffer = False | backend = vllm | grpo.seed = 42 | vllm enable_prefix_caching = <absent> | overlap_param_gather = False | lr = 3e-06 | dump.token_ids = <absent> | mask_file = <absent>
+RESULT FAIL(values)
+== config path: chain AB (steps 1:7)
+config: examples/nemo_gym/nemotron-3.5-nano/swe_sc_cmh_dump_vllm.yaml
+28 overrides:
+  policy.model_name=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/akamehra/swe_e2e_corrected/base_model/step_18/hf
+  cluster.num_nodes=64
+  cluster.segment_size=16
+  policy.generation.colocated.resources.num_nodes=32
+  env.nemo_gym.num_gpu_nodes=0
+  checkpointing.checkpoint_dir=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-splice-vllm-runGdata-1to7-20260928/checkpoints
+  data.train.data_path=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/akamehra/swe_e2e_corrected/data/large_root_cause_curriculum_with_mercor_ots_plus_singlefile_swerebench_overlap_fix.jsonl
+  data.validation.data_path=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/akamehra/swe_e2e_corrected/data/swe_public_datasets_val_swebench.jsonl
+  sif_dir=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/akamehra/swe_e2e_corrected/sif
+  env.nemo_gym.nemo_gym_log_dir=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-splice-vllm-runGdata-1to7-20260928/runs/20260927-2116/logs/nemo_gym
+  logger.log_dir=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-splice-vllm-runGdata-1to7-20260928/runs/20260927-2116/logs
+  logger.wandb_enabled=True
+  logger.wandb.name=nano35-swe-v2-splice-vllm-runGdata-1to7-20260928
+  logger.wandb.project=ultra-v3-swe-e2e-convergence
+  grpo.max_num_steps=1000000
+  policy.megatron_cfg.tensor_model_parallel_size=4
+  policy.megatron_cfg.context_parallel_size=4
+  policy.megatron_cfg.expert_model_parallel_size=32
+  grpo.num_prompts_per_step=32
+  policy.train_global_batch_size=512
+  async_rl.min_groups_for_streaming_train=8
+  async_rl.max_buffered_rollouts=96
+  async_rl.dump.dir=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-splice-vllm-runGdata-1to7-20260928/dumps
+  +env.nemo_gym.results_dir=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-splice-vllm-runGdata-1to7-20260928/gym_results
+  +foreign_rollout.source_run=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-stream128-inorder1-cmh-64n-minf_dump-from0-nopg-noprefix-20260920
+  +foreign_rollout.steps=1:7
+  +checkpointing.load_replay_buffer=false
+  policy.megatron_cfg.distributed_data_parallel_config.overlap_param_gather=false
+MasterConfig constructed: MasterConfig
+foreign_rollout on MasterConfig: {'source_run': '/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-stream128-inorder1-cmh-64n-minf_dump-from0-nopg-noprefix-20260920', 'steps': '1:7'}
+resolved: foreign_rollout = {'source_run': '/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-stream128-inorder1-cmh-64n-minf_dump-from0-nopg-noprefix-20260920', 'steps': '1:7'} | parsed range = [1, 2, 3, 4, 5, 6, 7]
+resolved: load_replay_buffer = False | backend = vllm | grpo.seed = 42 | vllm enable_prefix_caching = <absent> | overlap_param_gather = False | lr = 3e-06 | dump.token_ids = <absent> | mask_file = <absent>
+RESULT FAIL(values)
+== config path: chain AC (steps 8:10)
+config: examples/nemo_gym/nemotron-3.5-nano/swe_sc_cmh_dump_vllm.yaml
+28 overrides:
+  policy.model_name=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/akamehra/swe_e2e_corrected/base_model/step_18/hf
+  cluster.num_nodes=64
+  cluster.segment_size=16
+  policy.generation.colocated.resources.num_nodes=32
+  env.nemo_gym.num_gpu_nodes=0
+  checkpointing.checkpoint_dir=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-splice-vllm-runMdata-8to10-20260928/checkpoints
+  data.train.data_path=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/akamehra/swe_e2e_corrected/data/large_root_cause_curriculum_with_mercor_ots_plus_singlefile_swerebench_overlap_fix.jsonl
+  data.validation.data_path=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/akamehra/swe_e2e_corrected/data/swe_public_datasets_val_swebench.jsonl
+  sif_dir=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/akamehra/swe_e2e_corrected/sif
+  env.nemo_gym.nemo_gym_log_dir=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-splice-vllm-runMdata-8to10-20260928/runs/20260927-2116/logs/nemo_gym
+  logger.log_dir=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-splice-vllm-runMdata-8to10-20260928/runs/20260927-2116/logs
+  logger.wandb_enabled=True
+  logger.wandb.name=nano35-swe-v2-splice-vllm-runMdata-8to10-20260928
+  logger.wandb.project=ultra-v3-swe-e2e-convergence
+  grpo.max_num_steps=1000000
+  policy.megatron_cfg.tensor_model_parallel_size=4
+  policy.megatron_cfg.context_parallel_size=4
+  policy.megatron_cfg.expert_model_parallel_size=32
+  grpo.num_prompts_per_step=32
+  policy.train_global_batch_size=512
+  async_rl.min_groups_for_streaming_train=8
+  async_rl.max_buffered_rollouts=96
+  async_rl.dump.dir=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-splice-vllm-runMdata-8to10-20260928/dumps
+  +env.nemo_gym.results_dir=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-splice-vllm-runMdata-8to10-20260928/gym_results
+  +foreign_rollout.source_run=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-stream128-inorder1-cmh-64n-vllm_dump-from0-nopg-r1-20260923
+  +foreign_rollout.steps=8:10
+  +checkpointing.load_replay_buffer=false
+  policy.megatron_cfg.distributed_data_parallel_config.overlap_param_gather=false
+MasterConfig constructed: MasterConfig
+foreign_rollout on MasterConfig: {'source_run': '/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-stream128-inorder1-cmh-64n-vllm_dump-from0-nopg-r1-20260923', 'steps': '8:10'}
+resolved: foreign_rollout = {'source_run': '/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-stream128-inorder1-cmh-64n-vllm_dump-from0-nopg-r1-20260923', 'steps': '8:10'} | parsed range = [8, 9, 10]
+resolved: load_replay_buffer = False | backend = vllm | grpo.seed = 42 | vllm enable_prefix_caching = <absent> | overlap_param_gather = False | lr = 3e-06 | dump.token_ids = <absent> | mask_file = <absent>
+RESULT FAIL(values)
+== ForeignRolloutSource range semantics: nano35-swe-v2-stream128-inorder1-cmh-64n-minf_dump-from0-nopg-noprefix-20260920 steps 8:10
+range 8:10 -> indexed target_steps [7, 8, 9] prompts per step {7: 32, 8: 32, 9: 32} total keys 96
+lookup(target_step=0, prompt_idx from its own jsonl) -> None (live fall-through)
+lookup(target_step=6, prompt_idx from its own jsonl) -> None (live fall-through)
+lookup(target_step=7, prompt_idx=284) -> group b533eff8 rows=16 tags=16 sample_mask all ones=True input_ids match source token_level=True (source files step_00008: 1 chunk(s))
+RESULT PASS
+== ForeignRolloutSource range semantics: nano35-swe-v2-stream128-inorder1-cmh-64n-minf_dump-from0-nopg-noprefix-20260920 steps 1:7
+range 1:7 -> indexed target_steps [0, 1, 2, 3, 4, 5, 6] prompts per step {0: 32, 1: 32, 2: 32, 3: 32, 4: 32, 5: 32, 6: 32} total keys 224
+lookup(target_step=7, prompt_idx from its own jsonl) -> None (live fall-through)
+lookup(target_step=0, prompt_idx=7) -> group a8de4bf2 rows=16 tags=16 sample_mask all ones=True input_ids match source token_level=True (source files step_00001: 4 chunk(s))
+RESULT PASS
+== ForeignRolloutSource range semantics: nano35-swe-v2-stream128-inorder1-cmh-64n-vllm_dump-from0-nopg-r1-20260923 steps 8:10
+range 8:10 -> indexed target_steps [7, 8, 9] prompts per step {7: 32, 8: 32, 9: 32} total keys 96
+lookup(target_step=0, prompt_idx from its own jsonl) -> None (live fall-through)
+lookup(target_step=6, prompt_idx from its own jsonl) -> None (live fall-through)
+lookup(target_step=7, prompt_idx=286) -> group b385ceb7 rows=16 tags=16 sample_mask all ones=True input_ids match source token_level=True (source files step_00008: 1 chunk(s))
+RESULT PASS
+END Sun Sep 27 22:06:36 PDT 2026

@@ -1,0 +1,58 @@
+START Sun Sep 27 14:37:19 PDT 2026 node=cpu-0001
+srun: lua: Checking requeue policy with options:
+== 1. override set through the NeMo RL config path (driver venv)
+config: examples/nemo_gym/nemotron-3.5-nano/swe_sc_cmh_dump_vllm.yaml
+29 overrides:
+  policy.model_name=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/akamehra/swe_e2e_corrected/base_model/step_18/hf
+  cluster.num_nodes=64
+  cluster.segment_size=16
+  policy.generation.colocated.resources.num_nodes=32
+  env.nemo_gym.num_gpu_nodes=0
+  checkpointing.checkpoint_dir=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-splice-vllm-runGdata-to10-maskX-rewarded-deep-20260927/checkpoints
+  data.train.data_path=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/akamehra/swe_e2e_corrected/data/large_root_cause_curriculum_with_mercor_ots_plus_singlefile_swerebench_overlap_fix.jsonl
+  data.validation.data_path=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/akamehra/swe_e2e_corrected/data/swe_public_datasets_val_swebench.jsonl
+  sif_dir=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/akamehra/swe_e2e_corrected/sif
+  env.nemo_gym.nemo_gym_log_dir=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-splice-vllm-runGdata-to10-maskX-rewarded-deep-20260927/runs/20260927-1435/logs/nemo_gym
+  logger.log_dir=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-splice-vllm-runGdata-to10-maskX-rewarded-deep-20260927/runs/20260927-1435/logs
+  logger.wandb_enabled=True
+  logger.wandb.name=nano35-swe-v2-splice-vllm-runGdata-to10-maskX-rewarded-deep-20260927
+  logger.wandb.project=ultra-v3-swe-e2e-convergence
+  grpo.max_num_steps=1000000
+  policy.megatron_cfg.tensor_model_parallel_size=4
+  policy.megatron_cfg.context_parallel_size=4
+  policy.megatron_cfg.expert_model_parallel_size=32
+  grpo.num_prompts_per_step=32
+  policy.train_global_batch_size=512
+  async_rl.min_groups_for_streaming_train=8
+  async_rl.max_buffered_rollouts=96
+  async_rl.dump.dir=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-splice-vllm-runGdata-to10-maskX-rewarded-deep-20260927/dumps
+  +env.nemo_gym.results_dir=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-splice-vllm-runGdata-to10-maskX-rewarded-deep-20260927/gym_results
+  +foreign_rollout.source_run=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-stream128-inorder1-cmh-64n-minf_dump-from0-nopg-noprefix-20260920
+  +foreign_rollout.steps=1:10
+  +foreign_rollout.mask_file=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/workspaces/swe_mask_replay/masks/poison_G_rewarded_deep_steps1-10.csv
+  +checkpointing.load_replay_buffer=false
+  policy.megatron_cfg.distributed_data_parallel_config.overlap_param_gather=false
+MasterConfig constructed: MasterConfig
+foreign_rollout on MasterConfig: {'source_run': '/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-stream128-inorder1-cmh-64n-minf_dump-from0-nopg-noprefix-20260920', 'steps': '1:10', 'mask_file': '/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/workspaces/swe_mask_replay/masks/poison_G_rewarded_deep_steps1-10.csv'}
+resolved: foreign_rollout = {'source_run': '/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-stream128-inorder1-cmh-64n-minf_dump-from0-nopg-noprefix-20260920', 'steps': '1:10', 'mask_file': '/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/workspaces/swe_mask_replay/masks/poison_G_rewarded_deep_steps1-10.csv'}
+resolved: load_replay_buffer = False | backend = vllm | grpo.seed = 42 | vllm enable_prefix_caching = <absent> | overlap_param_gather = False | lr = 3e-06
+RESULT PASS
+== 2. mask semantics with the overlay mounted (driver venv), target_step 0 of chain G
+patched: /opt/nemo-rl/nemo_rl/experience/foreign_rollout_source.py
+patched: /opt/nemo-rl/nemo_rl/algorithms/single_controller.py
+mask csv: 127 sample_ids, expected per target_step {0: 4, 1: 10, 2: 9, 3: 23, 4: 12, 5: 6, 6: 23, 7: 18, 8: 11, 9: 11}
+foreign_rollout: mask_file=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/workspaces/swe_mask_replay/masks/poison_G_rewarded_deep_steps1-10.csv sample_ids=127 expected per target_step={0: 4, 1: 10, 2: 9, 3: 23, 4: 12, 5: 6, 6: 23, 7: 18, 8: 11, 9: 11}
+target_step 0: 32 groups indexed, 512 rows loaded
+foreign_rollout: masked 1/16 replayed sample(s) in group 7da6adb3-61bd-4a66-b537-c89b5df34969 (target_step=0, train step 1); step total 1/4
+  group 7da6adb3 prompt_idx=22: rows=16 masked=1 mask_ok=True others_identical=True rewards_of_masked=[1.0]
+foreign_rollout: masked 1/16 replayed sample(s) in group 0c661c16-54c4-41f4-aa15-ee6a184c5fd6 (target_step=0, train step 1); step total 2/4
+  group 0c661c16 prompt_idx=1: rows=16 masked=1 mask_ok=True others_identical=True rewards_of_masked=[1.0]
+foreign_rollout: masked 1/16 replayed sample(s) in group d94d6fd0-6463-44ff-8937-ecef0f6f1e18 (target_step=0, train step 1); step total 3/4
+  group d94d6fd0 prompt_idx=15: rows=16 masked=1 mask_ok=True others_identical=True rewards_of_masked=[1.0]
+foreign_rollout: masked 1/16 replayed sample(s) in group ecfe8e10-ac35-45bb-a2fc-0c5cd55e1d64 (target_step=0, train step 1); step total 4/4
+  group ecfe8e10 prompt_idx=23: rows=16 masked=1 mask_ok=True others_identical=True rewards_of_masked=[1.0]
+step 0: masked hits 4 expected 4
+seq-error masking: before [1,0,1,1] -> after [1.0, 0.0, 1.0, 0.0] num_masked_seqs=1
+estimator: advantages identical with a member masked: True; baseline mask hard-coded ones: True
+RESULT PASS
+END Sun Sep 27 14:55:53 PDT 2026

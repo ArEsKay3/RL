@@ -1,0 +1,268 @@
+--- /scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/workspaces/swe_replay_splice/nemo_rl/nemo_rl/experience/foreign_rollout_source.py	2026-09-24 22:40:12.000000000 -0700
++++ patches/nemo_rl/nemo_rl/experience/foreign_rollout_source.py	2026-09-27 14:06:03.000000000 -0700
+@@ -18,6 +18,7 @@
+ 
+ from __future__ import annotations
+ 
++import csv
+ import glob
+ import json
+ import os
+@@ -29,15 +30,57 @@
+ class ForeignRolloutSource:
+     """Index + lazy per-step tensor loader for one foreign source run."""
+ 
+-    def __init__(self, source_run: str, steps: range, pad_token_id: int) -> None:
++    def __init__(
++        self,
++        source_run: str,
++        steps: range,
++        pad_token_id: int,
++        mask_file: Optional[str] = None,
++    ) -> None:
+         self._source_run = source_run
+         self._pad_token_id = pad_token_id
+         # (target_step, prompt_idx) -> group_id
+         self._index: dict[tuple[int, int], str] = {}
+         # step -> {sample_id: row}, populated lazily on first lookup for that step
+         self._step_rows_cache: dict[int, dict[str, dict[str, Any]]] = {}
++        # sample_ids whose replayed row gets sample_mask 0 (row stays in its group)
++        self._mask_ids: set[str] = set()
++        self._mask_expected_by_step: dict[int, int] = {}
++        self._mask_hits_by_step: dict[int, set[str]] = {}
++        if mask_file:
++            self._mask_ids, self._mask_expected_by_step = self._load_mask_file(mask_file)
++            print(
++                f"foreign_rollout: mask_file={mask_file} sample_ids={len(self._mask_ids)} "
++                f"expected per target_step={dict(sorted(self._mask_expected_by_step.items()))}",
++                flush=True,
++            )
+         self._build_index(steps)
+ 
++    @staticmethod
++    def _load_mask_file(path: str) -> tuple[set[str], dict[int, int]]:
++        """CSV with a header row; `sample_id` column required, `target_step`
++        (0-based) optional and used only for the per-step expected counts."""
++        ids: set[str] = set()
++        expected: dict[int, int] = {}
++        with open(path, newline="") as f:
++            reader = csv.DictReader(f)
++            if reader.fieldnames is None or "sample_id" not in reader.fieldnames:
++                raise ValueError(
++                    f"foreign_rollout.mask_file {path} needs a 'sample_id' column, "
++                    f"got {reader.fieldnames}"
++                )
++            for rec in reader:
++                sid = (rec.get("sample_id") or "").strip()
++                if not sid:
++                    continue
++                ids.add(sid)
++                ts = (rec.get("target_step") or "").strip()
++                if ts:
++                    expected[int(ts)] = expected.get(int(ts), 0) + 1
++        if not ids:
++            raise ValueError(f"foreign_rollout.mask_file {path} lists no sample_ids")
++        return ids, expected
++
+     def _build_index(self, steps: range) -> None:
+         """Streaming-scan each step's rollout JSONL for just (target_step,
+         prompt_idx, group_id) per line -- these files run 8-14 GB each with one
+@@ -78,7 +121,21 @@
+         ]
+         if not members:
+             return None
+-        return self._pack_group(members)
++        train_batch, rollout_tags = self._pack_group(members)
++        if self._mask_ids:
++            masked = [sid for sid, _ in members if sid in self._mask_ids]
++            if masked:
++                hits = self._mask_hits_by_step.setdefault(target_step, set())
++                hits.update(masked)
++                expected = self._mask_expected_by_step.get(target_step)
++                print(
++                    f"foreign_rollout: masked {len(masked)}/{len(members)} replayed "
++                    f"sample(s) in group {group_id} (target_step={target_step}, "
++                    f"train step {target_step + 1}); step total {len(hits)}"
++                    + (f"/{expected}" if expected is not None else ""),
++                    flush=True,
++                )
++        return train_batch, rollout_tags
+ 
+     def _get_step_rows(self, target_step: int) -> dict[str, dict[str, Any]]:
+         if target_step not in self._step_rows_cache:
+@@ -177,7 +234,9 @@
+         sample_mask = torch.ones((n,), dtype=torch.float32)
+ 
+         rollout_tags: list[dict[str, Any]] = []
+-        for row_idx, (_sid, row) in enumerate(members):
++        for row_idx, (sid, row) in enumerate(members):
++            if sid in self._mask_ids:
++                sample_mask[row_idx] = 0.0
+             length = row["length"]
+             input_ids[row_idx, :length] = row["input_ids"]
+             token_mask[row_idx, :length] = row["token_mask"]
+--- /scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/workspaces/swe_replay_splice/nemo_rl/nemo_rl/algorithms/single_controller.py	2026-09-24 22:40:12.000000000 -0700
++++ patches/nemo_rl/nemo_rl/algorithms/single_controller.py	2026-09-27 14:06:03.000000000 -0700
+@@ -198,10 +198,12 @@
+                 pad_token_id=int(
+                     get_tokenizer(master_config.policy["tokenizer"]).pad_token_id or 0
+                 ),
++                mask_file=foreign_rollout_cfg.get("mask_file"),
+             )
+             print(
+                 f"SingleControllerActor: foreign_rollout enabled, source_run="
+-                f"{foreign_rollout_cfg['source_run']} steps={start_step}:{end_step}",
++                f"{foreign_rollout_cfg['source_run']} steps={start_step}:{end_step}"
++                f" mask_file={foreign_rollout_cfg.get('mask_file')}",
+                 flush=True,
+             )
+ 
+--- /scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/workspaces/swe_replay_splice/nemo_rl/nemo_rl/experience/rollout_dump.py	2026-09-24 22:39:03.000000000 -0700
++++ patches/nemo_rl/nemo_rl/experience/rollout_dump.py	2026-09-27 15:52:43.000000000 -0700
+@@ -30,6 +30,7 @@
+ 
+ from __future__ import annotations
+ 
++import hashlib
+ import json
+ import math
+ import os
+@@ -93,6 +94,24 @@
+     return out
+ 
+ 
++def _as_id_list(value: Any) -> Optional[list[int]]:
++    if isinstance(value, torch.Tensor):
++        return [int(x) for x in value.flatten().tolist()]
++    if isinstance(value, (list, tuple)):
++        return [int(x) for x in value]
++    return None
++
++
++def _id_digest(ids: list[int], head_tail: int = 8) -> dict[str, Any]:
++    payload = ",".join(str(i) for i in ids).encode("ascii")
++    return {
++        "len": len(ids),
++        "sha1": hashlib.sha1(payload).hexdigest(),
++        "head": ids[:head_tail],
++        "tail": ids[-head_tail:] if len(ids) > head_tail else [],
++    }
++
++
+ def _token_count(message: Mapping[str, Any]) -> int:
+     token_ids = message.get("token_ids")
+     if isinstance(token_ids, torch.Tensor):
+@@ -102,7 +121,18 @@
+     return len(token_ids)
+ 
+ 
+-def _message_summary(message: Mapping[str, Any], include_text: bool) -> dict[str, Any]:
++_ROUNDTRIP_ID_KEYS = (
++    "prompt_token_ids",
++    "generation_token_ids",
++    "compact_prompt_token_ids",
++)
++
++
++def _message_summary(
++    message: Mapping[str, Any],
++    include_text: bool,
++    token_ids_mode: str = "off",
++) -> dict[str, Any]:
+     summary: dict[str, Any] = {
+         "role": message.get("role"),
+         "n_tokens": _token_count(message),
+@@ -110,6 +140,20 @@
+     for flag in ("is_invalid_tool_call", "has_malformed_thinking"):
+         if flag in message:
+             summary[flag] = bool(message[flag])
++    if token_ids_mode != "off":
++        own = _as_id_list(message.get("token_ids"))
++        if own is not None:
++            summary["token_ids"] = own
++        for key in _ROUNDTRIP_ID_KEYS:
++            if key not in message:
++                continue
++            ids = _as_id_list(message.get(key))
++            if ids is None:
++                summary[key] = None
++            elif token_ids_mode == "full" or key == "generation_token_ids":
++                summary[key] = ids
++            else:
++                summary[f"{key}_digest"] = _id_digest(ids)
+     if include_text:
+         content = message.get("content")
+         if isinstance(content, str) and content:
+@@ -120,9 +164,16 @@
+ class RolloutDumpWriter:
+     """Append one JSON line per committed completion."""
+ 
+-    def __init__(self, dump_dir: str, *, include_text: bool = True) -> None:
++    def __init__(
++        self,
++        dump_dir: str,
++        *,
++        include_text: bool = True,
++        token_ids_mode: str = "off",
++    ) -> None:
+         self._dir = os.path.join(dump_dir, ROLLOUTS_SUBDIR)
+         self._include_text = include_text
++        self._token_ids_mode = token_ids_mode
+         self._failures = 0
+         os.makedirs(self._dir, exist_ok=True)
+ 
+@@ -189,7 +240,8 @@
+             else None
+         )
+         prompt_messages = [
+-            _message_summary(message, self._include_text) for message in record.prompt
++            _message_summary(message, self._include_text, self._token_ids_mode)
++            for message in record.prompt
+         ]
+         rollout_metrics = _numeric_scalars(record.rollout_metrics)
+         committed_at = time.time()
+@@ -200,7 +252,7 @@
+                 completion.env_extras if isinstance(completion.env_extras, Mapping) else {}
+             )
+             messages = [
+-                _message_summary(message, self._include_text)
++                _message_summary(message, self._include_text, self._token_ids_mode)
+                 for message in completion.message_log
+             ]
+             row: dict[str, Any] = {
+--- /scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/workspaces/swe_replay_splice/nemo_rl/nemo_rl/algorithms/single_controller_utils/config.py	2026-09-24 22:39:02.000000000 -0700
++++ patches/nemo_rl/nemo_rl/algorithms/single_controller_utils/config.py	2026-09-27 15:52:43.000000000 -0700
+@@ -399,6 +399,10 @@
+     rollout_text: bool = True
+     # Write per-chunk token-level tensors (ids, masks, logprobs, advantages).
+     token_level: bool = True
++    # Per-message token ids in the rollout jsonl: "off", "digest" (token_ids and
++    # generation_token_ids verbatim, prompt_token_ids as len/sha1/head/tail) or
++    # "full" (every id list verbatim).
++    token_ids: Literal["off", "digest", "full"] = "off"
+ 
+ 
+ class AsyncRLConfig(BaseModel, extra="allow"):
+--- /scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/workspaces/swe_replay_splice/nemo_rl/nemo_rl/algorithms/single_controller_utils/setup.py	2026-09-24 22:39:02.000000000 -0700
++++ patches/nemo_rl/nemo_rl/algorithms/single_controller_utils/setup.py	2026-09-27 15:52:43.000000000 -0700
+@@ -896,7 +896,9 @@
+     dump_dir = resolve_dump_dir(master_config)
+     dump_writer = (
+         RolloutDumpWriter(
+-            dump_dir, include_text=bool(master_config.async_rl.dump.rollout_text)
++            dump_dir,
++            include_text=bool(master_config.async_rl.dump.rollout_text),
++            token_ids_mode=str(getattr(master_config.async_rl.dump, "token_ids", "off")),
+         )
+         if dump_dir is not None
+         else None
+@@ -905,7 +907,8 @@
+         print(
+             f"Rollout dump enabled: {dump_dir} "
+             f"(rollout_text={master_config.async_rl.dump.rollout_text}, "
+-            f"token_level={master_config.async_rl.dump.token_level})",
++            f"token_level={master_config.async_rl.dump.token_level}, "
++            f"token_ids={getattr(master_config.async_rl.dump, 'token_ids', 'off')})",
+             flush=True,
+         )
+     rollout_manager = RolloutManager(

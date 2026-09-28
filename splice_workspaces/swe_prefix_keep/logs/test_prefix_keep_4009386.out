@@ -1,0 +1,51 @@
+START Fri Sep 25 14:18:42 PDT 2026 node=nvl72d179-T16
+srun: lua: Checking requeue policy with options:
+== 1. override set through NeMo RL config path (driver venv)
+config: examples/nemo_gym/nemotron-3.5-nano/swe_sc_cmh_dump_minf.yaml
+29 overrides:
+  policy.model_name=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/akamehra/swe_e2e_corrected/base_model/step_18/hf
+  cluster.num_nodes=64
+  cluster.segment_size=16
+  policy.generation.colocated.resources.num_nodes=32
+  env.nemo_gym.num_gpu_nodes=0
+  checkpointing.checkpoint_dir=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-fromP20-nvshmem-keepprefix-minf-20260925/checkpoints
+  data.train.data_path=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/akamehra/swe_e2e_corrected/data/large_root_cause_curriculum_with_mercor_ots_plus_singlefile_swerebench_overlap_fix.jsonl
+  data.validation.data_path=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/akamehra/swe_e2e_corrected/data/swe_public_datasets_val_swebench.jsonl
+  sif_dir=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/akamehra/swe_e2e_corrected/sif
+  env.nemo_gym.nemo_gym_log_dir=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-fromP20-nvshmem-keepprefix-minf-20260925/runs/20260925-1416/logs/nemo_gym
+  logger.log_dir=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-fromP20-nvshmem-keepprefix-minf-20260925/runs/20260925-1416/logs
+  logger.wandb_enabled=True
+  logger.wandb.name=nano35-swe-v2-fromP20-nvshmem-keepprefix-minf-20260925
+  logger.wandb.project=ultra-v3-swe-e2e-convergence
+  grpo.max_num_steps=1000000
+  policy.megatron_cfg.tensor_model_parallel_size=4
+  policy.megatron_cfg.context_parallel_size=4
+  policy.megatron_cfg.expert_model_parallel_size=32
+  grpo.num_prompts_per_step=32
+  policy.train_global_batch_size=512
+  async_rl.min_groups_for_streaming_train=8
+  async_rl.max_buffered_rollouts=96
+  async_rl.dump.dir=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-fromP20-nvshmem-keepprefix-minf-20260925/dumps
+  +env.nemo_gym.results_dir=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-fromP20-nvshmem-keepprefix-minf-20260925/gym_results
+  policy.megatron_cfg.distributed_data_parallel_config.overlap_param_gather=false
+  policy.generation.mcore_generation_config.enable_prefix_caching=true
+  policy.megatron_cfg.distributed_data_parallel_config.overlap_param_gather=false
+  +checkpointing.load_replay_buffer=false
+  +policy.generation.mcore_generation_config.invalidate_prefix_cache_on_weight_update=false
+MasterConfig constructed: MasterConfig
+resolved: optimizer.lr = 3e-06 | min_lr = 3e-06
+resolved: checkpointing.save_optimizer = True | load_replay_buffer = False | checkpoint_dir = /scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-fromP20-nvshmem-keepprefix-minf-20260925/checkpoints
+resolved: foreign_rollout present = False | generation backend = megatron | overlap_param_gather = False
+resolved: mcore refit_backend = nvshmem | enable_prefix_caching = True | kv_cache_management_mode = persist | invalidate_prefix_cache_on_weight_update = False
+RESULT PASS
+== 2. knob behaviour in the worker venv with the overlays mounted
+patched: /opt/nemo-rl/3rdparty/Megatron-Bridge-workspace/Megatron-Bridge/3rdparty/Megatron-LM/megatron/core/inference/config.py
+patched: /opt/nemo-rl/3rdparty/Megatron-Bridge-workspace/Megatron-Bridge/3rdparty/Megatron-LM/megatron/core/inference/engines/dynamic_engine.py
+patched: /opt/nemo-rl/nemo_rl/models/generation/megatron/megatron_worker.py
+patched: /opt/nemo-rl/nemo_rl/models/generation/megatron/config.py
+InferenceConfig field: type=<class 'bool'> default=True
+resume() with flag=False: _weight_epoch=0 (stopped by AttributeError)
+resume() with flag=True: _weight_epoch=1 (stopped by AttributeError)
+worker forwards key: True | TypedDict has key: n/a
+RESULT PASS
+END Fri Sep 25 14:22:24 PDT 2026

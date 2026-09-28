@@ -1,0 +1,46 @@
+engine: vllm  config: examples/nemo_gym/nemotron-3.5-nano/swe_sc_cmh_dump_vllm.yaml
+nemo_rl: 4f779abc (rkirby/swe-v2-dump) dirty=0
+Megatron-LM: container tree (no mount)
+dumps: /scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-splice-vllm-runGdata-to10-maskY-random-rewarded-20260927/dumps  gym results: /scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-splice-vllm-runGdata-to10-maskY-random-rewarded-20260927/gym_results
+  Mount: nemo_rl → /opt/nemo-rl/nemo_rl
+  Mount: configs → /opt/nemo-rl/examples/configs
+  Mount: Nano 3.5 recipes → /opt/nemo-rl/examples/nemo_gym/nemotron-3.5-nano
+  Mount: Gym → /opt/nemo-rl/3rdparty/Gym-workspace/Gym
+  Extra mounts: /scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/workspaces/swe_replay_splice:/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/workspaces/swe_replay_splice,/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/akamehra/swe_e2e_corrected:/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/akamehra/swe_e2e_corrected,/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs:/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs,/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/persistent_cache:/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/persistent_cache,/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_pre/users/rkirby/hf_home:/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_pre/users/rkirby/hf_home,/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/workspaces/swe_mask_replay:/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/workspaces/swe_mask_replay:ro,/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/workspaces/swe_mask_replay/patches/nemo_rl/nemo_rl/experience/foreign_rollout_source.py:/opt/nemo-rl/nemo_rl/experience/foreign_rollout_source.py,/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/workspaces/swe_mask_replay/patches/nemo_rl/nemo_rl/algorithms/single_controller.py:/opt/nemo-rl/nemo_rl/algorithms/single_controller.py,/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/workspaces/swe_mask_replay/patches/nemo_rl/nemo_rl/experience/rollout_dump.py:/opt/nemo-rl/nemo_rl/experience/rollout_dump.py,/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/workspaces/swe_mask_replay/patches/nemo_rl/nemo_rl/algorithms/single_controller_utils/config.py:/opt/nemo-rl/nemo_rl/algorithms/single_controller_utils/config.py,/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/workspaces/swe_mask_replay/patches/nemo_rl/nemo_rl/algorithms/single_controller_utils/setup.py:/opt/nemo-rl/nemo_rl/algorithms/single_controller_utils/setup.py
+
+================================================================
+  Nemotron 3.5 Nano — nano35-swe-v2-splice-vllm-runGdata-to10-maskY-random-rewarded-20260927 (64-node)
+================================================================
+  Job name:    nano35-swe-v2-splice-vllm-runGdata-to10-maskY-random-rewarded-20260927  (singleton — only one runs at a time)
+  Config:      examples/nemo_gym/nemotron-3.5-nano/swe_sc_cmh_dump_vllm.yaml
+  Nodes:       64 total
+    Training:  32  (128 GPUs)
+    vLLM gen:  32  (128 GPUs)
+    Gym:       0  (0 GPUs)
+  Walltime:    8:00:00
+  Batch script: /scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/workspaces/swe_replay_splice/nemo_rl/ray.sub
+
+  Checkpoints: /scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-splice-vllm-runGdata-to10-maskY-random-rewarded-20260927/checkpoints  (stable — auto-resumes across jobs)
+  Run dir:     /scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-splice-vllm-runGdata-to10-maskY-random-rewarded-20260927/runs/20260927-1853
+  Logs:        /scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-splice-vllm-runGdata-to10-maskY-random-rewarded-20260927/runs/20260927-1853/logs
+  Slurm logs:  /scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-splice-vllm-runGdata-to10-maskY-random-rewarded-20260927/runs/20260927-1853/slurm
+  W&B:         ultra-v3-swe-e2e-convergence / nano35-swe-v2-splice-vllm-runGdata-to10-maskY-random-rewarded-20260927 (enabled=True)
+
+  Model:       /scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/akamehra/swe_e2e_corrected/base_model/step_18/hf
+  Train data:  /scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/akamehra/swe_e2e_corrected/data/large_root_cause_curriculum_with_mercor_ots_plus_singlefile_swerebench_overlap_fix.jsonl
+  Val data:    /scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/akamehra/swe_e2e_corrected/data/swe_public_datasets_val_swebench.jsonl
+  Container:   /scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/akamehra/containers/rl-gym.63635108-zstd.sqsh
+  Custom vLLM: 0
+  Sandbox:     /scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/akamehra/containers/nemo-skills-sandbox-no-sync.sqsh
+
+  Monitor:  squeue -u $USER -n nano35-swe-v2-splice-vllm-runGdata-to10-maskY-random-rewarded-20260927
+  Logs:     tail -f /scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-splice-vllm-runGdata-to10-maskY-random-rewarded-20260927/runs/20260927-1853/slurm/*.out
+  Latest:   ls -la /scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-splice-vllm-runGdata-to10-maskY-random-rewarded-20260927/runs/latest
+
+================================================================
+
+sbatch: lua: Checking requeue policy with options:
+Submitted batch job 4055491
+
+  Ray logs:    /scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/runs/nano35-swe-v2-splice-vllm-runGdata-to10-maskY-random-rewarded-20260927/ray_logs/4055491-logs/
+

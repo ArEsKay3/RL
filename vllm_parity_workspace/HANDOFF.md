@@ -106,6 +106,27 @@ SLURM_DEPENDENCY=afterany:<previous_job_id> [...same as above...]
 SMOKE=1 bash launch_swe_vllm_parity.sh
 ```
 
+`+checkpointing.load_replay_buffer=false` is baked into the launcher
+(`RESUME_OVERRIDES`) as of commit `4bc747be` — every launch carries it,
+fresh or resume, no need to pass it by hand. This is rkirby's standing rule
+as of 2026-09-28 ("FROM NOW ON EVERYTHING IS ALWAYS RUN WITH
+LOAD_REPLAY_BUFFER=FALSE ALWAYS"), superseding the earlier per-arm judgment
+call below this file used to make. `Requeue=0` is also set on any segment
+submitted this way going forward — a node failure ends the segment cleanly
+instead of an in-place Slurm requeue restoring the buffer regardless of the
+flag (see the "V3 curriculum shift" note further down for why that matters).
+
+**Caveat when checking what a queued segment actually carries:** the
+sbatch script itself does *not* contain the literal TRAIN_CMD — it's an
+exported env var consumed by `ray.sub` at job start, written to
+`ray_logs/<jobid>-logs/driver_command.sh` only once the job actually runs.
+Before that, the only rendered-command evidence is `provenance.txt` under
+the run dir's timestamped subdirectory — and **two segments of the same
+EXP_NAME submitted within the same minute share one provenance.txt**; the
+second overwrites the first. If you need to verify two same-minute
+submissions independently, stagger them past the minute boundary or wait
+for `driver_command.sh` once each one starts.
+
 ## Two traps that cost real time this project — read before editing the yaml
 
 1. **Hydra validates CLI overrides against the YAML, not the Pydantic
@@ -135,13 +156,20 @@ Full incident writeup: search memory `hydra-override-plus-vs-plain`.
 - **chain V (seed 42) resume**: stopped at step_35, not resumed as of this
   handoff. Resume is possible — replay buffer + `pending_rollouts.pt` were
   saved with the rung.
-- **Replay-buffer policy on resume**: chain V's resume used
-  `+checkpointing.load_replay_buffer=false` on rkirby's explicit order,
-  tied to that specific incident (two crashed resumes immediately before
-  it). V2/V3 resume on the **default** (buffer restored) — a deliberate
-  choice, not an oversight; see memory `feedback-peer-relayed-instructions`
-  and the arm-V memory for the reasoning. Reconsider per-arm if a resume
-  looks wrong, don't apply the flag by default.
+- **Replay-buffer policy on resume**: RESOLVED 2026-09-28, no longer open.
+  V2/V3 initially resumed on the default (buffer restored), a deliberate
+  per-arm choice at the time — until a Slurm requeue on chain V3 (job
+  4068673, 10:45) restored a stale buffer mid-rollout-collection, mixing
+  pre-crash in-flight rollouts into the wrong step's commit and shifting
+  V3's prompt curriculum ~2 blocks ahead of V/V2 from step 4 on (silent, no
+  traceback — only visible in the rollout dumps' row counts). rkirby then
+  set the unconditional rule: "FROM NOW ON EVERYTHING IS ALWAYS RUN WITH
+  LOAD_REPLAY_BUFFER=FALSE ALWAYS." Now baked into the launcher (see
+  "How to launch / resume" above) and `Requeue=0` is set on segments
+  submitted after this rule. See memory
+  `feedback-always-skip-replay-buffer-restore` for the full incident.
+  **V3's steps 2-4 remain curriculum-shifted relative to V/V2 — that data is
+  not retroactively fixed by the rule, only future segments are protected.**
 - Two eval-mode gate bugs found in the parity branch
   (`PARITY_BRANCH_REPORT.md`) have not been sent upstream to Keshav yet.
 

@@ -21,6 +21,8 @@ FILE_RE = re.compile(r"^[\w.\-]+\.jsonl$")
 ELIDE = 20000
 CACHE_V = 2
 NPROC = 4
+INDEX_SEM = threading.BoundedSemaphore(2)
+SUMMARY_COLS = ["instance_id", "reward", "truncated", "agent_error_kind", "resolved", "num_assistant_turns", "generation_length", "total_tokens", "loop_turns", "loop_tokens", "loop_pct", "min_zlib", "runaway", "max_turn_tokens"]
 HEAD_KEYS = ["sample_id", "group_id", "completion_index", "target_step", "start_weight_version", "end_weight_version", "committed_at", "prompt_idx", "environment", "reward", "truncated", "num_assistant_turns", "generation_length", "total_tokens"]
 
 ROLL_COLS = ["arm", "train_step", "adv", "mask_metric_X", "mask_metric_Z", "r_deep_contrib", "r_deep_contrib_per1k_step", "absadv_x_live", "live_deep_1mp", "mean_1mp_deep", "n_deep_turns", "deep_think_tokens",
@@ -44,7 +46,7 @@ def conv(row, cols):
 
 class Metrics:
     def __init__(self, d):
-        self.dir = d; self.lock = threading.Lock(); self.roll = {}; self.turns = {}; self.steps = {}; self.sig = None; self.checked = 0; self.loading = False; self.loaded_at = None; self.n_roll = 0; self.n_turn = 0
+        self.dir = d; self.lock = threading.Lock(); self.roll = {}; self.turns = {}; self.steps = {}; self.masklists = {}; self.sig = None; self.checked = 0; self.loading = False; self.loaded_at = None; self.n_roll = 0; self.n_turn = 0
     def _sig(self):
         if not os.path.isdir(self.dir): return ()
         return tuple(sorted((f, os.path.getmtime(os.path.join(self.dir, f))) for f in os.listdir(self.dir) if f.endswith(".csv") and "all_arms" not in f))
@@ -71,11 +73,21 @@ class Metrics:
                     with open(p, newline="") as fh:
                         for r in csv.DictReader(fh):
                             turns.setdefault(r["run"], {}).setdefault((int(float(r["target_step"])), r["sample_id"]), {})[int(float(r["turn"]))] = conv(r, TURN_COLS); nt += 1
-            with self.lock: self.roll, self.turns, self.steps, self.sig, self.n_roll, self.n_turn, self.loaded_at = roll, turns, steps, sig, nr, nt, time.time()
+            ml = {}
+            for run, byts in roll.items():
+                for ts, rows in byts.items():
+                    for m in rows.values():
+                        for L in "XYZ":
+                            if m.get(f"in_{L}_mask_rank") is not None: ml.setdefault(run, set()).add(L)
+            with self.lock: self.roll, self.turns, self.steps, self.masklists, self.sig, self.n_roll, self.n_turn, self.loaded_at = roll, turns, steps, ml, sig, nr, nt, time.time()
         except Exception as e:
             print("metrics load failed:", repr(e), flush=True)
         finally: self.loading = False
     def has_step(self, run, ts): return ts in self.steps.get(run, ())
+    def masklist(self, run, L):
+        key = f"in_{L}_mask_rank"
+        rows = [dict(m, sample_id=sid, target_step=ts) for ts, d in self.roll.get(run, {}).items() for sid, m in d.items() if m.get(key) is not None]
+        rows.sort(key=lambda r: r[key]); return rows
     def rollout(self, run, ts, sid): return self.roll.get(run, {}).get(ts, {}).get(sid)
     def turn_rows(self, run, ts, sid): return self.turns.get(run, {}).get((ts, sid), {})
     def status(self): return {"dir": self.dir, "runs": {r: sorted(v) for r, v in self.steps.items()}, "n_rollout_rows": self.n_roll, "n_turn_rows": self.n_turn, "loaded_at": self.loaded_at, "loading": self.loading}
@@ -128,6 +140,9 @@ class Index:
         threading.Thread(target=self._run, daemon=True).start()
 
     def _run(self):
+        with INDEX_SEM: self._run_locked()
+
+    def _run_locked(self):
         try:
             size = os.path.getsize(self.path)
             start = (self.offsets[-1] + self.lengths[-1] + 1) if self.offsets else 0
@@ -324,7 +339,7 @@ class App:
                 try: st = os.stat(os.path.join(d, f)); tot += st.st_size; latest = max(latest, st.st_mtime)
                 except OSError: pass
             a = self.labels.get(name)
-            res.append({"name": name, "arm": a, "label": ARM_DESC.get(a) if a else None, "n_files": len(files), "total_bytes": tot, "latest_mtime": latest, "metrics_steps": len(self.metrics.steps.get(name, ()))})
+            res.append({"name": name, "arm": a, "label": ARM_DESC.get(a) if a else None, "n_files": len(files), "total_bytes": tot, "latest_mtime": latest, "metrics_steps": len(self.metrics.steps.get(name, ())), "mask_lists": sorted(self.metrics.masklists.get(name, ()))})
         res.sort(key=lambda r: -r["latest_mtime"])
         self._runs = (time.time(), res); return res
 
@@ -362,6 +377,22 @@ class App:
         if i < 0 or i >= len(idx.offsets): raise IndexError(i)
         return json.loads(idx.read(i))
 
+    def masklist(self, run, L, start):
+        if L not in ("X", "Y", "Z"): raise KeyError(L)
+        rows = self.metrics.masklist(run, L); status = {}
+        for ts in sorted({r["target_step"] for r in rows}):
+            f = f"target_step_{ts:05d}.jsonl"
+            try: idx = self.index(run, f, start=start)
+            except KeyError: status[str(ts)] = {"state": "missing", "file": f}; continue
+            st = idx.status(); st["file"] = f; status[str(ts)] = st
+            pos = {x["sample_id"]: x for x in idx.summaries if x}
+            for r in rows:
+                if r["target_step"] != ts: continue
+                r["file"] = f; x = pos.get(r["sample_id"])
+                if x:
+                    r["i"] = x["i"]; r.update({k: x.get(k) for k in SUMMARY_COLS})
+        return {"run": run, "list": L, "arm": self.labels.get(run), "rows": rows, "status": status, "n_located": sum(1 for r in rows if r.get("i") is not None)}
+
     def file_step(self, f):
         m = re.search(r"(\d+)", f); return int(m.group(1)) if m else None
 
@@ -395,6 +426,7 @@ class Handler(BaseHTTPRequestHandler):
             self.app.metrics.maybe_refresh()
             if u.path == "/api/runs": return self.send_json(self.app.runs())
             if u.path == "/api/metrics": return self.send_json(self.app.metrics.status())
+            if u.path == "/api/masklist": return self.send_json(self.app.masklist(q["run"], q.get("list", "X"), q.get("start", "1") == "1"))
             if u.path == "/api/files": return self.send_json(self.app.files(q["run"]))
             if u.path == "/api/index":
                 idx = self.app.index(q["run"], q["file"], start=q.get("start", "1") == "1"); return self.send_json(idx.status())
@@ -424,11 +456,11 @@ class Handler(BaseHTTPRequestHandler):
                 else: have.sort(key=lambda r: str(r.get(sort)), reverse=desc)
                 rows = have + miss
                 off = int(q.get("offset", 0)); lim = int(q.get("limit", 100))
-                return self.send_json({"status": idx.status(), "n": len(rows), "rows": rows[off:off + lim], "has_metrics": has_metrics, "arm": self.app.labels.get(q["run"])})
+                return self.send_json({"status": idx.status(), "n": len(rows), "rows": rows[off:off + lim], "has_metrics": has_metrics, "arm": self.app.labels.get(q["run"]), "mask_lists": sorted(self.app.metrics.masklists.get(q["run"], ()))})
             if u.path == "/api/record":
                 rec = self.app.record(q["run"], q["file"], int(q["i"]))
                 ts = self.app.file_step(q["file"]); has = self.app.metrics.has_step(q["run"], ts); m = self.app.metrics.rollout(q["run"], rec.get("target_step", ts), rec.get("sample_id")) if has else None
-                return self.send_json({"i": int(q["i"]), "n": len(self.app.index(q["run"], q["file"], start=False).offsets), "record": elide(redact(rec)), "turn_paths": turn_paths(rec), "loop": loop_stats(rec), "has_metrics": has, "trained": (m is not None) if has else None, "metrics": m})
+                return self.send_json({"i": int(q["i"]), "n": len(self.app.index(q["run"], q["file"], start=False).offsets), "record": elide(redact(rec)), "turn_paths": turn_paths(rec), "loop": loop_stats(rec), "has_metrics": has, "trained": (m is not None) if has else None, "metrics": m, "mask_lists": sorted(self.app.metrics.masklists.get(q["run"], ()))})
             if u.path == "/api/turns":
                 rec = self.app.record(q["run"], q["file"], int(q["i"]))
                 T = turns_of(rec); ts = self.app.file_step(q["file"]); has = self.app.metrics.has_step(q["run"], ts)

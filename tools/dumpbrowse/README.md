@@ -46,3 +46,10 @@ links) with per-turn contrib, 1-p deep and p(</think>); the group tab shows the 
 siblings' signed contributions plus the group net and cancel ratio. Metrics are arm-local.
 The CSVs are re-read automatically when they change (checked every 30 s); /api/metrics
 shows what is loaded. Override the directory with --metrics.
+
+Mask-list view (`#/mask/<run>/X|Y|Z`, linked from the runs page, the rollout table note
+and the rollout header): every rollout of a run that sits in the chain X / Y / Z list, across
+all its steps in one sortable table (rank, step, instance, adv, mask metric, R_deep contrib,
+deep turns and tokens, 1-p deep, loop flags, group net and cancel), with a link to the rollout
+and an inline "deep turns" expander that shows the reasoning of the turn(s) carrying the
+gradient. Steps whose file is not indexed yet are indexed on first visit (two files at a time).

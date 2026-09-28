@@ -1,0 +1,134 @@
+{
+ "nano35-swe-915-64n-minf-20260925": {
+  "arm": "T",
+  "desc": "chain T (swe_915 MINF from scratch, masking off) | `` | 4006272 | PENDING Resources, StartTime 14:52:46"
+ },
+ "nano35-swe-915-64n-vllm-20260925": {
+  "arm": "S",
+  "desc": "chain S (swe_915 vLLM from scratch, masking off) | `` | **4006271** | — (just started) | swe_915"
+ },
+ "nano35-swe-main915-64n-minf-20260927": {
+  "arm": "U",
+  "desc": "chain U: swe_main915 stack (NeMo RL main), MINF from scratch, 64 nodes"
+ },
+ "nano35-swe-v2-from0-noprefix-vllm-20260926": {
+  "arm": "Q4",
+  "desc": "chain Q⁗: vLLM from scratch, no prefix cache"
+ },
+ "nano35-swe-v2-from0-noprefix-vllm-seed1234-20260927": {
+  "arm": "Q4b",
+  "desc": "chain Q⁗2: vLLM from scratch, no prefix cache, seed 1234 (replica of Q⁗)"
+ },
+ "nano35-swe-v2-from0-nvshmem-keepprefix-minf-20260925": {
+  "arm": "P4",
+  "desc": "chain P⁗: MINF from scratch, prefix cache kept across refits (nvshmem)"
+ },
+ "nano35-swe-v2-from0-nvshmem-keepprefix-minf-seed1234-20260926": {
+  "arm": "P4b",
+  "desc": "chain P⁗2: MINF from scratch, prefix cache kept, seed 1234 (replica of P⁗)"
+ },
+ "nano35-swe-v2-from0-parity-minf-20260927": {
+  "arm": "V",
+  "desc": "chain V: MINF from scratch with the vLLM numerical-parity branch"
+ },
+ "nano35-swe-v2-from0-parity-minf-seed1234-20260928": {
+  "arm": "V2",
+  "desc": "chain V2: vLLM-parity MINF from scratch, seed 1234"
+ },
+ "nano35-swe-v2-from0-parity-minf-seed4321-20260928": {
+  "arm": "V3",
+  "desc": "chain V3: vLLM-parity MINF from scratch, seed 4321"
+ },
+ "nano35-swe-v2-fromP20-lr0-minf-20260924": {
+  "arm": "Pp",
+  "desc": "chain P′: MINF engine, chain P rollouts replayed for steps 1-20, live from 21"
+ },
+ "nano35-swe-v2-fromP20-lr0-vllm-20260924": {
+  "arm": "Qp",
+  "desc": "chain Q′: vLLM engine, chain P rollouts replayed for steps 1-20, live from 21"
+ },
+ "nano35-swe-v2-fromP20-nvshmem-keepprefix-minf-20260925": {
+  "arm": "Pt",
+  "desc": "chain P‴: MINF engine, chain P rollouts replayed for steps 1-20, live from 21"
+ },
+ "nano35-swe-v2-splice-minf-runMdata-to20-20260924": {
+  "arm": "P",
+  "desc": "chain P: MINF engine, chain M rollouts replayed for steps 1-20, live from 21"
+ },
+ "nano35-swe-v2-splice-vllm-runGdata-1to7-20260928": {
+  "arm": "AB",
+  "desc": "chain AB: vLLM engine, chain G rollouts replayed for steps 1-7, live from 8"
+ },
+ "nano35-swe-v2-splice-vllm-runGdata-8to10-20260928": {
+  "arm": "AA",
+  "desc": "chain AA: vLLM engine, chain G rollouts replayed for steps 1-10, live from 11"
+ },
+ "nano35-swe-v2-splice-vllm-runGdata-to10-20260924": {
+  "arm": "R",
+  "desc": "chain R: vLLM engine, chain G rollouts replayed for steps 1-10, live from 11"
+ },
+ "nano35-swe-v2-splice-vllm-runGdata-to10-maskX-rewarded-deep-20260927": {
+  "arm": "X",
+  "desc": "chain X: vLLM engine, chain G rollouts replayed for steps 1-10, live from 11"
+ },
+ "nano35-swe-v2-splice-vllm-runGdata-to10-maskY-random-rewarded-20260927": {
+  "arm": "Y",
+  "desc": "chain Y: vLLM engine, chain G rollouts replayed for steps 1-10, live from 11"
+ },
+ "nano35-swe-v2-splice-vllm-runGdata-to16-20260924": {
+  "arm": "Rp",
+  "desc": "chain R′: vLLM engine, chain G rollouts replayed for steps 1-16, live from 17"
+ },
+ "nano35-swe-v2-splice-vllm-runMdata-to10-maskZ-punished-deep-20260927": {
+  "arm": "Z",
+  "desc": "chain Z: vLLM engine, chain M rollouts replayed for steps 1-10, live from 11"
+ },
+ "nano35-swe-v2-splice-vllm-runMdata-to20-20260924": {
+  "arm": "Q",
+  "desc": "chain Q: vLLM engine, chain M rollouts replayed for steps 1-20, live from 21"
+ },
+ "nano35-swe-v2-stream128-inorder1-cmh-64n-minf_dump-from0-nopg-noprefix-20260920": {
+  "arm": "G",
+  "desc": "chain G: MINF from scratch, no prefix cache"
+ },
+ "nano35-swe-v2-stream128-inorder1-cmh-64n-minf_dump-from0-prefix-nopg-r1-20260921": {
+  "arm": "I",
+  "desc": "chain I: MINF from scratch, prefix cache on, replica 1"
+ },
+ "nano35-swe-v2-stream128-inorder1-cmh-64n-minf_dump-from0-prefix-nopg-r2-20260921": {
+  "arm": "J",
+  "desc": "chain J: MINF from scratch, prefix cache on, replica 2"
+ },
+ "nano35-swe-v2-stream128-inorder1-cmh-64n-minf_dump-from10-20260918": {
+  "arm": "B",
+  "desc": "run B: MINF from MINF step 10"
+ },
+ "nano35-swe-v2-stream128-inorder1-cmh-64n-minf_dump-fromk10-prefix-nopg-20260923": {
+  "arm": "L",
+  "desc": "chain L: MINF from chain K step 10, prefix cache on, seed 1234"
+ },
+ "nano35-swe-v2-stream128-inorder1-cmh-64n-minf_dump-fromvllm10-20260920": {
+  "arm": "F",
+  "desc": "chain F: MINF from vLLM step 10"
+ },
+ "nano35-swe-v2-stream128-inorder1-cmh-64n-vllm_dump-20260918": {
+  "arm": "A",
+  "desc": "run A: vLLM from scratch"
+ },
+ "nano35-swe-v2-stream128-inorder1-cmh-64n-vllm_dump-from0-nopg-r1-20260923": {
+  "arm": "M",
+  "desc": "chain M: vLLM from scratch, replica 1 (chain J argument set)"
+ },
+ "nano35-swe-v2-stream128-inorder1-cmh-64n-vllm_dump-from0-nopg-r2-20260923": {
+  "arm": "N",
+  "desc": "chain N: vLLM from scratch, replica 2 (chain J argument set)"
+ },
+ "nano35-swe-v2-stream128-inorder1-cmh-64n-vllm_dump-from0-seed1234-20260922": {
+  "arm": "K",
+  "desc": "chain K: vLLM from scratch, seed 1234"
+ },
+ "nano35-swe-v2-stream128-inorder1-cmh-64n-vllm_dump-from10-nopg-20260919": {
+  "arm": "D",
+  "desc": "chain D: vLLM from MINF step 10"
+ }
+}

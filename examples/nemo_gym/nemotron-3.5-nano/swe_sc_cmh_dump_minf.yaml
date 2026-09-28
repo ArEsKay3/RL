@@ -9,3 +9,4 @@ async_rl:
     dir: null
     rollout_text: true
     token_level: true
+    token_ids: off

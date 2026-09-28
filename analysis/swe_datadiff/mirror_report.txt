@@ -1,0 +1,13 @@
+MIRROR TEST: does disabling vLLM's prefix cache remove the growing engine-trainer mismatch? Steps 1-10 restricted to each run's first Slurm segment (fresh engine at step 1). |d| x1e3 = token-weighted mean |trainer - engine logprob| over short turns (< 500 tokens); turn 0 = first assistant turn of each rollout. Slope = OLS per step with se.
+run                         cache                 steps     1     2     3     4     5     6     7     8     9    10 |    slope all  slope turn0 | mean 6-10 minus 1-5: all  turn0
+VLLM (no prefix caching)    cache: none           1-10  12.14 13.01 12.29 12.43 12.30 12.17 12.45 12.04 12.47 12.82 | +0.006±0.035 +0.102±0.081 |                    -0.04  +0.06
+VLLM                        cache kept            1-8   12.14 12.83 12.29 12.52 12.27 12.30 12.46 12.36     .     . | -0.007±0.035 +0.220±0.109 |                    -0.04  +0.46
+VLLM                        cache kept            1-10  11.97 12.65 12.21 12.46 12.29 12.20 12.69 12.15 12.79 13.24 | +0.077±0.035 +0.210±0.080 |                    +0.29  +0.62
+VLLM                        cache kept            1-10  12.10 12.78 12.23 12.55 12.20 12.05 12.58 12.21 12.58 12.95 | +0.037±0.033 +0.158±0.063 |                    +0.10  +0.50
+VLLM                        cache kept            1-10  11.89 12.82 12.20 12.53 12.33 12.16 12.67 12.27 12.66 12.94 | +0.054±0.034 +0.157±0.068 |                    +0.19  +0.47
+Minf (no cache invalidation)cache kept            1-10  12.00 12.95 12.29 12.61 12.52 12.21 13.07 12.18 13.09 13.24 | +0.076±0.044 +0.178±0.072 |                    +0.28  +0.63
+Minf                        cache: none           1-6   11.88 12.87 12.25 12.60 12.46 12.34     .     .     .     . | +0.040±0.087 +0.150±0.233 |                    -0.07  -0.13
+Minf                        cache invalidated     1-10  11.99 12.87 12.35 12.44 12.60 12.26 12.83 12.17 12.87 13.08 | +0.058±0.036 +0.226±0.075 |                    +0.19  +0.65
+VLLM (the healthy Minf run) cache invalidated     1-10  11.87 12.86 12.30 12.48 12.18 12.29 12.47 12.16 12.59 13.02 | +0.047±0.036 +0.145±0.113 |                    +0.17  +0.23
+
+Reference from the full 30-step runs (segments_report.txt): first-turn slope +0.19 ± 0.04 x1e-3 per step with the cache kept across refits, +0.01 ± 0.03 with the cache invalidated or absent.

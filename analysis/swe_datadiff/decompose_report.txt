@@ -1,0 +1,29 @@
+DECOMPOSITION of the long-turn exposure (turns 4k-16k tokens, steps 1-10). adv>0 = rewarded rollout, adv<0 = punished, adv=0 = zero-variance group (no gradient).
+arm out   long turns  tok(M) | n adv>0  tok% mean adv | n adv<0  tok% mean adv | n adv=0  tok% |     E+      E-       E | rollouts w/ long turn: rew%  pun% zero%
+G   BAD         1247    7.40 |     227  16.9   +1.025 |     369  29.5   -0.628 |     651  53.6 |  +9.51   -9.60   -0.09 |                        19.2  30.9  49.8
+I   BAD         1234    7.48 |     189  14.9   +1.133 |     393  31.3   -0.575 |     652  53.8 |  +9.02   -9.84   -0.82 |                        15.1  33.4  51.5
+J   good        1273    7.57 |     168  12.2   +1.132 |     438  34.4   -0.590 |     667  53.3 |  +7.47  -10.90   -3.44 |                        15.9  34.3  49.8
+A   good        1333    7.75 |     167  11.8   +1.150 |     404  30.8   -0.669 |     762  57.5 |  +7.56  -11.76   -4.20 |                        13.3  30.0  56.7
+K   good        1207    7.03 |     160  13.2   +1.090 |     370  30.2   -0.653 |     677  56.6 |  +7.32   -9.65   -2.33 |                        14.5  32.4  53.1
+M   good        1238    7.27 |     183  13.8   +1.132 |     398  32.9   -0.721 |     657  53.3 |  +8.32  -12.19   -3.88 |                        15.5  32.0  52.4
+N   good        1225    7.09 |     164  12.7   +1.023 |     431  35.1   -0.649 |     630  52.2 |  +6.85  -11.62   -4.77 |                        14.0  34.6  51.4
+
+Same for ALL generated tokens (the length-asymmetry statistic): share of tokens by adv sign and mean adv by sign
+arm out   rollouts | adv>0 n  tok% mean adv mean len | adv<0 n  tok% mean adv mean len | adv=0 n  tok% mean len |   E all
+G   BAD       5120 |    1280  20.2   +0.723    21843 |    1200  28.2   -0.779    32547 |    2640  51.6    27085 |  -36.49
+I   BAD       5120 |    1191  19.4   +0.774    22643 |    1225  26.7   -0.738    30422 |    2704  53.9    27778 |  -28.97
+J   good      5120 |    1093  17.7   +0.795    22711 |    1227  29.2   -0.714    33366 |    2800  53.1    26564 |  -46.85
+A   good      5120 |    1210  18.6   +0.764    21089 |    1158  26.6   -0.765    31587 |    2752  54.9    27412 |  -39.66
+K   good      5120 |    1223  18.9   +0.727    21564 |    1257  28.6   -0.740    31773 |    2640  52.6    27864 |  -43.87
+M   good      5120 |    1064  18.0   +0.812    23544 |    1144  26.7   -0.750    32532 |    2912  55.4    26528 |  -40.40
+N   good      5120 |    1196  18.9   +0.739    21845 |    1188  28.4   -0.754    33045 |    2736  52.6    26562 |  -50.89
+
+Group structure: number of rewarded members per group (histogram over 320 groups) and mean generated length of rewarded vs punished members within mixed groups
+arm out      0    1    2    3    4    5    6    7    8    9   10   11   12   13   14   15   16 | mixed groups  rew len  pun len  ratio
+G   BAD    130   20   12    8   10    6   10    5    8    5    6   11    6    8   19   21   35 |          155    21843    32547  0.671
+I   BAD    129   18   17   12    5   10    6    7    6    1   10    7   13    8   11   20   40 |          151    22643    30422  0.744
+J   good   130   22   16    8    8    9    7    4    5    6    5   13    7    9   10   16   45 |          145    22711    33366  0.681
+A   good   134   13   18   11    8    6    7    4    7   10    4    8   10    8   12   22   38 |          148    21089    31587  0.668
+K   good   127   27   12    5    9    8   11    5    5    6    5    9    5   13   17   18   38 |          155    21564    31773  0.679
+M   good   133   15   14   15    7    4    6   12    4    6    4    8    5   12   12   14   49 |          138    23544    32532  0.724
+N   good   130   22   10   10    5   10    6    7    8    6    8    9    6    8   14   20   41 |          149    21845    33045  0.661

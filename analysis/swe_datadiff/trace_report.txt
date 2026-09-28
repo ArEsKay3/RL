@@ -1,0 +1,46 @@
+TRACE 1. success rate of rollouts by their LONGEST turn (tokens), steps 1-10. n = rollouts, rate = mean reward, [95% CI]
+arm out                   0-1000              1000-2000              2000-4000              4000-8000             8000-16000              16000-inf             4000-16000
+G   BAD   514/1023=0.502[0.47,0.53] 758/1824=0.416[0.39,0.44] 385/1394=0.276[0.25,0.30] 165/675 =0.244[0.21,0.28]  15/145 =0.103[0.06,0.16]   3/59  =0.051[0.02,0.14] 180/820 =0.220[0.19,0.25]
+I   BAD   541/1079=0.501[0.47,0.53] 761/1855=0.410[0.39,0.43] 375/1325=0.283[0.26,0.31] 127/648 =0.196[0.17,0.23]  24/151 =0.159[0.11,0.23]   3/62  =0.048[0.02,0.13] 151/799 =0.189[0.16,0.22]
+J   good  547/1055=0.518[0.49,0.55] 729/1809=0.403[0.38,0.43] 373/1367=0.273[0.25,0.30] 146/684 =0.213[0.18,0.25]  13/139 =0.094[0.06,0.15]   5/66  =0.076[0.03,0.17] 159/823 =0.193[0.17,0.22]
+A   good  557/1068=0.522[0.49,0.55] 741/1816=0.408[0.39,0.43] 389/1357=0.287[0.26,0.31] 115/691 =0.166[0.14,0.20]  15/140 =0.107[0.07,0.17]   1/48  =0.021[0.00,0.11] 130/831 =0.156[0.13,0.18]
+K   good  566/1086=0.521[0.49,0.55] 752/1834=0.410[0.39,0.43] 364/1366=0.266[0.24,0.29] 130/646 =0.201[0.17,0.23]  17/121 =0.140[0.09,0.21]   2/67  =0.030[0.01,0.10] 147/767 =0.192[0.17,0.22]
+M   good  527/1035=0.509[0.48,0.54] 751/1850=0.406[0.38,0.43] 402/1373=0.293[0.27,0.32] 155/664 =0.233[0.20,0.27]  11/139 =0.079[0.04,0.14]   2/59  =0.034[0.01,0.12] 166/803 =0.207[0.18,0.24]
+N   good  579/1108=0.523[0.49,0.55] 730/1793=0.407[0.38,0.43] 407/1384=0.294[0.27,0.32] 119/650 =0.183[0.16,0.21]  16/126 =0.127[0.08,0.20]   1/59  =0.017[0.00,0.09] 135/776 =0.174[0.15,0.20]
+
+TRACE 2. rollouts with at least one 4k-16k turn: how many, how many long turns each, success rate; and success rate of the OTHER rollouts
+arm out   n rollouts long turns/rollout  success          [CI] | others success | success by # long turns: 1      2     3+
+G   BAD          840               1.48    0.215 [0.189,0.245] |          0.388 | 0.239(573) 0.206(175) 0.087(92)
+I   BAD          832               1.48    0.185 [0.160,0.213] |          0.391 | 0.182(549) 0.218(202) 0.123(81)
+J   good         854               1.49    0.189 [0.164,0.216] |          0.387 | 0.231(568) 0.128(196) 0.056(90)
+A   good         857               1.56    0.153 [0.130,0.178] |          0.396 | 0.176(573) 0.109(174) 0.100(110)
+K   good         798               1.51    0.185 [0.160,0.214] |          0.389 | 0.225(529) 0.100(180) 0.124(89)
+M   good         826               1.50    0.202 [0.176,0.231] |          0.391 | 0.227(559) 0.158(177) 0.133(90)
+N   good         806               1.52    0.169 [0.144,0.196] |          0.398 | 0.187(534) 0.145(186) 0.105(86)
+
+TRACE 3. per step: rewarded rollouts with a 4k-16k turn (count) and mean number of 4k-16k turns per rewarded rollout
+arm out         1       2       3       4       5       6       7       8       9      10  total
+G   BAD    12/13   14/16   12/14   35/47   17/24   15/19   25/36   23/34   15/17   13/21     181
+I   BAD     6/8    15/19    4/4    30/43   10/18   21/30   20/29   19/28   13/15   16/24     154
+J   good    8/9    10/10   10/13   33/48   13/15   13/16   22/27   26/29   11/13   15/17     161
+A   good    1/1    11/14    7/7    20/37   10/12   18/35   19/27   23/29   14/16    8/12     131
+K   good    6/7    10/12    9/9    22/31    9/10   13/17   24/34   17/19   14/16   24/36     148
+M   good   11/13    6/6    14/19   32/60   15/19   22/32   23/26   23/26   11/13   10/15     167
+N   good    9/11    8/8     6/11   28/45   12/19   17/23   16/18   18/27    8/8    14/19     136
+   (rewarded rollouts with a long turn / long turns they contain)
+
+TRACE 4. where do rewarded long turns sit? think share, zlib, relative position, tool called next (from turn features), compared with punished long turns
+G BAD  rewarded  n  227 mean tok   5504 think share 0.84 zlib mean 0.274 share zlib<0.20 0.05 rel pos 0.55 is last turn 0.00 no-close 0.000 mean engine lp -0.175 d_close +0.0015
+G BAD  punished  n  369 mean tok   5907 think share 0.84 zlib mean 0.262 share zlib<0.20 0.13 rel pos 0.63 is last turn 0.02 no-close 0.005 mean engine lp -0.183 d_close -0.0001
+I BAD  rewarded  n  189 mean tok   5884 think share 0.84 zlib mean 0.274 share zlib<0.20 0.06 rel pos 0.54 is last turn 0.01 no-close 0.000 mean engine lp -0.183 d_close -0.0031
+I BAD  punished  n  393 mean tok   5965 think share 0.88 zlib mean 0.252 share zlib<0.20 0.11 rel pos 0.61 is last turn 0.01 no-close 0.008 mean engine lp -0.189 d_close +0.0003
+J good rewarded  n  168 mean tok   5502 think share 0.82 zlib mean 0.267 share zlib<0.20 0.04 rel pos 0.54 is last turn 0.01 no-close 0.012 mean engine lp -0.183 d_close -0.0024
+J good punished  n  438 mean tok   5952 think share 0.86 zlib mean 0.257 share zlib<0.20 0.11 rel pos 0.62 is last turn 0.01 no-close 0.007 mean engine lp -0.183 d_close +0.0030
+A good rewarded  n  167 mean tok   5458 think share 0.76 zlib mean 0.308 share zlib<0.20 0.02 rel pos 0.53 is last turn 0.00 no-close 0.000 mean engine lp -0.165 d_close +0.0055
+A good punished  n  404 mean tok   5902 think share 0.85 zlib mean 0.276 share zlib<0.20 0.09 rel pos 0.59 is last turn 0.00 no-close 0.002 mean engine lp -0.178 d_close -0.0020
+K good rewarded  n  160 mean tok   5793 think share 0.85 zlib mean 0.263 share zlib<0.20 0.08 rel pos 0.53 is last turn 0.01 no-close 0.000 mean engine lp -0.182 d_close -0.0089
+K good punished  n  370 mean tok   5743 think share 0.85 zlib mean 0.267 share zlib<0.20 0.11 rel pos 0.61 is last turn 0.01 no-close 0.008 mean engine lp -0.182 d_close -0.0024
+M good rewarded  n  183 mean tok   5496 think share 0.84 zlib mean 0.266 share zlib<0.20 0.05 rel pos 0.55 is last turn 0.00 no-close 0.000 mean engine lp -0.175 d_close +0.0002
+M good punished  n  398 mean tok   6001 think share 0.83 zlib mean 0.265 share zlib<0.20 0.11 rel pos 0.59 is last turn 0.01 no-close 0.010 mean engine lp -0.179 d_close -0.0023
+N good rewarded  n  164 mean tok   5512 think share 0.78 zlib mean 0.306 share zlib<0.20 0.05 rel pos 0.56 is last turn 0.00 no-close 0.000 mean engine lp -0.171 d_close +0.0003
+N good punished  n  431 mean tok   5773 think share 0.81 zlib mean 0.293 share zlib<0.20 0.08 rel pos 0.60 is last turn 0.01 no-close 0.005 mean engine lp -0.172 d_close -0.0022

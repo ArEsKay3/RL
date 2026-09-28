@@ -1,0 +1,30 @@
+STALE PREFIX CACHE TEST. In a step whose rollouts straddled a refit (start weight version v, end v+1), early turns were generated under v and late turns under v+1; the trainer scores all turns with the newer weights. Weight drift alone makes early turns' trainer-minus-engine mismatch |d| larger in BOTH engines; a prefix cache that is NOT reset on refit additionally leaves the late turns of vLLM rollouts scored by the engine with stale (old-weight) KV for the cached prefix, so their |d| should stay elevated in vLLM arms but return to baseline in MINF arms.
+Per-turn mean |d| (token-mean within the turn, then mean over turns), steps 1-30, by step class (none / straddled) and by relative turn position (first 30 % / last 30 % of the rollout's turns).
+armengine        | none: early     late | straddled: early     late late-early | mixed: early     late | straddled/none ratio late | mean d straddled late  mean d none late
+G  MINF no-pfx   |     0.01226  0.01195 |          0.01218  0.01169   -0.00049 |      0.01244  0.01179 |                     0.978 |              -0.00123          -0.00129
+I  MINF pfx      |     0.01263  0.01209 |          0.01221  0.01158   -0.00063 |      0.01292  0.01198 |                     0.958 |              -0.00121          -0.00129
+J  MINF pfx      |     0.01278  0.01259 |          0.01266  0.01215   -0.00051 |      0.01284  0.01239 |                     0.965 |              -0.00126          -0.00136
+A  vLLM          |     0.01303  0.01347 |          0.01240  0.01206   -0.00035 |      0.01351  0.01476 |                     0.895 |              -0.00130          -0.00151
+K  vLLM          |     0.01301  0.01282 |          0.01310  0.01244   -0.00066 |      0.01271  0.01189 |                     0.971 |              -0.00135          -0.00144
+M  vLLM          |     0.01238  0.01222 |          0.01229  0.01179   -0.00050 |      0.01250  0.01178 |                     0.965 |              -0.00134          -0.00140
+N  vLLM          |     0.01264  0.01244 |          0.01264  0.01191   -0.00073 |      0.01250  0.01228 |                     0.957 |              -0.00130          -0.00139
+
+Same, restricted to steps 1-10, and the tail: share of turns with max |d| > 1 by class and position
+armengine        | none early none late | straddled early straddled late || max|d|>1 none early none late strad early strad late
+G  MINF no-pfx   |    0.01207   0.01170 |         0.01217        0.01156 ||              0.0156    0.0299      0.0143     0.0257
+I  MINF pfx      |    0.01222   0.01190 |         0.01235        0.01146 ||              0.0166    0.0313      0.0143     0.0263
+J  MINF pfx      |    0.01210   0.01169 |         0.01234        0.01159 ||              0.0158    0.0282      0.0169     0.0308
+A  vLLM          |    0.01216   0.01181 |         0.01223        0.01163 ||              0.0153    0.0294      0.0151     0.0290
+K  vLLM          |    0.01213   0.01176 |         0.01226        0.01132 ||              0.0162    0.0295      0.0162     0.0297
+M  vLLM          |    0.01214   0.01169 |         0.01222        0.01139 ||              0.0153    0.0302      0.0173     0.0288
+N  vLLM          |    0.01213   0.01177 |         0.01236        0.01142 ||              0.0154    0.0307      0.0178     0.0291
+
+Per-sample view: seq_mult_prob_error and TIS-clipped tokens by step class
+armengine        | none: sme median     p99 clip/1M tok | straddled: sme median     p99 clip/1M tok
+G  MINF no-pfx   |           1.0165   1.026        14.4 |                1.0162   1.024        11.9
+I  MINF pfx      |           1.0161   1.025        12.9 |                1.0156   1.025        11.4
+J  MINF pfx      |           1.0168   1.027        13.5 |                1.0165   1.026        12.6
+A  vLLM          |           1.0185   1.030        14.4 |                1.0170   1.025        11.4
+K  vLLM          |           1.0175   1.028        14.9 |                1.0175   1.026        12.7
+M  vLLM          |           1.0168   1.027        18.3 |                1.0167   1.025        16.1
+N  vLLM          |           1.0169   1.028        16.4 |                1.0166   1.025        13.8

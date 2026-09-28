@@ -1,0 +1,30 @@
+B. PAIRED BY PROMPT: group success count k per arm for every (step, prompt). How often do the bad arms have 1-4 successes where good arms have 0, and vice versa; and does long thinking accompany those rare successes?
+  prompts with all 7 arms: 320
+  arm out   k=0 prompts  k 1-4  k 5-11  k>=12 | mean k |  rare successes (k<=4) w/ long think | prompts where this arm k in 1-4 and median of others = 0
+  G   BAD           130     50      51     89 |   5.75 |             34 of 108   = 31.5%          |                                                    6
+  I   BAD           129     52      47     92 |   5.72 |             30 of 108   = 27.8%          |                                                   11
+  J   good          130     54      49     87 |   5.67 |             28 of 110   = 25.5%          |                                                   11
+  A   good          134     50      46     90 |   5.68 |             28 of 114   = 24.6%          |                                                    6
+  K   good          127     53      49     91 |   5.72 |             32 of 102   = 31.4%          |                                                   16
+  M   good          133     51      44     92 |   5.78 |             26 of 116   = 22.4%          |                                                    9
+  N   good          130     47      54     89 |   5.79 |             25 of 92    = 27.2%          |                                                   10
+
+H. WITHIN-ROLLOUT REGIME CHANGES: rollouts containing a turn at least 8x longer than the mean of its previous turns (and >= 2k tokens); share of rollouts by advantage sign; and the exposure E of the tokens in those 'jump' turns
+arm out   rollouts w/ jump rewarded punished  zero | jump turns E(jump turns) mean jump ratio | first jump at rel pos
+G   BAD               2088      443      607  1038 |       4008        -10.37            19.2 |                  0.50
+I   BAD               2002      365      582  1055 |       3937         -7.55            19.0 |                  0.49
+J   good              2073      381      641  1051 |       4063        -12.55            19.3 |                  0.49
+A   good              2061      368      567  1126 |       3978        -13.12            18.2 |                  0.49
+K   good              2002      352      606  1044 |       3826        -10.51            19.9 |                  0.49
+M   good              2053      384      583  1086 |       3926        -11.95            19.3 |                  0.49
+N   good              2021      382      604  1035 |       3896        -14.30            19.2 |                  0.49
+
+I. CONTEXT BEFORE LONG THINKS: size of the tool output (non-generated gap) immediately preceding a turn, for long (4k-16k) vs other turns, by arm and advantage sign; and share of long turns preceded by a >2k-token tool output
+arm out   gap before long, rew     pun | gap before other turns | long turns after >2k output: rew%  pun% | E(turns after >2k output)
+G   BAD                    988    1392 |                    625 |                              11.0  18.2 |                     -2.80
+I   BAD                   1113    1166 |                    621 |                              13.8  13.2 |                     -1.66
+J   good                  1278    1348 |                    624 |                              14.9  13.9 |                     -2.20
+A   good                  1303    1029 |                    621 |                              19.2  10.1 |                     -2.09
+K   good                  1449    1116 |                    618 |                              20.6  12.7 |                     -2.99
+M   good                  1284    1399 |                    624 |                              18.6  16.8 |                     -1.58
+N   good                  1362    1084 |                    623 |                              15.9  14.8 |                     -3.77

@@ -1,0 +1,27 @@
+FROZEN-WEIGHT ENGINE COMPARISON: chains P′ (MINF) and Q′ (vLLM) generate from the same frozen weights (chain P step 20, lr 0), 15 steps x 512 rollouts each. Same prompts per step. Any difference in reward/advantage coupling here is engine + sampling noise only.
+
+P′: MINF engine, frozen P step-20 weights: steps 21-35, rollouts 7680, reward rate 0.292, mean generated 28669, token shares: loops 1.32 %, 4k-16k turns 6.51 %, near-rep 6.91 %
+   E long 4k-16k                    -2.726  [ -5.408,  -0.037]
+   E near-rep                      -11.180  [-20.405,  -4.145]
+   E loop<0.10                      -7.377  [-16.122,  -1.229]
+   E turns 1k-16k                  -11.514  [-17.750,  -5.532]
+   reward share, long tokens        +0.172  [ +0.133,  +0.218]
+   reward share, near-rep tokens    +0.132  [ +0.101,  +0.169]
+   per-step E(long 4k-16k): s21:-1.1 s22:-8.0 s23:-5.1 s24:-11.7 s25:+7.3 s26:-3.7 s27:+0.3 s28:-0.1 s29:-2.2 s30:-6.7 s31:+0.1 s32:-3.1 s33:+2.1 s34:-0.7 s35:-7.8
+
+Q′: vLLM engine, frozen P step-20 weights: steps 21-36, rollouts 7808, reward rate 0.295, mean generated 28426, token shares: loops 0.91 %, 4k-16k turns 7.00 %, near-rep 6.65 %
+   E long 4k-16k                    -1.589  [ -4.057,  +0.899]
+   E near-rep                       -5.889  [-11.066,  -1.861]
+   E loop<0.10                      -3.420  [ -7.661,  -0.238]
+   E turns 1k-16k                  -14.365  [-20.130,  -9.096]
+   reward share, long tokens        +0.187  [ +0.150,  +0.227]
+   reward share, near-rep tokens    +0.162  [ +0.126,  +0.204]
+   per-step E(long 4k-16k): s21:+1.0 s22:-8.9 s23:-0.6 s24:+2.5 s25:+4.7 s26:+3.3 s27:-6.8 s28:-6.2 s29:-1.8 s30:-3.6 s31:-3.1 s32:+4.4 s33:-5.7 s34:-3.2 s35:+1.4 s36:-1.3
+
+MINF minus vLLM at frozen weights (bootstrap):
+   E long 4k-16k                  diff   -1.137  se 1.818  p 0.531
+   E near-rep                     diff   -5.291  se 4.819  p 0.272
+   E loop<0.10                    diff   -3.957  se 4.290  p 0.356
+   E turns 1k-16k                 diff   +2.850  se 4.193  p 0.497
+   reward share, long tokens      diff   -0.015  se 0.030  p 0.615
+   reward share, near-rep tokens  diff   -0.031  se 0.027  p 0.256

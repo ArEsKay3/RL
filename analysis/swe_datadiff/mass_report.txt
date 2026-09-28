@@ -1,0 +1,69 @@
+CLOSE-TOKEN EXPOSURE: E(</think>) = 1000 x sum over turns with a close of adv / total generated tokens (one close token per turn); E(<|im_end|>) likewise; E(think tokens) = adv x think tokens; ratio think/close = how much the batch reinforces 'keep thinking' relative to 'close' (both negative in all arms; less negative = weaker suppression).
+arm out    E close  E im_end E think tok E answer tok | turns rew turns pun sum adv rew turns sum adv pun turns | E close, turns>=1k E think, turns>=1k
+G   BAD    -0.0958   -0.0957      -23.40       -13.09 |    104910    127512            +83824            -97111 |            -0.0036             -14.07
+I   BAD    -0.0706   -0.0706      -21.03        -7.94 |    100694    121786            +82283            -92133 |            -0.0042             -11.99
+J   good   -0.0943   -0.0942      -33.06       -13.79 |     93650    132473            +79673            -92900 |            -0.0064             -20.52
+A   good   -0.0834   -0.0834      -26.59       -13.07 |     98521    119838            +81597            -93084 |            -0.0051             -17.10
+K   good   -0.1111   -0.1112      -27.41       -16.46 |    102640    129650            +82207            -97775 |            -0.0050             -15.54
+M   good   -0.0863   -0.0864      -25.93       -14.47 |     92370    120950            +80802            -92872 |            -0.0042             -16.27
+N   good   -0.1016   -0.1016      -31.98       -18.91 |    100260    124965            +80295            -94339 |            -0.0054             -18.92
+
+GRADIENT MASS OUTLIERS: rollouts ranked by |adv| x generated tokens (the weight a sample carries in the token-level loss). Top 12 rewarded per arm with their long-think content.
+G BAD: rewarded rollouts 1280, total positive mass +169.9 per 1k tokens, top-12 share 9%, positive mass in rollouts with a 4k+ turn: 28.4%, with near/loop tokens: 31.2%
+    s 7 d90b2_g7 adv +3.61 gen  73122 turns 144 max_turn   4380 near_tok      0 loop_tok      0 mass 1.91
+    s 5 c7600_g1 adv +3.61 gen  66460 turns 178 max_turn   2935 near_tok   7866 loop_tok      0 mass 1.73
+    s 7 90b2_g15 adv +3.61 gen  59994 turns 200 max_turn   2563 near_tok      0 loop_tok      0 mass 1.57
+    s10 1bd8_g10 adv +3.61 gen  46143 turns 186 max_turn   1508 near_tok      0 loop_tok      0 mass 1.20
+    s 5 ea806_g8 adv +2.46 gen  66771 turns 115 max_turn   7323 near_tok  12668 loop_tok      0 mass 1.19
+    s 9 57192_g7 adv +3.61 gen  41278 turns 126 max_turn   5832 near_tok   5751 loop_tok      0 mass 1.08
+I BAD: rewarded rollouts 1191, total positive mass +164.7 per 1k tokens, top-12 share 9%, positive mass in rollouts with a 4k+ turn: 23.7%, with near/loop tokens: 29.7%
+    s 5 a9f4_g13 adv +2.46 gen  90920 turns 138 max_turn  19042 near_tok  40182 loop_tok      0 mass 1.61
+    s 5 3576_g15 adv +3.61 gen  57694 turns 173 max_turn   2676 near_tok   2384 loop_tok      0 mass 1.50
+    s 2 94052_g6 adv +3.61 gen  57642 turns 106 max_turn   2260 near_tok   1725 loop_tok      0 mass 1.50
+    s 5 e6eef_g2 adv +3.61 gen  50515 turns 147 max_turn   3937 near_tok   3416 loop_tok      0 mass 1.31
+    s 4 c60a_g15 adv +3.61 gen  47784 turns 186 max_turn   3700 near_tok   6725 loop_tok      0 mass 1.24
+    s 5 a9f4_g14 adv +2.46 gen  69006 turns 127 max_turn   6424 near_tok      0 loop_tok      0 mass 1.22
+J good: rewarded rollouts 1093, total positive mass +156.3 per 1k tokens, top-12 share 9%, positive mass in rollouts with a 4k+ turn: 28.5%, with near/loop tokens: 27.6%
+    s 5 d8788_g5 adv +3.61 gen  68098 turns 154 max_turn   4757 near_tok   7501 loop_tok      0 mass 1.76
+    s 7 86e8_g15 adv +3.61 gen  62091 turns 200 max_turn   3313 near_tok      0 loop_tok      0 mass 1.60
+    s 3 ab462_g2 adv +3.61 gen  51806 turns 100 max_turn   6527 near_tok   5789 loop_tok      0 mass 1.34
+    s 5 9b05_g13 adv +3.61 gen  47933 turns 146 max_turn   7252 near_tok   7183 loop_tok      0 mass 1.24
+    s 3 ab462_g3 adv +3.61 gen  47275 turns 113 max_turn   2823 near_tok      0 loop_tok      0 mass 1.22
+    s 6 b670_g15 adv +3.61 gen  46891 turns 118 max_turn   4453 near_tok      0 loop_tok      0 mass 1.21
+A good: rewarded rollouts 1210, total positive mass +162.5 per 1k tokens, top-12 share 9%, positive mass in rollouts with a 4k+ turn: 22.4%, with near/loop tokens: 25.3%
+    s 7 c611_g15 adv +3.61 gen  68244 turns 177 max_turn   2937 near_tok   5110 loop_tok      0 mass 1.79
+    s 4 5e9a_g14 adv +3.61 gen  60901 turns 178 max_turn   3729 near_tok      0 loop_tok      0 mass 1.60
+    s 5 9731_g15 adv +3.61 gen  51919 turns 200 max_turn   3798 near_tok   3290 loop_tok      0 mass 1.36
+    s 8 74c22_g0 adv +2.46 gen  69653 turns 126 max_turn   8815 near_tok  18959 loop_tok      0 mass 1.25
+    s 9 3bb69_g5 adv +3.61 gen  46849 turns 111 max_turn   2471 near_tok      0 loop_tok      0 mass 1.23
+    s 1 6e4f2_g3 adv +3.61 gen  45302 turns 191 max_turn   3385 near_tok   2308 loop_tok      0 mass 1.19
+K good: rewarded rollouts 1223, total positive mass +159.6 per 1k tokens, top-12 share 8%, positive mass in rollouts with a 4k+ turn: 22.5%, with near/loop tokens: 23.0%
+    s10 89baf_g6 adv +3.61 gen  62148 turns 150 max_turn   5705 near_tok   7551 loop_tok      0 mass 1.61
+    s 5 77438_g9 adv +3.61 gen  53864 turns 168 max_turn   1784 near_tok      0 loop_tok      0 mass 1.39
+    s 9 f45f9_g4 adv +3.61 gen  50988 turns 112 max_turn   3429 near_tok      0 loop_tok      0 mass 1.32
+    s 5 e3533_g7 adv +2.46 gen  70591 turns 179 max_turn   4169 near_tok   3240 loop_tok      0 mass 1.24
+    s10 9baf_g10 adv +3.61 gen  40959 turns 116 max_turn   5826 near_tok      0 loop_tok      0 mass 1.06
+    s 5 5be5_g13 adv +3.61 gen  40957 turns 130 max_turn   7577 near_tok   7318 loop_tok      0 mass 1.06
+M good: rewarded rollouts 1064, total positive mass +161.5 per 1k tokens, top-12 share 9%, positive mass in rollouts with a 4k+ turn: 26.5%, with near/loop tokens: 26.4%
+    s 4 56b39_g3 adv +3.61 gen  61991 turns 141 max_turn   7207 near_tok  10142 loop_tok      0 mass 1.61
+    s 4 56b39_g5 adv +3.61 gen  58020 turns 179 max_turn   8390 near_tok   9443 loop_tok      0 mass 1.50
+    s 1 b6f9_g12 adv +3.61 gen  50078 turns 163 max_turn   4440 near_tok   4378 loop_tok      0 mass 1.30
+    s 4 55329_g8 adv +3.61 gen  49173 turns 132 max_turn   2908 near_tok      0 loop_tok      0 mass 1.27
+    s 6 a6eb6_g8 adv +3.61 gen  48413 turns 147 max_turn   5782 near_tok  17307 loop_tok      0 mass 1.25
+    s 1 d435_g10 adv +3.61 gen  47002 turns 110 max_turn   3054 near_tok      0 loop_tok      0 mass 1.22
+N good: rewarded rollouts 1196, total positive mass +156.3 per 1k tokens, top-12 share 7%, positive mass in rollouts with a 4k+ turn: 22.7%, with near/loop tokens: 22.8%
+    s10 c149e_g8 adv +3.61 gen  54857 turns 105 max_turn   8698 near_tok  16492 loop_tok      0 mass 1.44
+    s 5 7818_g10 adv +2.46 gen  62008 turns 200 max_turn   2101 near_tok      0 loop_tok      0 mass 1.11
+    s 6 935a5_g2 adv +3.61 gen  38996 turns 114 max_turn   4485 near_tok   4344 loop_tok      0 mass 1.02
+    s 5 b09e_g14 adv +3.61 gen  37020 turns 122 max_turn   2867 near_tok   2251 loop_tok      0 mass 0.97
+    s 6 8b554_g4 adv +2.46 gen  53876 turns 120 max_turn   7480 near_tok  13557 loop_tok      0 mass 0.96
+    s 8 affec_g3 adv +2.46 gen  53038 turns 197 max_turn  11290 near_tok  11229 loop_tok      0 mass 0.95
+
+NEGATIVE MASS: share of punished mass (|adv| x tokens) carried by rollouts with a 4k+ turn, and by rollouts with near/loop tokens
+G BAD: punished rollouts 1200; share of punished mass in rollouts with a 4k+ turn 30.3%; with near/loop tokens 36.4%; mean |adv| of punished 0.779; mean gen 32547
+I BAD: punished rollouts 1225; share of punished mass in rollouts with a 4k+ turn 31.1%; with near/loop tokens 36.1%; mean |adv| of punished 0.738; mean gen 30422
+J good: punished rollouts 1227; share of punished mass in rollouts with a 4k+ turn 34.2%; with near/loop tokens 41.5%; mean |adv| of punished 0.714; mean gen 33366
+A good: punished rollouts 1158; share of punished mass in rollouts with a 4k+ turn 33.2%; with near/loop tokens 38.7%; mean |adv| of punished 0.765; mean gen 31587
+K good: punished rollouts 1257; share of punished mass in rollouts with a 4k+ turn 28.4%; with near/loop tokens 34.4%; mean |adv| of punished 0.740; mean gen 31773
+M good: punished rollouts 1144; share of punished mass in rollouts with a 4k+ turn 35.3%; with near/loop tokens 39.6%; mean |adv| of punished 0.750; mean gen 32532
+N good: punished rollouts 1188; share of punished mass in rollouts with a 4k+ turn 33.6%; with near/loop tokens 38.8%; mean |adv| of punished 0.754; mean gen 33045

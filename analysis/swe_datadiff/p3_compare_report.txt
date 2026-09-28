@@ -1,0 +1,36 @@
+CHAIN P‴ (MINF, prefix cache kept across refits, from chain P step 20) against its lineage: chain P (MINF, cache invalidated per refit; live steps 21-31 after replaying chain M 1-20), chain Q (vLLM, same replay), and the frozen pair P′/Q′ (same step-20 weights, lr 0).
+Per 5-step window: reward, mean generated tokens, loop-token share %, 4k-16k-turn token share %, E(long 4k-16k), E(near-rep zlib<0.25), and the short-turn mismatch |d| x1e3 (all / first turn) with signed d x1e3.
+
+P‴: MINF keep-prefix from P step 20, lr 3e-6: steps 21-50, rollouts 15360
+  window      n reward    gen  loop%  long% |  E long  E near  E loop | |d| all   turn0 signed d
+  21-25    2560  0.320  27144   0.69   6.01 |   -5.54   -6.43   -3.63 |   13.20   14.31   -1.522
+  26-30    2560  0.274  31064   0.13   8.16 |   -1.61   -5.50   -0.35 |   14.50   18.48   -1.799   (growth vs first window: all +9.9 %, turn0 +29.1 %)
+  31-35    2560  0.289  30355   0.01   9.96 |   -7.97   -5.54   +0.00 |   14.99   21.02   -1.952   (growth vs first window: all +13.6 %, turn0 +46.8 %)
+  36-40    2560  0.277  31730   0.56  11.89 |   -9.01   -4.76   -0.33 |   14.83   16.72   -1.917   (growth vs first window: all +12.3 %, turn0 +16.8 %)
+  41-45    2560  0.263  32334   0.28  11.34 |   +1.33   -1.26   -0.38 |   15.08   15.61   -1.933   (growth vs first window: all +14.2 %, turn0 +9.1 %)
+  46-50    2560  0.270  33766   0.70   9.47 |   -2.85   -1.28   +0.27 |   15.46   16.53   -2.074   (growth vs first window: all +17.2 %, turn0 +15.5 %)
+
+P: MINF cache-invalidating, live after M-replay (same seed lineage): steps 21-30, rollouts 5120
+  window      n reward    gen  loop%  long% |  E long  E near  E loop | |d| all   turn0 signed d
+  21-25    2560  0.320  27491   1.03   6.90 |   -2.44   -2.17   -0.45 |   13.15   13.67   -1.515
+  26-30    2560  0.274  30717   1.51   8.17 |   -3.00   -8.28   -4.80 |   13.36   15.23   -1.675   (growth vs first window: all +1.6 %, turn0 +11.4 %)
+
+Q: vLLM live after M-replay: steps 21-30, rollouts 5120
+  window      n reward    gen  loop%  long% |  E long  E near  E loop | |d| all   turn0 signed d
+  21-25    2560  0.321  27288   0.29   6.31 |   -3.03   -4.34   -0.59 |   13.24   13.48   -1.500
+  26-30    2560  0.281  29332   0.13   6.64 |   -3.01   -3.69   +0.01 |   13.82   13.41   -1.701   (growth vs first window: all +4.4 %, turn0 -0.5 %)
+
+P′: MINF frozen P20 weights (lr 0): steps 21-35, rollouts 7680
+  window      n reward    gen  loop%  long% |  E long  E near  E loop | |d| all   turn0 signed d
+  21-25    2560  0.324  27149   1.18   6.11 |   -3.90   -4.16   -0.93 |   12.98   13.18   -1.465
+  26-30    2560  0.268  30034   1.77   6.55 |   -2.46  -14.81  -11.00 |   13.20   13.25   -1.503   (growth vs first window: all +1.7 %, turn0 +0.6 %)
+  31-35    2560  0.286  28824   0.98   6.87 |   -1.89  -14.01   -9.68 |   13.11   14.02   -1.517   (growth vs first window: all +1.0 %, turn0 +6.4 %)
+
+Q′: vLLM frozen P20 weights (lr 0): steps 21-36, rollouts 7808
+  window      n reward    gen  loop%  long% |  E long  E near  E loop | |d| all   turn0 signed d
+  21-25    2560  0.324  27412   0.91   6.47 |   -0.26   -2.71   -0.59 |   12.89   13.16   -1.447
+  26-30    2560  0.268  29976   1.31   7.11 |   -3.18   -9.24   -5.62 |   13.21   13.45   -1.519   (growth vs first window: all +2.5 %, turn0 +2.2 %)
+  31-35    2560  0.282  28635   0.51   7.38 |   -1.20   -5.56   -3.90 |   13.14   14.13   -1.495   (growth vs first window: all +1.9 %, turn0 +7.4 %)
+  36-40     128  0.492  13494   0.00   7.74 |   -1.29   +0.00   +0.00 |   12.84   15.56   -1.472   (growth vs first window: all -0.4 %, turn0 +18.2 %)
+
+Reading guide: P′/Q′ show the drift of the mismatch that comes from prompt sets alone (weights frozen: +1-2 % all, +6-8 % turn 0 over 15 steps). Chain P (cache invalidated) vs chain P‴ (cache kept) on the same seed weights and lr isolates the knob: a stale cache should make P‴'s |d| grow with training like the vLLM arms.

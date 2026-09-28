@@ -1,0 +1,65 @@
+RISING ENGINE-TRAINER MISMATCH vs STEPS SINCE THE ENGINE STARTED. |d| = |trainer logprob - engine logprob| x1e3, token-weighted over short turns (< 500 tokens) so loops do not confound it; 'turn 0' = the first assistant turn of each rollout, whose context is almost entirely the shared, always-hot system prompt (the part of the prefix cache that is never evicted). Every Slurm segment restart recreates the engine, so k counts steps since the last restart; segments are found from job start/end times and dump-file times.
+
+Table A. Turn-0 |d| by steps since engine start (k), longest segment of each run. Slope = OLS per step over that segment (x1e-3/step), with se. 'rise 10' = value at k=10 minus value at k=0 when k=10 exists.
+run                                         cache               seg steps |     0     1     2     3     4     5     6     7     8     9    10    11    12    13    14    15    16    17    18    19    20 |    slope/step rise 10
+VLLM                                        cache kept            9-18    |  13.5  14.0  13.5  14.6  15.1  13.8  15.0  16.9  15.6  17.0     .     .     .     .     .     .     .     .     .     .     . | +0.359±0.078    +nan
+VLLM                                        cache kept            1-14    |  11.0  12.5  13.3  13.8  12.9  12.5  12.6  13.5  14.1  14.0  13.8  13.9  14.7  13.7     .     .     .     .     .     .     . | +0.168±0.043    +2.8
+VLLM                                        cache kept            1-16    |  11.5  12.7  13.3  13.8  12.9  13.0  12.8  12.9  13.8  14.0  13.2  14.0  14.4  13.1  14.5  15.4     .     .     .     .     . | +0.146±0.033    +1.7
+VLLM                                        cache kept            1-18    |  11.5  12.7  13.4  14.0  13.0  12.8  13.2  13.3  14.0  13.7  13.2  13.9  14.0  13.2  14.1  15.8  14.4  15.7     .     .     . | +0.146±0.031    +1.7
+VLLM (no prefix caching)                    no cache              1-14    |  11.4  13.0  13.9  13.9  13.2  12.5  12.8  12.9  13.7  13.7  12.7  13.8  14.2  12.5     .     .     .     .     .     .     . | +0.053±0.049    +1.3
+Minf                                        no cache             15-30    |  13.0  15.0  13.3  14.5  14.2  13.6  12.8  12.6  13.1  12.6  12.3  12.3  12.4  11.1  13.5  11.4     .     .     .     .     . | -0.157±0.041    -0.8
+Minf                                        cache invalidated     1-13    |  11.5  12.2  13.3  13.7  13.1  12.3  12.7  13.5  14.3  14.4  13.3  13.6  14.2     .     .     .     .     .     .     .     . | +0.157±0.048    +1.8
+Minf                                        cache invalidated    13-26    |  13.1  12.7  13.2  14.9  14.4  15.0  15.1  14.6  13.8  13.9  14.8  13.8  13.8  15.0     .     .     .     .     .     .     . | +0.075±0.049    +1.7
+Minf (no cache invalidation)                cache kept           40-60    |  12.9  13.5  13.8  15.1  16.7  19.2  16.9  16.7  18.8  18.4  18.2  19.4  21.3  19.0  19.5  20.5  22.1  22.2  19.7  19.2  20.0 | +0.364±0.052    +5.3
+Minf (no cache invalidation), seed 1234     cache kept            1-13    |  10.9  13.2  13.7  14.0  12.4  13.0  12.9  13.6  13.7  14.3  13.5  14.0  15.1     .     .     .     .     .     .     .     . | +0.177±0.057    +2.6
+Minf (no cache invalidation), from step 20  cache kept           21-36    |  12.5  13.2  14.1  14.1  17.6  17.9  18.7  17.3  19.3  19.0  20.5  20.0  20.5  21.9  22.1  23.3     .     .     .     .     . | +0.668±0.050    +8.0
+
+Table B. Same, all short turns (turn 0 and later), longest segment.
+run                                         cache               seg steps |     0     1     2     3     4     5     6     7     8     9    10    11    12    13    14    15    16    17    18    19    20 |    slope/step rise 10
+VLLM                                        cache kept            9-18    |  12.4  13.2  13.1  13.5  13.1  13.5  13.8  13.4  14.0  14.0     .     .     .     .     .     .     .     .     .     .     . | +0.144±0.028    +nan
+VLLM                                        cache kept            1-14    |  12.0  12.6  12.2  12.5  12.3  12.2  12.7  12.1  12.8  13.2  12.6  13.4  12.5  13.7     .     .     .     .     .     .     . | +0.085±0.025    +0.7
+VLLM                                        cache kept            1-16    |  12.1  12.8  12.2  12.5  12.2  12.0  12.6  12.2  12.6  13.0  12.3  12.8  12.2  13.0  12.7  12.9     .     .     .     .     . | +0.034±0.016    +0.2
+VLLM                                        cache kept            1-18    |  11.9  12.8  12.2  12.5  12.3  12.2  12.7  12.3  12.7  12.9  12.5  13.2  12.3  13.5  12.9  13.0  12.9  13.6     .     .     . | +0.064±0.016    +0.6
+VLLM (no prefix caching)                    no cache              1-14    |  12.1  13.0  12.3  12.4  12.3  12.2  12.5  12.0  12.5  12.8  12.1  12.8  12.2  12.8     .     .     .     .     .     .     . | +0.012±0.021    +0.0
+Minf                                        no cache             15-30    |  12.4  12.5  12.6  13.0  12.3  12.9  12.5  12.8  12.6  12.6  13.0  12.6  11.9  12.5  12.3  12.7     .     .     .     .     . | -0.011±0.016    +0.6
+Minf                                        cache invalidated     1-13    |  12.0  12.9  12.3  12.4  12.6  12.3  12.8  12.2  12.9  13.1  12.8  12.5  12.6     .     .     .     .     .     .     .     . | +0.032±0.023    +0.8
+Minf                                        cache invalidated    13-26    |  12.1  13.3  12.8  12.8  13.0  13.4  12.8  13.6  13.4  13.7  13.0  14.1  14.0  14.1     .     .     .     .     .     .     . | +0.113±0.024    +0.9
+Minf (no cache invalidation)                cache kept           40-60    |  15.2  15.9  15.6  17.0  16.9  17.4  16.7  17.2  17.3  17.9  17.9  16.8  18.2  16.7  17.5  16.9  17.9  17.4  17.9  16.4  17.9 | +0.077±0.024    +2.7
+Minf (no cache invalidation), seed 1234     cache kept            1-13    |  12.0  13.0  12.4  12.5  12.6  12.2  12.5  12.3  12.7  13.2  12.4  13.0  12.3     .     .     .     .     .     .     .     . | +0.024±0.025    +0.5
+Minf (no cache invalidation), from step 20  cache kept           21-36    |  12.6  13.4  12.5  13.7  13.9  14.3  13.9  15.1  14.4  14.8  14.3  15.1  14.8  16.0  14.8  16.0     .     .     .     .     . | +0.187±0.027    +1.7
+
+Table C. All segments of at least 6 steps, per run: turn-0 |d| at k=0 -> at the segment's last step, slope, and the drop at the next restart (first value of the next segment minus last value of this one).
+run                                         cache                 segment    k0  last   slope drop at restart
+VLLM                                        cache kept             1-8     11.3  13.9  +0.220            -0.4
+VLLM                                        cache kept             9-18    13.5  17.0  +0.359            -2.3
+VLLM                                        cache kept            24-30    14.8  17.0  +0.405            +nan
+VLLM                                        cache kept             1-14    11.0  13.7  +0.168            -0.7
+VLLM                                        cache kept            15-28    13.1  14.9  +0.073            +nan
+VLLM                                        cache kept             1-16    11.5  15.4  +0.146            -2.5
+VLLM                                        cache kept            17-26    12.9  14.8  +0.046            +nan
+VLLM                                        cache kept             1-18    11.5  15.7  +0.146            -1.5
+VLLM                                        cache kept            19-26    14.2  15.9  +0.181            +nan
+VLLM (no prefix caching)                    no cache               1-14    11.4  12.5  +0.053            +0.6
+VLLM (no prefix caching)                    no cache              15-28    13.1  12.0  -0.011            +0.2
+VLLM (no prefix caching)                    no cache              29-38    12.2  14.3  +0.241            +nan
+Minf                                        no cache               1-6     11.2  12.6  +0.150            -0.8
+Minf                                        no cache               7-14    11.8  12.3  +0.033            +0.7
+Minf                                        no cache              15-30    13.0  11.4  -0.157            +nan
+Minf                                        cache invalidated      1-13    11.5  14.2  +0.157            -2.4
+Minf                                        cache invalidated     16-28    14.9  13.1  -0.143            +0.4
+Minf                                        cache invalidated      1-12    10.9  13.7  +0.119            -0.6
+Minf                                        cache invalidated     13-26    13.1  15.0  +0.075            -1.9
+Minf (no cache invalidation)                cache kept             1-15    11.5  14.6  +0.135            -1.4
+Minf (no cache invalidation)                cache kept            20-39    13.8  16.1  +0.240            -3.2
+Minf (no cache invalidation)                cache kept            40-60    12.9  20.0  +0.364            +nan
+Minf (no cache invalidation), seed 1234     cache kept             1-13    10.9  15.1  +0.177            +nan
+Minf (no cache invalidation), from step 20  cache kept            21-36    12.5  23.3  +0.668            -9.2
+Minf (no cache invalidation), from step 20  cache kept            37-50    14.1  16.7  +0.157            +nan
+
+Table D. Pooled by cache treatment (all segments >= 6 steps): OLS slope of |d| on steps since engine start, x1e-3 per step, with se; mean drop at restarts.
+treatment            runs arm-steps   turn-0 slope  all-short slope mean restart drop (turn 0)
+cache kept              7       204  +0.259 ± 0.028    +0.141 ± 0.021                       -2.6
+cache invalidated       2        52  +0.059 ± 0.038    +0.066 ± 0.017                       -1.1
+no cache                2        68  -0.015 ± 0.028    +0.027 ± 0.020                       +0.2
+
+Reference: the frozen-weight pair (lr 0, same prompts) drifted +1-2 % overall and +6-8 % on turn 0 over 15 steps, i.e. about +0.05-0.1 x1e-3 per step on turn 0 from the changing prompt set alone.

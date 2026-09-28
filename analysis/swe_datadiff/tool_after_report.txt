@@ -1,0 +1,33 @@
+ACTION AFTER A LONG THINK (4k-16k tokens), steps 1-10, chain G (MINF) vs chain M (vLLM): tool called at the end of the long think, by outcome of the rollout; and the tool called in the NEXT turn.
+
+== chain G: long-think events 1247 (rewarded 227, punished 369, zero-adv 651); missing 0; 127s
+  tool at end of long think          rewarded         punished             zero
+  execute_bash                  144 ( 63.4%)    216 ( 58.5%)    390 ( 59.9%)
+  str_replace_editor             53 ( 23.3%)     96 ( 26.0%)    152 ( 23.3%)
+  think                          17 (  7.5%)     32 (  8.7%)     66 ( 10.1%)
+  task_tracker                   12 (  5.3%)     19 (  5.1%)     38 (  5.8%)
+  finish                          1 (  0.4%)      4 (  1.1%)      3 (  0.5%)
+  (no tool call)                  0 (  0.0%)      2 (  0.5%)      2 (  0.3%)
+  tool in the NEXT turn              rewarded         punished             zero
+  execute_bash                  148 ( 65.2%)    219 ( 59.3%)    425 ( 65.3%)
+  str_replace_editor             67 ( 29.5%)    127 ( 34.4%)    185 ( 28.4%)
+  task_tracker                   10 (  4.4%)     13 (  3.5%)     21 (  3.2%)
+  think                           1 (  0.4%)      2 (  0.5%)      8 (  1.2%)
+  finish                          0 (  0.0%)      0 (  0.0%)      6 (  0.9%)
+  (no tool call)                  0 (  0.0%)      2 (  0.5%)      2 (  0.3%)
+
+== chain M: long-think events 1238 (rewarded 183, punished 398, zero-adv 657); missing 0; 133s
+  tool at end of long think          rewarded         punished             zero
+  execute_bash                  111 ( 60.7%)    244 ( 61.3%)    419 ( 63.8%)
+  str_replace_editor             47 ( 25.7%)     94 ( 23.6%)    145 ( 22.1%)
+  think                          17 (  9.3%)     33 (  8.3%)     55 (  8.4%)
+  task_tracker                    8 (  4.4%)     23 (  5.8%)     31 (  4.7%)
+  (no tool call)                  0 (  0.0%)      4 (  1.0%)      3 (  0.5%)
+  finish                          0 (  0.0%)      0 (  0.0%)      4 (  0.6%)
+  tool in the NEXT turn              rewarded         punished             zero
+  execute_bash                  117 ( 63.9%)    231 ( 58.0%)    435 ( 66.2%)
+  str_replace_editor             56 ( 30.6%)    136 ( 34.2%)    182 ( 27.7%)
+  task_tracker                    4 (  2.2%)     16 (  4.0%)     22 (  3.3%)
+  think                           6 (  3.3%)      8 (  2.0%)      6 (  0.9%)
+  finish                          0 (  0.0%)      2 (  0.5%)      5 (  0.8%)
+  (no tool call)                  0 (  0.0%)      2 (  0.5%)      0 (  0.0%)

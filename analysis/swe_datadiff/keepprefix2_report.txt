@@ -1,0 +1,21 @@
+MATCHED-WINDOW MISMATCH GROWTH, steps 1-5 -> 16-20 (the range chain P⁗ has). |d| = |trainer - engine logprob|, token-weighted over short turns (< 500 tokens); growth = ratio - 1 with a group bootstrap 95% CI. Turn 0 = first assistant turn (context = cached system prompt + task).
+arm engine            out    |d| 1-5    16-20              growth [CI] | turn0 1-5    16-20              growth [CI] | signed d 1-5    16-20 |  turns 1-2  turns>=10
+P4  MINF keep-prefix  ?        12.46    13.59    +9.0% [ +5.9,+12.1] |     12.84    13.63    +6.1% [ -0.3,+13.5] |       -1.222   -1.439 |      +3.1%      +9.4%
+G   MINF no-pfx       BAD      12.39    12.66    +2.1% [ -0.8, +4.9] |     12.81    14.12   +10.2% [ +3.6,+17.7] |       -1.230   -1.316 |      +1.5%      +1.9%
+I   MINF pfx          BAD      12.44    12.76    +2.6% [ -0.2, +5.4] |     12.84    15.17   +18.1% [+11.4,+25.7] |       -1.245   -1.238 |      +5.2%      +2.0%
+J   MINF pfx          good     12.31    13.10    +6.4% [ +3.6, +9.4] |     12.98    14.77   +13.8% [ +7.2,+21.0] |       -1.215   -1.380 |      +5.9%      +6.6%
+A   vLLM              good     12.39    13.62    +9.9% [ +6.8,+13.1] |     12.92    15.91   +23.2% [+15.8,+30.7] |       -1.228   -1.410 |      +3.8%      +9.9%
+K   vLLM              good     12.31    13.52    +9.9% [ +6.8,+13.0] |     12.77    15.33   +20.0% [+12.5,+27.3] |       -1.230   -1.439 |     +11.6%      +9.7%
+M   vLLM              good     12.35    12.96    +4.9% [ +2.1, +7.7] |     12.88    14.44   +12.1% [ +5.5,+18.9] |       -1.231   -1.414 |      +1.2%      +5.3%
+N   vLLM              good     12.34    13.14    +6.5% [ +3.5, +9.5] |     13.00    14.99   +15.3% [ +8.7,+22.7] |       -1.230   -1.399 |      +6.4%      +6.4%
+
+PROMPT-PAIRED comparison of chain P⁗ with each arm, steps 1-10: per (step, prompt) E_g(long 4k-16k) and E_g(near-rep) (1000 x sum adv x tokens / arm total tokens); P⁗ minus other arm; sign test over prompts with any long turn in either arm.
+vs armout   prompts | E long: mean diff     se       +/-  sign p | E near: mean diff     se       +/-  sign p
+G     BAD       186 |           -0.0166 0.0072     43/55   0.225 |           -0.0219 0.0116     43/54   0.264
+I     BAD       193 |           -0.0130 0.0099     48/56   0.433 |           -0.0261 0.0160     47/56   0.375
+J     good      188 |           +0.0019 0.0075     54/44   0.312 |           +0.0113 0.0184     55/42   0.187
+A     good      182 |           +0.0028 0.0091     43/51   0.409 |           -0.0154 0.0163     46/47   0.917
+K     good      180 |           -0.0053 0.0079     46/49   0.758 |           -0.0111 0.0162     43/54   0.264
+M     good      193 |           +0.0038 0.0100     57/44   0.196 |           +0.0060 0.0170     50/55   0.626
+N     good      184 |           +0.0096 0.0092     51/46   0.612 |           +0.0142 0.0131     56/42   0.157
+  (negative mean diff = P⁗ suppresses the class more than the other arm; the same statistic gave bad-minus-good +0.010/prompt with 101+/63- in the earlier 7-arm analysis)

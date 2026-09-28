@@ -1,0 +1,26 @@
+GROUP-LEVEL AND FILTER-LEVEL ALTERNATIVES TO THE ROLLOUT MASK, chain G steps 1-10 (5,120 rollouts, 320 groups). Effective statistics = over the rollouts that remain trainable; x1e-3 per generated token. Healthy arms at k=10: R_deep -0.052 .. -0.171 (mean -0.119), equal-weight E -2.3 .. -4.8; looped arms R_deep -0.019 .. -0.032.
+
+scheme                                                                         rollouts masked data removed eff. R_deep eff. R_deep+ eff. E(4k-16k)
+none (chain G / chain R / chain Y as far as deep thinking goes)                              0         0.0%      -0.019       +0.227          -0.09
+chain X: mask the 127 rewarded rollouts with a >4096-token think block                     134         3.7%      -0.246       +0.000          -8.06
+mask all 67 groups that contain a rewarded deep-thinker (whole prompts)                   1072        25.3%      -0.040       +0.000          -1.65
+mask the top 5 such groups by net deep-think gradient (whole prompts)                       80         2.1%      -0.058       +0.167          -1.00
+mask the top 10 such groups by net deep-think gradient (whole prompts)                     160         4.6%      -0.078       +0.141          -1.48
+mask the top 15 such groups by net deep-think gradient (whole prompts)                     240         6.9%      -0.091       +0.119          -1.68
+mask the top 20 such groups by net deep-think gradient (whole prompts)                     320         8.6%      -0.100       +0.100          -2.07
+mask the top 25 such groups by net deep-think gradient (whole prompts)                     400        10.4%      -0.104       +0.092          -2.53
+mask the top 30 such groups by net deep-think gradient (whole prompts)                     480        11.6%      -0.106       +0.089          -2.65
+mask the top 40 such groups by net deep-think gradient (whole prompts)                     640        14.1%      -0.107       +0.088          -2.85
+mask the 43 groups whose net deep-think gradient is positive (whole prompts)               688        15.1%      -0.107       +0.081          -2.86
+length filter: mask EVERY rollout with a >4096-token think block, rewarded or not             688        24.1%      +0.000       +0.000          -0.05
+length filter, rewarded+punished deep-thinkers inside poison groups only                   273         9.0%      -0.040       +0.000          -1.34
+mask rewarded deep-thinkers AND their whole groups' punished deep-thinkers (siblings)             273         9.0%      -0.040       +0.000          -1.34
+
+Per-step counts for the two whole-group schemes that land inside the healthy band (groups per train step 1..10):
+  top 10 groups: s1:0 s2:1 s3:1 s4:0 s5:2 s6:0 s7:2 s8:1 s9:2 s10:1  (total 10 groups = 160 rollouts, 3.1 % of data)
+  top 15 groups: s1:0 s2:1 s3:2 s4:1 s5:3 s6:1 s7:2 s8:2 s9:2 s10:1  (total 15 groups = 240 rollouts, 4.7 % of data)
+  top 20 groups: s1:0 s2:1 s3:3 s4:1 s5:4 s6:2 s7:3 s8:2 s9:3 s10:1  (total 20 groups = 320 rollouts, 6.2 % of data)
+  all positive-net groups (43): s1:2 s2:7 s3:4 s4:5 s5:4 s6:3 s7:8 s8:4 s9:3 s10:3
+
+Note: whole-group masking also removes those prompts' punished deep-thinkers and all their other rollouts, so the remaining data's suppression comes only from the pure-suppression groups; the filter variants remove deep thinking from both sides and leave nothing to suppress or reinforce (R_deep = 0 by construction).
+Of chain X's effective R_deep (-0.246), -0.206 comes from punished deep-thinking siblings inside the poison groups (whose advantages were computed with the masked successes present) and -0.040 from pure-suppression groups.

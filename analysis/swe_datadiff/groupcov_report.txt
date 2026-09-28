@@ -1,0 +1,50 @@
+PER-GROUP VIEW. E_g(long) = 1000 x sum over the group's 4k-16k turns of adv x tokens / arm total tokens = 16 x within-group covariance of advantage with long-turn tokens (advantages sum to 0 within a group).
+arm out   groups with long   sum E median E_g mean E_g  E_g<0  E_g>0  E_g=0 top5 neg sum top5 pos sum sum excl top10 |E_g|
+G   BAD      320       198   -0.09     +0.000   -0.000     51     51    218        -1.43        +1.39                -0.04
+I   BAD      320       197   -0.82     +0.000   -0.004     55     42    223        -1.64        +2.11                -1.76
+J   good     320       198   -3.44     +0.000   -0.017     62     35    223        -1.87        +0.89                -0.77
+A   good     320       180   -4.20     +0.000   -0.023     52     31    237        -2.28        +1.01                -1.31
+K   good     320       187   -2.33     +0.000   -0.012     55     37    228        -1.88        +1.17                -0.72
+M   good     320       197   -3.88     +0.000   -0.020     63     32    225        -2.27        +1.14                -1.40
+N   good     320       194   -4.77     +0.000   -0.025     56     36    228        -2.22        +0.76                -1.36
+
+Rank test: pooled bad vs good on per-group E_g(long), groups with any long turn (Mann-Whitney U approx z)
+  bad groups 395 (mean E_g -0.0023, share negative 0.27), good groups 956 (mean -0.0195, share negative 0.30); z = +5.58, p = 0.0000
+
+PAIRED BY PROMPT (same prompt tokens across arms): per (step, prompt) E_g(long) per arm; bad-arm mean minus good-arm mean; sorted by |difference|
+  prompts present in all 7 arms: 320; sum of (bad-good) over prompts = +3.27; prompts with bad>good: 101, bad<good: 63
+   bad-good step   prompt |    G E_g  k    I E_g  k    J E_g  k    A E_g  k    K E_g  k    M E_g  k    N E_g  k
+     +0.328    7 c145a138 |   +0.478  4   +0.092  3   -0.213  2   -0.017  2   +0.127  4   +0.000  0   -0.110  1
+     +0.317    5 641bd7a5 |   +0.156 12   +0.687  3   +0.133  6   -0.063  4   +0.175  4   +0.159 10   +0.119  8
+     +0.281    9 5ad85efa |   +0.226  2   +0.317  2   -0.091  1   -0.009  1   +0.094  4   +0.000  0   -0.043  1
+     +0.262    8 084aa503 |   -0.019 11   -0.230 10   +0.062  7   -0.444 11   -0.049  7   -0.734 11   -0.767 10
+     +0.246    4 23afd55c |   -0.012 12   +0.245 15   -0.029 12   +0.024  9   -0.011 11   -0.146 14   -0.486 13
+     +0.227    6 4a72edce |   -0.057  1   +0.395  3   +0.077  2   -0.257  1   -0.062  1   +0.208  6   -0.257  3
+     +0.225    5 1b9b1576 |   +0.167  3   -0.082  5   -0.110  6   -0.257  6   -0.201  1   -0.386  7   +0.042  5
+     -0.190    7 4778069f |   -0.325  9   +0.067  5   -0.113  4   +0.078 10   +0.213  4   +0.139  5   -0.016  5
+     +0.184    7 c34367ce |   +0.055  4   +0.361  3   +0.095  2   +0.061  3   +0.271  4   -0.307  3   +0.000  0
+     +0.183    9 986e0446 |   +0.248  2   +0.188  3   -0.043  5   -0.033  4   +0.238  3   -0.025  3   +0.035  2
+     +0.180    9 fa0f2bfe |   +0.232 10   -0.095  6   -0.178  7   -0.093  9   -0.015  9   -0.085  7   -0.186 10
+     -0.150    5 bfc55181 |   +0.000  2   -0.115  2   +0.205  2   +0.128  2   -0.068  2   +0.007  1   +0.190  5
+     -0.148    4 ae5917fb |   -0.275  1   +0.000  0   +0.000  0   -0.039  2   +0.000  0   +0.250  2   -0.161  1
+     +0.146    8 980f5a4b |   -0.225  1   +0.345  4   -0.280  1   +0.445  3   +0.000  0   -0.328  4   -0.265  4
+     +0.140    6 5e2af38d |   -0.090  8   +0.211  7   -0.089  4   -0.065  4   -0.119  5   -0.120  7   -0.001  9
+     +0.128    2 3ed71fc6 |   +0.052  3   +0.233  2   +0.000  0   +0.035  3   +0.078  2   -0.037  1   +0.000  0
+     +0.125   10 d87ac644 |   -0.428  9   -0.161 10   -0.404  8   -0.639 12   -0.474 11   -0.252  6   -0.330 10
+     +0.122    8 d72673b8 |   -0.076  4   -0.087  1   -0.333  4   -0.248  3   -0.168  1   -0.130  3   -0.138  1
+     +0.117    7 7f9396cc |   +0.050 11   +0.067 10   +0.139 11   -0.208  8   +0.026 12   -0.003 12   -0.246 11
+     -0.116    7 32fcc197 |   -0.095  8   -0.023  6   -0.024  9   +0.140  8   +0.074  9   +0.052  6   +0.041  8
+  top 5 prompts by |diff| explain +1.43 of +3.27
+  top 10 prompts by |diff| explain +2.07 of +3.27
+  top 20 prompts by |diff| explain +2.61 of +3.27
+  top 40 prompts by |diff| explain +2.69 of +3.27
+  sign test over prompts: bad-good > 0 in 101 of 320 (binomial p two-sided ~ 0.39 crude)
+
+  Where do long turns sit relative to group success count k? mean k of groups weighted by long-turn tokens, rewarded vs punished; adv magnitude = f(k)
+   G BAD   punished long tokens sit in groups with mean k = 3.97; rewarded long tokens in groups with mean k = 8.98; long tokens in zero-var groups: k=0 3.89M, k=16 0.07M
+   I BAD   punished long tokens sit in groups with mean k = 3.79; rewarded long tokens in groups with mean k = 9.00; long tokens in zero-var groups: k=0 3.87M, k=16 0.16M
+   J good  punished long tokens sit in groups with mean k = 3.60; rewarded long tokens in groups with mean k = 8.65; long tokens in zero-var groups: k=0 3.88M, k=16 0.16M
+   A good  punished long tokens sit in groups with mean k = 4.33; rewarded long tokens in groups with mean k = 8.75; long tokens in zero-var groups: k=0 4.33M, k=16 0.12M
+   K good  punished long tokens sit in groups with mean k = 3.97; rewarded long tokens in groups with mean k = 8.32; long tokens in zero-var groups: k=0 3.80M, k=16 0.17M
+   M good  punished long tokens sit in groups with mean k = 4.58; rewarded long tokens in groups with mean k = 8.75; long tokens in zero-var groups: k=0 3.65M, k=16 0.22M
+   N good  punished long tokens sit in groups with mean k = 4.04; rewarded long tokens in groups with mean k = 8.88; long tokens in zero-var groups: k=0 3.57M, k=16 0.13M

@@ -1,0 +1,115 @@
+TURN-LEVEL SPLIT AT THE WEIGHT UPDATE, steps 1-10. For each (run, step) the refit time is bracketed from the rollouts: T > commit time of every rollout that started and ended under the old version; T < commit time of every rollout that crossed (started old, ended new) and < first model call of every rollout that started under the new version. A turn is 'pre' if its model call ended before the lower bound, 'post' if it started after the upper bound; turns inside the bracket are dropped.
+
+Refit brackets (UTC clock times): n_cross / n_old / n_new = rollouts that crossed / finished before / started after; width = upper - lower bound in seconds; share of turns before the lower bound (pre) and after the upper bound (post) among all turns of the step.
+run treatment                     step cross/old/new     lower     upper  width s  pre %  post %  mid %
+A   VLLM                             3  512/  0/  0         -  23:26:51      nan    0.0    46.0   54.0
+A   VLLM                             5  506/  0/  0  00:17:49  00:20:33      164   16.0    50.3   33.7
+A   VLLM                             7  511/  0/  0  01:19:06  01:21:11      125   26.1    44.7   29.2
+A   VLLM                             9   64/  0/511  02:09:48  02:11:19       91    1.6    95.5    2.9
+A   VLLM                            10   16/511/  0  21:26:58  21:49:13     1335  100.0     0.0    0.0
+K   VLLM                             3  509/  0/  0         -  23:23:02      nan    0.0    40.4   59.6
+K   VLLM                             5  505/  0/  0  00:14:01  00:15:46      105   18.9    58.6   22.6
+K   VLLM                             7  495/ 16/  0  01:18:38  01:21:55      197   34.9    31.8   33.3
+K   VLLM                             9  496/ 16/  0  02:10:05  02:11:01       56   30.7    54.6   14.6
+K   VLLM                            10   16/495/  0  02:54:31  02:57:20      169  100.0     0.0    0.0
+M   VLLM                             3  509/  0/  0  06:21:26  06:27:43      376   14.5    26.9   58.6
+M   VLLM                             5  508/  0/  0  07:16:14  07:19:48      214   14.2    45.3   40.4
+M   VLLM                             7  511/  0/  0  08:19:39  08:21:07       88   26.6    50.5   22.9
+M   VLLM                             9  496/ 16/  0  09:09:42  09:11:08       86   30.1    48.6   21.4
+M   VLLM                            10   16/494/  0  09:54:51  09:57:21      150  100.0     0.0    0.0
+N   VLLM                             3  511/  0/  0  10:24:31  10:31:12      401   13.9    24.9   61.2
+N   VLLM                             5  508/  0/  0  11:18:25  11:20:33      128   10.9    58.4   30.7
+N   VLLM                             7  509/  0/  0  12:20:24  12:21:28       63   29.0    53.1   17.9
+N   VLLM                             9  495/ 16/  0  13:12:09  13:14:28      139   29.4    41.0   29.6
+N   VLLM                            10   16/494/  0  13:54:42  13:56:28      106  100.0     0.0    0.0
+G   Minf                             3  510/  0/  0  09:59:12  10:05:13      361   12.7    47.5   39.8
+G   Minf                             4   16/495/  0  10:55:19  11:11:43      984  100.0     0.0    0.0
+G   Minf                             5  476/ 32/  0  11:04:29  11:15:08      638   53.8    13.0   33.2
+G   Minf                             7  464/  0/509  12:01:07  12:02:50      103   10.0    81.3    8.7
+G   Minf                             9  495/ 16/  0  14:20:56  14:25:00      243   29.5    45.7   24.8
+G   Minf                            10   16/495/  0  15:06:49  15:14:22      453  100.0     0.0    0.0
+I   Minf                             3  511/  0/  0  06:14:52  06:18:26      214   19.7    40.9   39.4
+I   Minf                             4   30/478/  0  07:03:22  07:26:24     1382  100.0     0.0    0.0
+I   Minf                             5  381/128/  0  07:30:24  07:30:52       28  100.0     0.0    0.0
+I   Minf                             6  438/ 64/  0  07:43:45  07:47:19      214   96.9     0.4    2.7
+I   Minf                             7  463/ 47/  0  07:56:40  08:00:41      241   77.4     5.0   17.6
+I   Minf                             8   31/475/  0  08:31:30  08:44:40      790   99.9     0.0    0.1
+I   Minf                             9  160/351/  0  08:52:56  08:53:48       52   99.7     0.2    0.1
+I   Minf                            10   32/479/  0  09:13:51  09:21:34      463   99.5     0.2    0.3
+J   VLLM (the healthy Minf run)      3  508/  0/  0  06:09:35  06:14:57      321   19.0    29.5   51.5
+J   VLLM (the healthy Minf run)      5  510/  0/  0         -  07:05:15      nan    0.0    62.3   37.7
+J   VLLM (the healthy Minf run)      7  510/  0/  0  08:07:10  08:07:42       32   29.1    62.7    8.2
+J   VLLM (the healthy Minf run)      9  510/  0/  0  08:59:35  09:00:56       81   25.3    56.0   18.7
+P4  Minf (no cache invalidation)     3  509/  0/  0  04:14:08  04:18:27      259   17.6    36.1   46.3
+P4  Minf (no cache invalidation)     4   16/496/  0  05:04:43  05:37:06     1943  100.0     0.0    0.0
+P4  Minf (no cache invalidation)     5  311/192/  0  05:35:47  05:38:04      137  100.0     0.0    0.0
+P4  Minf (no cache invalidation)     6  496/  3/  0  05:42:15  05:46:10      235   48.5    19.4   32.1
+P4  Minf (no cache invalidation)     7   16/494/  0  06:22:07  06:33:32      685   99.8     0.0    0.2
+P4  Minf (no cache invalidation)     8  442/ 64/  0  06:33:58  06:34:48       50   88.5     8.0    3.4
+P4  Minf (no cache invalidation)     9  160/352/  0  07:05:45  07:05:57       12   99.7     0.3    0.0
+P4  Minf (no cache invalidation)    10  112/400/  0  07:23:55  07:24:12       17   99.4     0.6    0.0
+Q4  VLLM (no prefix caching)         3  508/  0/  0  16:54:18  17:01:26      428   13.7    42.6   43.7
+Q4  VLLM (no prefix caching)         4   16/493/  0  17:48:13  18:01:15      782  100.0     0.0    0.0
+Q4  VLLM (no prefix caching)         5  508/  0/  0  17:56:08  18:05:12      545   13.1    37.0   49.9
+Q4  VLLM (no prefix caching)         7  512/  0/  0  19:03:04  19:10:57      473   22.4    33.7   43.9
+Q4  VLLM (no prefix caching)         8   16/496/  0  19:53:05  19:58:34      328  100.0     0.0    0.0
+Q4  VLLM (no prefix caching)         9  495/ 16/  0  19:56:48  20:00:28      220   34.5    40.5   25.0
+Q4  VLLM (no prefix caching)        10   16/496/  0  20:49:55  20:57:32      457  100.0     0.0    0.0
+
+A (VLLM): labeled turns 453673; skipped rollouts: {'turn count mismatch': 205, 'no dump rows': 80}
+K (VLLM): labeled turns 455470; skipped rollouts: {'no dump rows': 80, 'turn count mismatch': 219}
+M (VLLM): labeled turns 454360; skipped rollouts: {'turn count mismatch': 243}
+N (VLLM): labeled turns 451949; skipped rollouts: {'turn count mismatch': 224}
+G (Minf): labeled turns 449611; skipped rollouts: {'turn count mismatch': 261, 'no dump rows': 956}
+I (Minf): labeled turns 452832; skipped rollouts: {'turn count mismatch': 229}
+J (VLLM): labeled turns 454300; skipped rollouts: {'turn count mismatch': 245}
+P4 (Minf (no cache invalidation)): labeled turns 448889; skipped rollouts: {'turn count mismatch': 223}
+Q4 (VLLM (no prefix caching)): labeled turns 452903; skipped rollouts: {'turn count mismatch': 263}
+
+(a) Engine-trainer mismatch |d| x1e3 on short turns (< 500 tokens), token-weighted, by label. A stale prefix (cache kept) predicts post > pre for the cache-retaining runs only.
+run treatment                          pre    post  post-pre no-refit steps   n pre  n post
+A   VLLM                             13.25   12.16     -1.10          12.43   53164   91961
+K   VLLM                             13.33   12.12     -1.21          12.31   71774   72384
+M   VLLM                             13.20   12.06     -1.14          12.36   71791   62735
+N   VLLM                             13.24   12.03     -1.21          12.34   69245   66003
+G   Minf                             12.86   12.23     -0.63          12.30  117377   73704
+I   Minf                             12.61   11.98     -0.63          12.44  268304   16676
+J   VLLM (the healthy Minf run)      13.43   12.04     -1.39          12.44   29683   79068
+P4  Minf (no cache invalidation)     12.80   11.90     -0.91          12.49  250403   23381
+Q4  VLLM (no prefix caching)         12.60   11.99     -0.61          12.47  147737   57329
+    VLLM, pooled                     13.27   12.08     -1.19          12.38
+    Minf, pooled                     12.68   12.18     -0.51          12.35
+    Minf (no cache invalidation), pooled   12.80   11.90     -0.91          12.49
+    VLLM (no prefix caching), pooled   12.60   11.99     -0.61          12.47
+
+(b) Advantage exposure of think turns 4k-16k, split by label, straddled steps only. E = 1000 x sum(adv x tokens) / all generated tokens of those steps; token share = class tokens in that label / all tokens of those steps.
+run treatment                        E pre  E post   E mid share pre % share post % | E near-rep pre E near-rep post
+A   VLLM                             -2.47   -2.99   -0.37        1.54         2.94 |          -2.40           -4.07
+K   VLLM                             -1.35   +0.70   +1.18        1.77         2.38 |          -2.56           +0.15
+M   VLLM                             -0.95   -1.48   +0.12        1.90         2.20 |          -0.22           -2.16
+N   VLLM                             -0.25   -0.69   -0.58        1.53         2.16 |          -1.38           -4.22
+G   Minf                             -1.02   +1.25   +1.04        3.06         2.06 |          -0.23           +0.38
+I   Minf                             -0.12   +0.09   -0.15        5.08         0.42 |          -2.37           +0.07
+J   VLLM (the healthy Minf run)      -0.06   -1.17   -0.19        0.06         3.38 |          -0.02           -4.58
+P4  Minf (no cache invalidation)     -1.73   -0.86   -0.48        4.75         0.57 |          -1.16           -1.21
+Q4  VLLM (no prefix caching)         -1.34   -0.18   -0.59        2.95         1.56 |          -1.32           -1.33
+    VLLM, pooled                     -1.06   -1.12   +0.04                          |          -1.37           -2.91
+    Minf, pooled                     -0.50   +0.58   +0.35                          |          -1.46           +0.20
+    Minf (no cache invalidation), pooled   -1.73   -0.86   -0.48                          |          -1.16           -1.21
+    VLLM (no prefix caching), pooled   -1.34   -0.18   -0.59                          |          -1.32           -1.33
+
+(c) Within-group rank correlation of reward with the rollout's post-refit tokens, its pre-refit tokens, and its total tokens (straddled steps, groups with reward variance). If post-refit generation is worse in cache-retaining runs, the post-refit correlation should be more negative there than in Minf, beyond the ordinary length effect.
+run treatment                      rho(r, post tok) rho(r, pre tok) rho(r, total) rho(r, post share) groups
+A   VLLM                                     +0.101          +0.270        -0.084             +0.224     65
+K   VLLM                                     +0.160          +0.062        -0.071             +0.168     70
+M   VLLM                                     +0.044          +0.025        -0.078             +0.065     58
+N   VLLM                                     +0.163          -0.018        -0.042             +0.162     69
+G   Minf                                     +0.262          +0.082        -0.095             +0.396     84
+I   Minf                                     +0.623          -0.094        -0.094             +0.621    115
+J   VLLM (the healthy Minf run)              -0.101          +0.166        -0.145             -0.092     46
+P4  Minf (no cache invalidation)             +0.459          -0.088        -0.127             +0.458    112
+Q4  VLLM (no prefix caching)                 +0.313          -0.059        -0.095             +0.311     94
+    VLLM, mean over runs                     +0.073          +0.101        -0.084             +0.105
+    Minf, mean over runs                     +0.442          -0.006        -0.094             +0.509
+    Minf (no cache invalidation), mean over runs           +0.459          -0.088        -0.127             +0.458
+    VLLM (no prefix caching), mean over runs           +0.313          -0.059        -0.095             +0.311

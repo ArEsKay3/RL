@@ -1,0 +1,72 @@
+EFFECTIVE (TRAINER-GRADIENT) EXPOSURE, steps 1-10. For a sampled token the policy-gradient weight on its logit is advantage x (1 - p_trainer). R(class) = 1000 x sum over think tokens in the class of adv x (1 - p_trainer) / all generated tokens. Positive = the data pushes the trainer toward producing that kind of thinking; negative = away. Compare with E, which weights tokens equally.
+3 bad arms (G, I, P⁗2) vs 7 good (A, K, M, N, Q⁗, J, P⁗); 'YES' = perfect separation (chance 1/120).
+
+--- A. by turn class (think part), R vs E
+R think tokens, class=short                                      G:-1.408 I:-1.342 P42:-1.343 A:-1.391 K:-1.683 M:-1.424 N:-1.784 Q4:-1.706 J:-1.723 P4:-1.328 | bad ranks [2, 3, 5]  
+E think tokens, class=short                                      G:-9.33 I:-9.03 P42:-9.62 A:-9.49 K:-11.87 M:-9.65 N:-13.06 Q4:-11.76 J:-12.54 P4:-8.88 | bad ranks [2, 3, 5]  
+R think tokens, class=normal_long                                G:-0.656 I:-0.689 P42:-0.583 A:-0.715 K:-0.715 M:-0.582 N:-0.736 Q4:-0.819 J:-0.827 P4:-0.709 | bad ranks [2, 3, 4]  
+E think tokens, class=normal_long                                G:-5.61 I:-5.41 P42:-5.02 A:-6.54 K:-6.39 M:-4.68 N:-6.54 Q4:-7.23 J:-7.47 P4:-6.13 | bad ranks [2, 3, 4]  
+R think tokens, class=near                                       G:-0.067 I:-0.137 P42:-0.437 A:-0.509 K:-0.349 M:-0.442 N:-0.634 Q4:-0.392 J:-0.607 P4:-0.318 | bad ranks [1, 2, 6]  
+E think tokens, class=near                                       G:-0.79 I:-1.32 P42:-4.20 A:-4.91 K:-3.54 M:-3.89 N:-5.94 Q4:-3.53 J:-5.47 P4:-3.06 | bad ranks [1, 2, 7]  
+R think tokens, class=loop                                       G:-0.038 I:-0.025 P42:-0.023 A:-0.017 K:-0.026 M:-0.028 N:-0.023 Q4:-0.022 J:-0.034 P4:-0.035 | bad ranks [3, 5, 10]  
+E think tokens, class=loop                                       G:-7.68 I:-5.26 P42:-5.94 A:-5.66 K:-5.61 M:-7.70 N:-6.43 Q4:-7.17 J:-7.58 P4:-7.75 | bad ranks [1, 4, 8]  
+R think tokens, all classes                                      G:-2.168 I:-2.193 P42:-2.386 A:-2.632 K:-2.773 M:-2.475 N:-3.178 Q4:-2.939 J:-3.191 P4:-2.390 | bad ranks [1, 2, 3] YES 
+R think tokens, near+loop                                        G:-0.105 I:-0.162 P42:-0.460 A:-0.526 K:-0.375 M:-0.470 N:-0.658 Q4:-0.414 J:-0.641 P4:-0.353 | bad ranks [1, 2, 6]  
+R think tokens, near+loop+normal_long (>=1k think)               G:-0.761 I:-0.851 P42:-1.043 A:-1.241 K:-1.090 M:-1.051 N:-1.394 Q4:-1.233 J:-1.467 P4:-1.062 | bad ranks [1, 2, 3] YES 
+
+--- B. by depth into the think block (trainer-gradient weight), turns with >= 1k think tokens
+R entry (first 256 think tokens), >=1k think turns               G:-0.113 I:-0.137 P42:-0.131 A:-0.151 K:-0.148 M:-0.134 N:-0.158 Q4:-0.158 J:-0.196 P4:-0.134 | bad ranks [1, 2, 5]  
+R deep (think tokens beyond 4096), >=1k think turns              G:-0.019 I:-0.032 P42:-0.031 A:-0.171 K:-0.052 M:-0.129 N:-0.155 Q4:-0.100 J:-0.129 P4:-0.099 | bad ranks [1, 2, 3] YES 
+R entry, near+loop turns                                         G:-0.011 I:-0.017 P42:-0.044 A:-0.034 K:-0.033 M:-0.030 N:-0.043 Q4:-0.030 J:-0.046 P4:-0.029 | bad ranks [1, 2, 9]  
+R deep, near+loop turns                                          G:-0.015 I:-0.025 P42:-0.034 A:-0.163 K:-0.053 M:-0.131 N:-0.151 Q4:-0.092 J:-0.134 P4:-0.080 | bad ranks [1, 2, 3] YES 
+R answer part (after </think>), all turns                        G:-0.144 I:-0.037 P42:-0.108 A:-0.087 K:-0.123 M:-0.116 N:-0.166 Q4:-0.108 J:-0.090 P4:-0.111 | bad ranks [1, 5, 9]  
+
+--- C. the close decision: Rclose = 1000 x sum over turns with </think> of adv x (1 - p_trainer(</think>)) / all tokens; positive = data teaches closing
+Rclose, all turns                                                G:-0.0054 I:-0.0043 P42:-0.0054 A:-0.0055 K:-0.0062 M:-0.0056 N:-0.0060 Q4:-0.0046 J:-0.0061 P4:-0.0053 | bad ranks [1, 4, 5]  
+mean p_trainer(</think>), all turns                              G:0.955 I:0.956 P42:0.955 A:0.954 K:0.955 M:0.955 N:0.955 Q4:0.955 J:0.956 P4:0.955 | bad ranks [2, 5, 8]  
+Rclose, turns >=1k think                                         G:-0.0007 I:-0.0003 P42:-0.0005 A:-0.0006 K:-0.0006 M:-0.0006 N:-0.0006 Q4:-0.0005 J:-0.0007 P4:-0.0004 | bad ranks [1, 3, 9]  
+mean p_trainer(</think>), turns >=1k think                       G:0.910 I:0.913 P42:0.908 A:0.911 K:0.909 M:0.915 N:0.911 Q4:0.914 J:0.914 P4:0.913 | bad ranks [4, 8, 10]  
+Rclose, turns >=4k think                                         G:-0.0000 I:-0.0000 P42:-0.0001 A:-0.0000 K:-0.0000 M:+0.0000 N:-0.0001 Q4:-0.0000 J:-0.0000 P4:-0.0000 | bad ranks [2, 4, 10]  
+mean p_trainer(</think>), turns >=4k think                       G:0.913 I:0.923 P42:0.918 A:0.908 K:0.918 M:0.909 N:0.912 Q4:0.916 J:0.909 P4:0.924 | bad ranks [2, 4, 6]  
+Rclose, near+loop turns                                          G:-0.0001 I:-0.0001 P42:-0.0002 A:-0.0001 K:-0.0001 M:-0.0001 N:-0.0002 Q4:-0.0001 J:-0.0002 P4:-0.0000 | bad ranks [2, 4, 10]  
+mean p_trainer(</think>), near+loop turns                        G:0.908 I:0.910 P42:0.908 A:0.904 K:0.910 M:0.903 N:0.910 Q4:0.909 J:0.908 P4:0.911 | bad ranks [2, 6, 8]  
+
+--- D. positive vs negative parts of R for near+loop think tokens, and the ratio
+R+ near+loop (rewarded)                                          G:+0.963 I:+0.896 P42:+0.772 A:+0.684 K:+0.652 M:+0.766 N:+0.598 Q4:+0.710 J:+0.657 P4:+0.775 | bad ranks [1, 2, 4]  
+R- near+loop (punished)                                          G:-1.068 I:-1.059 P42:-1.232 A:-1.210 K:-1.027 M:-1.236 N:-1.255 Q4:-1.124 J:-1.298 P4:-1.128 | bad ranks [2, 3, 7]  
+R+/|R-| near+loop                                                G:0.902 I:0.847 P42:0.626 A:0.565 K:0.635 M:0.620 N:0.476 Q4:0.632 J:0.506 P4:0.687 | bad ranks [1, 2, 6]  
+R+ >=1k think (rewarded)                                         G:+3.593 I:+3.525 P42:+3.496 A:+3.319 K:+3.109 M:+3.436 N:+3.054 Q4:+3.136 J:+3.112 P4:+3.696 | bad ranks [2, 3, 4]  
+R- >=1k think (punished)                                         G:-4.354 I:-4.376 P42:-4.539 A:-4.559 K:-4.199 M:-4.488 N:-4.448 Q4:-4.369 J:-4.579 P4:-4.757 | bad ranks [2, 4, 7]  
+R+/|R-| >=1k think                                               G:0.825 I:0.805 P42:0.770 A:0.728 K:0.740 M:0.766 N:0.687 Q4:0.718 J:0.680 P4:0.777 | bad ranks [1, 2, 4]  
+
+--- E. how 'confident' the trainer is in the sampled thinking tokens: mean p_trainer over think tokens by class (engine fidelity / on-policy-ness of the data)
+mean p_trainer of think tokens, class=short                      G:0.8386 I:0.8378 P42:0.8382 A:0.8382 K:0.8390 M:0.8394 N:0.8392 Q4:0.8390 J:0.8395 P4:0.8370 | bad ranks [6, 8, 9]  
+mean p_trainer of think tokens, class=normal_long                G:0.8800 I:0.8790 P42:0.8785 A:0.8790 K:0.8797 M:0.8805 N:0.8798 Q4:0.8802 J:0.8806 P4:0.8784 | bad ranks [4, 8, 9]  
+mean p_trainer of think tokens, class=near                       G:0.8947 I:0.8959 P42:0.8933 A:0.8931 K:0.8962 M:0.8944 N:0.8949 Q4:0.8947 J:0.8948 P4:0.8935 | bad ranks [2, 5, 9]  
+mean p_trainer of think tokens, class=loop                       G:0.9942 I:0.9954 P42:0.9957 A:0.9946 K:0.9959 M:0.9944 N:0.9967 Q4:0.9960 J:0.9953 P4:0.9959 | bad ranks [5, 6, 10]  
+share of think tokens with p_trainer < 0.5                       G:0.1187 I:0.1175 P42:0.1197 A:0.1206 K:0.1169 M:0.1170 N:0.1175 Q4:0.1159 J:0.1166 P4:0.1194 | bad ranks [2, 4, 6]  
+
+--- F. depth curves from the per-chunk aggregates: mean |d| (trainer-engine) and mean log p_trainer by depth into the think block, normal_long turns, MINF arms vs VLLM arms
+arm  eng  out            depth 0        depth 256       depth 1024       depth 4096      depth 16384   (cells: mean|d| x1e3 / mean logp_trainer / share p<0.5)
+  class normal_long:
+  G    Minf bad    23.2/-0.244/0.109  22.4/-0.231/0.103  23.1/-0.221/0.099  23.3/-0.204/0.091                .
+  I    Minf bad    23.4/-0.244/0.110  22.7/-0.232/0.104  23.3/-0.222/0.099  23.6/-0.213/0.095                .
+  P42  Minf bad    23.4/-0.246/0.110  22.8/-0.235/0.105  23.3/-0.223/0.100  23.4/-0.208/0.092                .
+  A    VLLM good   23.2/-0.246/0.110  22.4/-0.233/0.104  23.0/-0.222/0.099  22.8/-0.204/0.091                .
+  K    VLLM good   23.4/-0.245/0.110  22.5/-0.232/0.104  22.9/-0.220/0.098  23.3/-0.208/0.093                .
+  M    VLLM good   23.1/-0.242/0.108  22.3/-0.230/0.103  22.9/-0.220/0.098  22.7/-0.205/0.092                .
+  N    VLLM good   23.2/-0.242/0.109  22.5/-0.232/0.104  23.1/-0.221/0.099  21.6/-0.194/0.086                .
+  Q4   VLLM good   23.2/-0.244/0.109  22.3/-0.230/0.103  23.0/-0.220/0.099  22.6/-0.202/0.091                .
+  J    Minf good   23.2/-0.243/0.109  22.4/-0.231/0.103  22.9/-0.219/0.098  22.3/-0.196/0.088                .
+  P4   Minf good   23.6/-0.246/0.110  22.8/-0.234/0.105  23.5/-0.224/0.100  23.3/-0.209/0.094                .
+  class near:
+  G    Minf bad    22.3/-0.219/0.098  21.0/-0.204/0.091  21.0/-0.195/0.087  20.9/-0.192/0.086  18.7/-0.172/0.077
+  I    Minf bad    22.6/-0.219/0.098  21.0/-0.201/0.090  21.3/-0.195/0.087  20.6/-0.186/0.083  10.1/-0.087/0.039
+  P42  Minf bad    22.9/-0.224/0.100  21.2/-0.206/0.092  21.6/-0.198/0.088  21.3/-0.193/0.086  22.2/-0.205/0.094
+  A    VLLM good   22.1/-0.218/0.098  20.9/-0.203/0.091  21.4/-0.200/0.089  21.4/-0.195/0.087  17.1/-0.159/0.070
+  K    VLLM good   21.9/-0.216/0.097  21.0/-0.204/0.091  21.2/-0.195/0.087  21.0/-0.191/0.086   1.9/-0.019/0.008
+  M    VLLM good   22.1/-0.217/0.097  20.8/-0.201/0.090  21.3/-0.196/0.088  21.2/-0.192/0.086  24.3/-0.233/0.105
+  N    VLLM good   22.3/-0.220/0.099  21.2/-0.205/0.092  21.2/-0.196/0.088  20.7/-0.186/0.084  16.9/-0.154/0.070
+  Q4   VLLM good   22.1/-0.218/0.098  20.6/-0.201/0.090  20.9/-0.195/0.087  20.8/-0.193/0.086  19.1/-0.185/0.082
+  J    Minf good   22.5/-0.221/0.099  21.2/-0.205/0.092  21.3/-0.197/0.088  20.6/-0.188/0.084  12.2/-0.111/0.049
+  P4   Minf good   22.5/-0.220/0.098  21.4/-0.208/0.093  21.6/-0.200/0.089  20.9/-0.190/0.085  15.8/-0.145/0.065

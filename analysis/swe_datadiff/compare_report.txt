@@ -1,0 +1,106 @@
+DATA DIFFERENCE REPORT: chain G (MINF from scratch, no prefix cache) vs chain M (vLLM from scratch, replica 1), training steps 1-10
+samples: G 5120  M 5120;  turns: G 483561  M 484590;  jsonl summaries available for 4080 G / 3072 M samples
+
+A. PER STEP (512 rollouts = 32 prompts x 16)
+arm step    n reward zerovar mean_gen p90_gen max_gen turns trunc runaway loopS nearS loop_tok%    |d|   d>1 clip sme_max masked  adv*len
+  G    1  512  0.359  19/32     25741   46728  112201 108.8     6       4     4    61      0.59 0.0130   956  127   3.274      1  -0.0469
+  G    2  512  0.543  10/32     21319   41053   71284  85.3     2       0     0    52      0.00 0.0143  1087  157   1.511      0  -0.0289
+  G    3  512  0.262  21/32     26084   46641  139179  92.6     4       3     3    92      1.92 0.0136  1081  153   2.260      2  -0.0155
+  G    4  512  0.428  16/32     28073   53192  133064  97.4    10       6     4   129      1.17 0.0146  1505  187   1.991      0  -0.0571
+  G    5  512  0.266  19/32     33630   58890  124578 111.1     4       3     3   127      1.36 0.0146  1892  237   1.031      0  -0.0017
+  G    6  512  0.357   9/32     25823   52544   95421  94.0     7       4     5    76      0.37 0.0135  1253  159   1.031      0  -0.1074
+  G    7  512  0.434  16/32     25500   46098  169350  84.8     8       8     7    87      6.73 0.0142  1188  162   1.105      0  -0.0414
+  G    8  512  0.285  20/32     32926   58984  181841  94.2    20      18    18   118      9.20 0.0142  1760  222   1.038      0  -0.0413
+  G    9  512  0.314  18/32     25987   48249  144283  89.4     6       5     4    91      1.62 0.0145  1381  187   1.039      0   0.0019
+  G   10  512  0.346  17/32     25462   49121  143467  86.9     6       5     3    98      1.21 0.0147  1523  197 6402035.500      1  -0.0332
+  M    1  512  0.371  22/32     26836   51230  139968 106.7     6       5     5    74      1.97 0.0133  1066  151   1.024      0  -0.0001
+  M    2  512  0.545  12/32     20305   39405   97516  82.5     3       3     3    50      0.86 0.0145   933  135  60.617      1   0.0009
+  M    3  512  0.264  21/32     26346   47399  146710  91.5     4       2     4    96      2.65 0.0135  1133  142   1.028      0  -0.0022
+  M    4  512  0.422  18/32     28388   53272  140103  99.2     9       6     5   127      2.12 0.0144  1542  212   1.356      0  -0.0624
+  M    5  512  0.246  17/32     34204   59605  150530 111.6     9       8     3   107      1.39 0.0142  1752  227   1.045      0  -0.0722
+  M    6  512  0.398  10/32     26287   50888  148112  96.1     7       6     3    70      1.79 0.0134  1308  175   1.127      0  -0.0921
+  M    7  512  0.412  19/32     25705   46049  166112  84.9    11       9     8    92      6.19 0.0145  1303  153   1.624      0  -0.0407
+  M    8  512  0.299  22/32     33007   57534  163573  95.4    16      13    20   113      9.41 0.0142  1797  223   1.028      0  -0.0744
+  M    9  512  0.295  19/32     26134   47616  163492  90.7     7       5     3    91      2.78 0.0144  1317  164   1.032      0  -0.0224
+  M   10  512  0.357  22/32     25279   50615  147145  87.9     8       7     4   101      1.94 0.0149  1585  203 1786.766      2  -0.0086
+  zerovar = groups whose 16 rewards are all equal (no gradient); runaway = rollout ends in an unclosed think block; loopS/nearS = rollouts with a >=1000-token think block of zlib <0.10 / 0.10-0.25;
+  |d| = mean per-sample |prev_logprob - gen_logprob|; d>1 = tokens with |d|>1; clip = TIS-clipped tokens; sme_max = max seq_mult_prob_error; adv*len = sum(adv x n_gen)/sum(n_gen) = token-weighted advantage (length asymmetry).
+
+B. WHAT THE GRADIENT PUSHES TOWARD: rewarded (adv>0) vs punished (adv<0) rollouts, pooled over steps 1-10 (zero-advantage rollouts excluded)
+feature                              |    G adv>0    G adv<0     G diff |    M adv>0    M adv<0     M diff |  G-M diff  boot p
+generated tokens                     |   21842.60   32547.19  -10704.59 |   23543.80   32532.03   -8988.23 |  -1716.36   0.387
+assistant turns                      |      81.96     106.26     -24.30 |      86.81     105.73     -18.91 |     -5.39   0.355
+longest turn (tokens)                |    2216.74    4219.25   -2002.51 |    2347.91    4141.82   -1793.91 |   -208.60   0.746
+last turn (tokens)                   |     514.70    1792.99   -1278.29 |     505.00    1507.22   -1002.22 |   -276.07   0.645
+mean turn length                     |     272.44     317.54     -45.10 |     278.99     323.23     -44.23 |     -0.87   0.961
+turns without </think>               |       0.01       0.03      -0.03 |       0.00       0.03      -0.03 |     +0.00   0.953
+loop tokens (zlib<0.10, >=1k)        |       0.00    1417.04   -1417.04 |     121.93    1277.91   -1155.99 |   -261.06   0.680
+near-loop tokens (zlib 0.10-0.25)    |     884.76    1799.89    -915.13 |     782.17    2002.72   -1220.55 |   +305.42   0.387
+newline share of generated tokens    |       0.03       0.03      +0.00 |       0.03       0.03      +0.00 |     +0.00   0.790
+mean engine logprob                  |      -0.16      -0.16      -0.00 |      -0.16      -0.16      -0.00 |     -0.00   0.843
+mean |d|                             |       0.01       0.01      -0.00 |       0.01       0.01      -0.00 |     -0.00   0.997
+tokens with |d|>1                    |       2.15       3.25      -1.10 |       2.40       3.38      -0.98 |     -0.12   0.708
+openhands run time (s)               |     941.80    1235.72    -293.92 |     557.84     685.47    -127.63 |   -166.29   0.001
+model call time (s)                  |     767.84    1033.63    -265.79 |     368.21     472.40    -104.19 |   -161.60   0.000
+  diff = mean over rewarded minus mean over punished rollouts; G-M diff = difference of those diffs; boot p = two-sided p from a group-level bootstrap (400 resamples).
+
+B2. within-group Spearman correlation of reward with rollout features (groups with reward variance only), mean over groups; and token-weighted advantage by turn-length class
+generated tokens         | chain G (MINF): mean rho -0.092 (n groups 155, se 0.024) | chain M (vLLM): mean rho -0.113 (n groups 138, se 0.023)
+assistant turns          | chain G (MINF): mean rho -0.076 (n groups 155, se 0.021) | chain M (vLLM): mean rho -0.076 (n groups 138, se 0.023)
+longest turn             | chain G (MINF): mean rho -0.017 (n groups 155, se 0.023) | chain M (vLLM): mean rho -0.059 (n groups 138, se 0.023)
+mean engine logprob      | chain G (MINF): mean rho +0.013 (n groups 155, se 0.023) | chain M (vLLM): mean rho +0.013 (n groups 138, se 0.021)
+newline share            | chain G (MINF): mean rho +0.024 (n groups 155, se 0.024) | chain M (vLLM): mean rho +0.049 (n groups 138, se 0.022)
+
+B3. token-weighted advantage by turn length class: sum(adv x tokens in class)/sum(tokens in class); a positive number means the gradient rewards tokens of that class on net
+turn tokens    |         chain G (MINF) share% |         chain M (vLLM) share%
+     0-500    |                -0.0275  43.23 |                -0.0232  42.97 |
+   500-1000   |                -0.0294  22.98 |                -0.0288  23.26 |
+  1000-2000   |                -0.0327  16.35 |                -0.0508  16.38 |
+  2000-4000   |                -0.0532   9.27 |                -0.0447   8.86 |
+  4000-8000   |                +0.0049   4.13 |                -0.0586   4.04 |
+  8000-16000  |                -0.0240   1.21 |                -0.1291   1.17 |
+ 16000-inf    |                -0.2654   2.82 |                -0.2281   3.31 |
+
+C. TURN-LEVEL DISTRIBUTIONS pooled over steps 1-10
+chain G (MINF): turns 483561; n_tok p50 106 p90 647 p99 2237 p99.9 5999 max 177644; think share of turn tokens 0.506; turns without </think> 93 (of which sequence-final 56); turns with 2+ </think> 503
+   turns 1000-2000 tokens with >=1k think: n 7259, zlib<0.10 1, 0.10-0.25 191, 0.25-0.40 7011, >=0.40 56; rewarded share 0.18; rewarded among zlib<0.25: 37
+   turns 2000-4000 tokens with >=1k think: n 3905, zlib<0.10 3, 0.10-0.25 635, 0.25-0.40 3267, >=0.40 0; rewarded share 0.18; rewarded among zlib<0.25: 105
+   turns 4000-8000 tokens with >=1k think: n 996, zlib<0.10 8, 0.10-0.25 632, 0.25-0.40 356, >=0.40 0; rewarded share 0.19; rewarded among zlib<0.25: 123
+   turns 8000-16000 tokens with >=1k think: n 150, zlib<0.10 4, 0.10-0.25 135, 0.25-0.40 11, >=0.40 0; rewarded share 0.09; rewarded among zlib<0.25: 12
+   turns 16000-inf tokens with >=1k think: n 58, zlib<0.10 43, 0.10-0.25 14, 0.25-0.40 1, >=0.40 0; rewarded share 0.03; rewarded among zlib<0.25: 1
+chain M (vLLM): turns 484590; n_tok p50 106 p90 651 p99 2203 p99.9 6005 max 145304; think share of turn tokens 0.507; turns without </think> 89 (of which sequence-final 64); turns with 2+ </think> 485
+   turns 1000-2000 tokens with >=1k think: n 7263, zlib<0.10 0, 0.10-0.25 170, 0.25-0.40 7040, >=0.40 53; rewarded share 0.16; rewarded among zlib<0.25: 22
+   turns 2000-4000 tokens with >=1k think: n 3850, zlib<0.10 2, 0.10-0.25 635, 0.25-0.40 3212, >=0.40 1; rewarded share 0.16; rewarded among zlib<0.25: 91
+   turns 4000-8000 tokens with >=1k think: n 971, zlib<0.10 5, 0.10-0.25 575, 0.25-0.40 391, >=0.40 0; rewarded share 0.16; rewarded among zlib<0.25: 85
+   turns 8000-16000 tokens with >=1k think: n 148, zlib<0.10 7, 0.10-0.25 135, 0.25-0.40 6, >=0.40 0; rewarded share 0.07; rewarded among zlib<0.25: 10
+   turns 16000-inf tokens with >=1k think: n 68, zlib<0.10 61, 0.10-0.25 7, 0.25-0.40 0, >=0.40 0; rewarded share 0.03; rewarded among zlib<0.25: 2
+
+D. LOGPROB CHANNEL (d = trainer - engine)
+chain G (MINF): d at </think>: mean -0.0007 sd 0.0332 p1 -0.110 p99 +0.093 | engine logprob of </think>: mean -0.0691 p10 -0.122 p1 -1.391 share<-1 0.0168 | d at <|im_end|>: mean -0.00000 sd 0.0021 | first token: engine lp mean -0.535, d mean -0.0056 sd 0.106
+   mean |d| by context position of the turn start (tokens): 0k-16k: 0.0118 (n 45102); 16k-32k: 0.0124 (n 91049); 32k-64k: 0.0118 (n 164390); 64k-128k: 0.0116 (n 154747); 128k-infk: 0.0113 (n 28273)
+   mean d (signed) by context position: 0k-16k: -0.00103; 16k-32k: -0.00116; 32k-64k: -0.00119; 64k-128k: -0.00125; 128k-infk: -0.00124
+   mean |d| by turn length: 0-500: 0.0113; 500-1000: 0.0143; 1000-2000: 0.0156; 2000-4000: 0.0180; 4000-8000: 0.0200; 8000-16000: 0.0202; 16000-inf: 0.0057
+   TIS-clipped tokens: low 1555, high 233; tokens |d|>1: 13626 of 138519061; in rewarded turns: 2757, punished: 3905
+chain M (vLLM): d at </think>: mean -0.0008 sd 0.0329 p1 -0.111 p99 +0.089 | engine logprob of </think>: mean -0.0685 p10 -0.120 p1 -1.411 share<-1 0.0169 | d at <|im_end|>: mean -0.00000 sd 0.0016 | first token: engine lp mean -0.534, d mean -0.0057 sd 0.107
+   mean |d| by context position of the turn start (tokens): 0k-16k: 0.0119 (n 45154); 16k-32k: 0.0125 (n 91190); 32k-64k: 0.0119 (n 165602); 64k-128k: 0.0115 (n 153365); 128k-infk: 0.0113 (n 29279)
+   mean d (signed) by context position: 0k-16k: -0.00108; 16k-32k: -0.00118; 32k-64k: -0.00120; 64k-128k: -0.00125; 128k-infk: -0.00124
+   mean |d| by turn length: 0-500: 0.0113; 500-1000: 0.0142; 1000-2000: 0.0155; 2000-4000: 0.0184; 4000-8000: 0.0197; 8000-16000: 0.0190; 16000-inf: 0.0038
+   TIS-clipped tokens: low 1601, high 184; tokens |d|>1: 13736 of 139515356; in rewarded turns: 2555, punished: 3869
+
+E. OUTLIERS (top 8 per arm)
+chain G (MINF) top by generated tokens: s8 714c1_g2 n_gen=181841 rew=0 adv=+0.00 gen=181841 turns=15 loop=177644 err=context_window; s8 714c1_g8 n_gen=176119 rew=0 adv=+0.00 gen=176119 turns=28 loop=168925 err=context_window; s7 afb5_g14 n_gen=169350 rew=0 adv=-0.48 gen=169350 turns=63 loop=151667; s8 14c1_g11 n_gen=169263 rew=0 adv=+0.00 gen=169263 turns=62 loop=152823 err=context_window; s7 fafb5_g9 n_gen=167051 rew=0 adv=-0.48 gen=167051 turns=72 loop=147785; s7 fafb5_g7 n_gen=161223 rew=0 adv=-0.48 gen=161223 turns=73 loop=139371; s8 3b000_g5 n_gen=153805 rew=0 adv=+0.00 gen=153805 turns=71 loop=134138 err=context_window; s8 3b000_g7 n_gen=152996 rew=0 adv=+0.00 gen=152996 turns=48 loop=122425 err=context_window
+chain M (vLLM) top by generated tokens: s7 7d31_g15 n_gen=166112 rew=0 adv=-0.48 gen=166112 turns=86 loop=139279; s8 6836_g10 n_gen=163573 rew=0 adv=+0.00 gen=163573 turns=68 loop=125403 err=context_window; s9 874f_g15 n_gen=163492 rew=0 adv=+0.00 gen=163492 turns=102 loop=139584; s7 7d31_g11 n_gen=162991 rew=0 adv=-0.48 gen=162991 turns=53 loop=145304; s8 6836_g15 n_gen=159091 rew=0 adv=+0.00 gen=159091 turns=87 loop=123835 err=context_window; s8 6836_g13 n_gen=157971 rew=0 adv=+0.00 gen=157971 turns=49 loop=143675 err=context_window; s7 c7931_g8 n_gen=156788 rew=0 adv=+0.00 gen=156788 turns=72 loop=136124; s8 f6836_g0 n_gen=154690 rew=0 adv=+0.00 gen=154690 turns=39 loop=130038 err=context_window
+chain G (MINF) top by loop tokens: s8 714c1_g2 loop_tok=177644 rew=0 adv=+0.00 gen=181841 turns=15 loop=177644 err=context_window; s8 714c1_g8 loop_tok=168925 rew=0 adv=+0.00 gen=176119 turns=28 loop=168925 err=context_window; s8 14c1_g11 loop_tok=152823 rew=0 adv=+0.00 gen=169263 turns=62 loop=152823 err=context_window; s7 afb5_g14 loop_tok=151667 rew=0 adv=-0.48 gen=169350 turns=63 loop=151667; s7 fafb5_g9 loop_tok=147785 rew=0 adv=-0.48 gen=167051 turns=72 loop=147785; s7 fafb5_g7 loop_tok=139371 rew=0 adv=-0.48 gen=161223 turns=73 loop=139371; s8 3b000_g5 loop_tok=134138 rew=0 adv=+0.00 gen=153805 turns=71 loop=134138 err=context_window; s3 f72f8_g1 loop_tok=124831 rew=0 adv=-0.26 gen=139179 turns=55 loop=124831 err=context_window
+chain M (vLLM) top by loop tokens: s7 7d31_g11 loop_tok=145304 rew=0 adv=-0.48 gen=162991 turns=53 loop=145304; s8 6836_g13 loop_tok=143675 rew=0 adv=+0.00 gen=157971 turns=49 loop=143675 err=context_window; s9 874f_g15 loop_tok=139584 rew=0 adv=+0.00 gen=163492 turns=102 loop=139584; s7 7d31_g15 loop_tok=139279 rew=0 adv=-0.48 gen=166112 turns=86 loop=139279; s7 c7931_g8 loop_tok=136124 rew=0 adv=+0.00 gen=156788 turns=72 loop=136124; s8 f6836_g0 loop_tok=130038 rew=0 adv=+0.00 gen=154690 turns=39 loop=130038 err=context_window; s3 b5810_g6 loop_tok=129730 rew=1 adv=+0.26 gen=146710 turns=39 loop=129730 err=None; s10 fde92_g7 loop_tok=128704 rew=0 adv=+0.00 gen=147145 turns=96 loop=128704
+chain G (MINF) top by max |d|: s10 49abe_g1 max_abs_d=26 rew=0 adv=+0.00 gen=47224 turns=86 loop=0; s3 b9f4_g12 max_abs_d=11 rew=0 adv=+0.00 gen=51808 turns=199 loop=0 err=max_iteration; s1 34969_g9 max_abs_d=11 rew=0 adv=-0.26 gen=26097 turns=199 loop=0 err=max_iteration; s3 cac3e_g6 max_abs_d=11 rew=0 adv=+0.00 gen=35519 turns=112 loop=0 err=None; s4 c59a4_g3 max_abs_d=10 rew=0 adv=-0.26 gen=22345 turns=86 loop=0 err=None; s2 3aea_g14 max_abs_d=10 rew=1 adv=+0.48 gen=27662 turns=172 loop=0 err=None; s4 9ce05_g9 max_abs_d=8 rew=1 adv=+0.68 gen=21919 turns=111 loop=0 err=None; s10 6b43e_g5 max_abs_d=8 rew=1 adv=+0.26 gen=51294 turns=116 loop=0
+chain M (vLLM) top by max |d|: s10 9e7a9_g5 max_abs_d=18 rew=0 adv=+0.00 gen=57173 turns=200 loop=0; s2 c93bf_g1 max_abs_d=14 rew=1 adv=+0.26 gen=22641 turns=113 loop=0 err=None; s10 9e7a9_g7 max_abs_d=11 rew=0 adv=+0.00 gen=61064 turns=200 loop=0; s10 f8a55_g1 max_abs_d=10 rew=0 adv=+0.00 gen=58079 turns=78 loop=0; s7 f6af4_g4 max_abs_d=9 rew=1 adv=+0.38 gen=18780 turns=80 loop=0; s4 69ad8_g3 max_abs_d=9 rew=1 adv=+0.00 gen=15206 turns=79 loop=0 err=None; s10 f8a55_g6 max_abs_d=8 rew=0 adv=+0.00 gen=52583 turns=52 loop=0; s6 a73de_g2 max_abs_d=8 rew=0 adv=-0.48 gen=42279 turns=128 loop=0
+chain G (MINF) top by tokens with |d|>1: s7 5b98_g12 n_d_gt1=26 rew=0 adv=+0.00 gen=132803 turns=97 loop=116217; s8 cb77_g15 n_d_gt1=21 rew=0 adv=-1.60 gen=62251 turns=200 loop=0 err=max_iteration; s8 a5b1_g11 n_d_gt1=21 rew=0 adv=+0.00 gen=75794 turns=105 loop=0 err=None; s5 87ff6_g5 n_d_gt1=19 rew=0 adv=+0.00 gen=58261 turns=158 loop=0 err=None; s6 af3a8_g6 n_d_gt1=19 rew=0 adv=-0.68 gen=70428 turns=131 loop=0 err=None; s8 0a5b1_g1 n_d_gt1=19 rew=0 adv=+0.00 gen=62032 turns=115 loop=0 err=None; s4 5e850_g6 n_d_gt1=18 rew=0 adv=-0.26 gen=82937 turns=198 loop=13163 err=None; s4 2bb34_g2 n_d_gt1=17 rew=0 adv=+0.00 gen=51667 turns=157 loop=0 err=None
+chain M (vLLM) top by tokens with |d|>1: s8 0861e_g6 n_d_gt1=24 rew=0 adv=-1.60 gen=79758 turns=144 loop=0 err=None; s6 6040_g13 n_d_gt1=21 rew=1 adv=+1.18 gen=51864 turns=101 loop=0; s8 2e7cf_g4 n_d_gt1=21 rew=0 adv=-0.58 gen=82091 turns=91 loop=0 err=stuck_in_loop; s8 2988_g14 n_d_gt1=20 rew=0 adv=-0.26 gen=60323 turns=93 loop=0 err=None; s5 cd240_g9 n_d_gt1=19 rew=0 adv=+0.00 gen=65636 turns=158 loop=0 err=None; s5 d240_g11 n_d_gt1=19 rew=0 adv=+0.00 gen=69423 turns=122 loop=0 err=None; s8 2e7cf_g6 n_d_gt1=19 rew=0 adv=-0.58 gen=77949 turns=119 loop=0 err=context_window; s8 b2988_g5 n_d_gt1=19 rew=0 adv=-0.26 gen=54813 turns=119 loop=0 err=None
+chain G (MINF) top by longest turn: s8 714c1_g2 max_turn=177644 rew=0 adv=+0.00 gen=181841 turns=15 loop=177644 err=context_window; s8 14c1_g11 max_turn=152823 rew=0 adv=+0.00 gen=169263 turns=62 loop=152823 err=context_window; s7 afb5_g14 max_turn=151667 rew=0 adv=-0.48 gen=169350 turns=63 loop=151667; s7 fafb5_g9 max_turn=147785 rew=0 adv=-0.48 gen=167051 turns=72 loop=147785; s7 fafb5_g7 max_turn=139371 rew=0 adv=-0.48 gen=161223 turns=73 loop=139371; s8 3b000_g5 max_turn=134138 rew=0 adv=+0.00 gen=153805 turns=71 loop=134138 err=context_window; s3 f72f8_g1 max_turn=124831 rew=0 adv=-0.26 gen=139179 turns=55 loop=124831 err=context_window; s7 28bcf_g5 max_turn=123948 rew=0 adv=+0.00 gen=137480 turns=53 loop=123815
+chain M (vLLM) top by longest turn: s7 7d31_g11 max_turn=145304 rew=0 adv=-0.48 gen=162991 turns=53 loop=145304; s8 6836_g13 max_turn=143675 rew=0 adv=+0.00 gen=157971 turns=49 loop=143675 err=context_window; s9 874f_g15 max_turn=139584 rew=0 adv=+0.00 gen=163492 turns=102 loop=139584; s7 7d31_g15 max_turn=139279 rew=0 adv=-0.48 gen=166112 turns=86 loop=139279; s7 c7931_g8 max_turn=136124 rew=0 adv=+0.00 gen=156788 turns=72 loop=136124; s3 b5810_g6 max_turn=129786 rew=1 adv=+0.26 gen=146710 turns=39 loop=129730 err=None; s10 fde92_g7 max_turn=128704 rew=0 adv=+0.00 gen=147145 turns=96 loop=128704; s9 874f_g12 max_turn=126441 rew=0 adv=+0.00 gen=143846 turns=101 loop=126441
+
+F. JSONL FIELDS (from the browser index): agent_error_kind and resolved/patch by arm, steps with summaries
+chain G (MINF): n 3584; error kinds {'None': 3227, 'max_iteration': 203, 'context_window': 132, 'other': 4, 'oom': 12, 'stuck_in_loop': 6}; resolved 1280; patch_exists false 150; truncated 53; runaway(jsonl) 39
+   reward mean by error kind: None: 0.390 (n 3227); max_iteration: 0.044 (n 203); context_window: 0.091 (n 132); other: 0.000 (n 4); oom: 0.000 (n 12); stuck_in_loop: 0.000 (n 6)
+chain M (vLLM): n 3072; error kinds {'None': 2779, 'max_iteration': 178, 'stuck_in_loop': 11, 'context_window': 98, 'oom': 1, 'other': 5}; resolved 1099; patch_exists false 135; truncated 47; runaway(jsonl) 39
+   reward mean by error kind: None: 0.387 (n 2779); max_iteration: 0.107 (n 178); stuck_in_loop: 0.091 (n 11); context_window: 0.041 (n 98); oom: 0.000 (n 1); other: 0.000 (n 5)

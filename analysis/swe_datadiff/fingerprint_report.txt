@@ -1,0 +1,30 @@
+ENGINE FINGERPRINT DETAIL: share of long think turns (>=1k think tokens) that are near-repetitive (zlib < 0.25), by engine, by step window and by context position; and the trainer-minus-engine logprob at </think> by position. Group bootstrap CIs pooled by engine.
+
+share zlib<0.25 among turns with >=1k think tokens
+  steps 1-10                         MINF 0.1328 [0.1254,0.1414] (n  37228)   vLLM 0.1278 [0.1211,0.1350] (n  49486)   diff +0.0050
+  steps 1-3 (weights ~ base)         MINF 0.1142 [0.1012,0.1273] (n   8587)   vLLM 0.1152 [0.1023,0.1289] (n  11534)   diff -0.0010
+  steps 4-10                         MINF 0.1384 [0.1279,0.1484] (n  28641)   vLLM 0.1317 [0.1243,0.1396] (n  37952)   diff +0.0067
+  context 0k-32k                     MINF 0.0720 [0.0615,0.0825] (n   4763)   vLLM 0.0740 [0.0648,0.0839] (n   6476)   diff -0.0020
+  context 32k-64k                    MINF 0.0943 [0.0847,0.1026] (n  11680)   vLLM 0.0875 [0.0801,0.0949] (n  15529)   diff +0.0068
+  context 64k-128k                   MINF 0.1535 [0.1434,0.1640] (n  16772)   vLLM 0.1485 [0.1400,0.1569] (n  21981)   diff +0.0050
+  context 128k-infk                  MINF 0.2308 [0.2093,0.2542] (n   4013)   vLLM 0.2225 [0.2045,0.2410] (n   5500)   diff +0.0082
+  think tokens 1000-2000             MINF 0.0289 [0.0254,0.0327] (n  24690)   vLLM 0.0307 [0.0273,0.0339] (n  33030)   diff -0.0018
+  think tokens 2000-4000             MINF 0.2002 [0.1838,0.2165] (n   9394)   vLLM 0.1946 [0.1807,0.2087] (n  12371)   diff +0.0057
+  think tokens 4000-8000             MINF 0.6932 [0.6637,0.7227] (n   2539)   vLLM 0.6505 [0.6212,0.6822] (n   3336)   diff +0.0427
+  think tokens 8000-inf              MINF 0.9752 [0.9563,0.9890] (n    605)   vLLM 0.9813 [0.9670,0.9920] (n    749)   diff -0.0061
+
+mean zlib of think, turns >=1k think
+  steps 1-10                         MINF 0.2982 [0.2967,0.2996] (n  37228)   vLLM 0.2988 [0.2974,0.3001] (n  49486)   diff -0.0007
+  rewarded turns only                MINF 0.2996 [0.2970,0.3024] (n   5987)   vLLM 0.3013 [0.2993,0.3033] (n   7483)   diff -0.0017
+  punished turns only                MINF 0.2939 [0.2914,0.2963] (n  11712)   vLLM 0.2941 [0.2920,0.2961] (n  15032)   diff -0.0002
+
+trainer - engine logprob at </think> (d_close)
+  all turns                          MINF -0.0004 [-0.0004,-0.0003] (n 1449416)   vLLM -0.0012 [-0.0012,-0.0011] (n 1927683)   diff +0.0008
+  context 0k-32k                     MINF -0.0004 [-0.0005,-0.0003] (n 408945)   vLLM -0.0010 [-0.0011,-0.0009] (n 545222)   diff +0.0006
+  context 32k-64k                    MINF -0.0005 [-0.0005,-0.0004] (n 494919)   vLLM -0.0013 [-0.0014,-0.0012] (n 659479)   diff +0.0009
+  context 64k-128k                   MINF -0.0003 [-0.0004,-0.0001] (n 460554)   vLLM -0.0011 [-0.0012,-0.0010] (n 609740)   diff +0.0008
+  context 128k-infk                  MINF -0.0004 [-0.0007,-0.0002] (n  84998)   vLLM -0.0013 [-0.0015,-0.0010] (n 113242)   diff +0.0008
+
+engine logprob of </think> (g_close)
+  all turns                          MINF -0.0689 [-0.0698,-0.0679] (n 1449416)   vLLM -0.0690 [-0.0697,-0.0683] (n 1927683)   diff +0.0002
+  long turns >=4k                    MINF -0.1682 [-0.1851,-0.1517] (n   3829)   vLLM -0.1602 [-0.1769,-0.1453] (n   5100)   diff -0.0080

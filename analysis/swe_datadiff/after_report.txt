@@ -1,0 +1,33 @@
+WHAT HAPPENS AFTER A LONG THINK TURN (4k-16k tokens), steps 1-10, per arm. Each long turn that is not the rollout's last turn is an event; 'before' = the 3 turns preceding it, 'after' = the 3 turns following it.
+armeng  out   events next turn tok after/before next also >=4k >=4k in next 3 more >=4k later rest max tok rest frac>=2k later loop later near-rep ends runaway ends within 3  success
+G  MINF BAD     1236           912         3.32          0.043          0.113           0.342         4236         0.064      0.020          0.378        0.027         0.026    0.194
+I  MINF BAD     1221           927         4.37          0.038          0.106           0.346         5850         0.070      0.036          0.369        0.030         0.029    0.177
+J  MINF good    1260          1002         3.53          0.037          0.094           0.347         5233         0.066      0.023          0.357        0.026         0.027    0.156
+A  vLLM good    1318          1033         4.01          0.046          0.112           0.373         4448         0.067      0.016          0.345        0.018         0.030    0.144
+K  vLLM good    1198           928         3.37          0.037          0.097           0.357         5119         0.072      0.026          0.364        0.029         0.037    0.159
+M  vLLM good    1228           969         3.85          0.046          0.120           0.353         5066         0.069      0.022          0.364        0.026         0.030    0.186
+N  vLLM good    1211           874         4.07          0.039          0.110           0.361         4795         0.064      0.024          0.357        0.022         0.029    0.155
+
+pooled by engine (steps 1-10), with 95% CI where binary
+  MINF: events 3717; next turn >=4k 0.039; another >=4k later 0.345; later loop 0.026 [0.022,0.032]; later near-rep 0.368 [0.352,0.383]; ends runaway 0.028 [0.023,0.033]; success 0.175; after/before length ratio 3.74; rest max tok 5104
+  vLLM: events 4955; next turn >=4k 0.042; another >=4k later 0.361; later loop 0.022 [0.018,0.026]; later near-rep 0.357 [0.344,0.371]; ends runaway 0.024 [0.020,0.028]; success 0.161; after/before length ratio 3.83; rest max tok 4848
+
+SPLIT BY OUTCOME: the same after-turn statistics for long turns in FAILED vs SUCCESSFUL rollouts (does a long think in a failing rollout look like the start of a degradation more often in vLLM data?)
+armeng  out   | failed: events next>=4k later loop later near  runaway rest max after/before | succ: events next>=4k later near rest max after/before
+G  MINF BAD   |            996    0.042      0.025      0.404    0.033     4554         3.43 |          240    0.046      0.271     2916         2.87
+I  MINF BAD   |           1005    0.042      0.043      0.383    0.034     6373         4.80 |          216    0.019      0.301     3417         2.38
+J  MINF good  |           1064    0.040      0.026      0.388    0.031     5700         3.76 |          196    0.020      0.189     2702         2.28
+A  vLLM good  |           1128    0.040      0.019      0.374    0.021     4653         4.17 |          190    0.084      0.174     3230         3.07
+K  vLLM good  |           1008    0.037      0.031      0.387    0.035     5542         3.54 |          190    0.037      0.242     2873         2.47
+M  vLLM good  |            999    0.048      0.027      0.399    0.031     5517         4.03 |          229    0.039      0.210     3097         3.10
+N  vLLM good  |           1023    0.042      0.028      0.380    0.026     5101         4.22 |          188    0.021      0.229     3132         3.21
+
+TRANSITION: given a long think turn, probability that the rollout's remaining part contains a FULL loop or ends in runaway ('degrades'), by arm, and the success rate of long-turn rollouts that did NOT degrade
+armeng  out    P(degrade | long turn) success | no degrade  success | degrade n no-degrade
+G  MINF BAD          0.035 [0.026,0.047]                0.201              0.000         1193
+I  MINF BAD          0.044 [0.034,0.057]                0.183              0.056         1167
+J  MINF good         0.036 [0.027,0.047]                0.160              0.022         1215
+A  vLLM good         0.024 [0.017,0.034]                0.148              0.000         1286
+K  vLLM good         0.042 [0.032,0.055]                0.166              0.000         1148
+M  vLLM good         0.035 [0.026,0.047]                0.192              0.023         1185
+N  vLLM good         0.037 [0.028,0.049]                0.161              0.000         1166

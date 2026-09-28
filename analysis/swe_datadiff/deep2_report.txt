@@ -1,0 +1,44 @@
+DECOMPOSITION OF THE REWARDED DEEP-THINK GRADIENT, steps 1-10 (deep = think tokens beyond position 4096; live weight = 1 - p_trainer). Per 1k generated tokens unless stated.
+live deep tokens in REWARDED rollouts, sum(1-p) per 1k tok     G:+0.202 I:+0.184 P42:+0.172 A:+0.128 K:+0.151 M:+0.156 N:+0.122 Q4:+0.153 J:+0.130 P4:+0.149 | bad ranks [1, 2, 3] YES
+live deep tokens in PUNISHED rollouts, sum(1-p) per 1k tok     G:+0.455 I:+0.471 P42:+0.519 A:+0.508 K:+0.368 M:+0.500 N:+0.518 Q4:+0.475 J:+0.503 P4:+0.466 | bad ranks [1, 7, 9] 
+R_deep+ = sum adv x (1-p) rewarded deep, per 1k tok            G:+0.227 I:+0.235 P42:+0.241 A:+0.153 K:+0.178 M:+0.212 N:+0.156 Q4:+0.175 J:+0.169 P4:+0.180 | bad ranks [1, 2, 3] YES
+rewarded rollouts containing a deep think turn [count]         G:127 I:102 P42:102 A:79 K:93 M:108 N:85 Q4:93 J:100 P4:85 | bad ranks [1, 3, 4] 
+mean advantage of those rollouts                               G:1.041 I:1.084 P42:1.162 A:1.105 K:1.161 M:1.203 N:1.089 Q4:1.118 J:1.167 P4:1.109 | bad ranks [3, 9, 10] 
+mean (1-p) of rewarded deep tokens                             G:0.1017 I:0.0933 P42:0.1083 A:0.1060 K:0.0743 M:0.0648 N:0.1038 Q4:0.0988 J:0.0730 P4:0.1086 | bad ranks [2, 5, 7] 
+deep tokens in rewarded rollouts per 1k tok                    G:1.99 I:1.97 P42:1.59 A:1.21 K:2.03 M:2.40 N:1.17 Q4:1.55 J:1.79 P4:1.37 | bad ranks [3, 4, 6] 
+deep tokens in punished rollouts per 1k tok                    G:15.55 I:11.12 P42:15.87 A:10.57 K:15.99 M:14.22 N:12.73 Q4:15.07 J:14.69 P4:13.33 | bad ranks [2, 3, 9] 
+live deep tokens, rewarded / punished ratio                    G:0.445 I:0.390 P42:0.332 A:0.252 K:0.409 M:0.311 N:0.235 Q4:0.322 J:0.259 P4:0.320 | bad ranks [1, 3, 4] 
+
+Group bootstrap for S+ (live rewarded deep tokens per 1k) and R_deep+:
+  G   bad   S+ +0.202 [+0.135,+0.281]   R_deep+ +0.227 [+0.147,+0.319]
+  I   bad   S+ +0.184 [+0.108,+0.274]   R_deep+ +0.235 [+0.129,+0.351]
+  P42 bad   S+ +0.172 [+0.115,+0.236]   R_deep+ +0.241 [+0.131,+0.389]
+  A   good  S+ +0.128 [+0.066,+0.202]   R_deep+ +0.153 [+0.072,+0.253]
+  K   good  S+ +0.151 [+0.089,+0.223]   R_deep+ +0.178 [+0.102,+0.274]
+  M   good  S+ +0.156 [+0.100,+0.220]   R_deep+ +0.212 [+0.118,+0.317]
+  N   good  S+ +0.122 [+0.076,+0.175]   R_deep+ +0.156 [+0.087,+0.237]
+  Q4  good  S+ +0.153 [+0.081,+0.251]   R_deep+ +0.175 [+0.094,+0.285]
+  J   good  S+ +0.130 [+0.075,+0.197]   R_deep+ +0.169 [+0.092,+0.267]
+  P4  good  S+ +0.149 [+0.082,+0.230]   R_deep+ +0.180 [+0.101,+0.275]
+  S+: bad mean - good mean = +0.045, bootstrap se 0.026, z +1.8
+  R_deep+: bad mean - good mean = +0.059, bootstrap se 0.037, z +1.6
+
+CONCENTRATION: share of R_deep+ carried by the top-N rewarded rollouts (ranked by adv x live deep tokens), and the top 8 rollouts of each bad arm (step, sample, adv, deep tokens, live deep, classes of its deep turns)
+G   bad   rollouts  127; top-10   39 %, top-25   69 %, top-50   87 %, top-100   99 %
+      s8 5bd1_g13 adv +1.93 deep 8467 live 977 near; s8 85bd1_g8 adv +1.93 deep 8616 live 974 near; s5 ea806_g8 adv +2.46 deep 5920 live 596 near/normal_long; s8 cfe0_g13 adv +1.00 deep 8978 live 1159 near; s10 44387_g9 adv +0.90 deep 17435 live 1258 near/normal_long; s2 37b2f_g3 adv +2.46 deep 2906 live 424 near; s10 44387_g4 adv +0.90 deep 10667 live 1090 near; s6 af3a8_g9 adv +1.60 deep 5512 live 603 near
+I   bad   rollouts  102; top-10   55 %, top-25   80 %, top-50   94 %, top-100  100 %
+      s5 a9f4_g13 adv +2.46 deep 28325 live 1622 near/normal_long; s6 56b6_g13 adv +2.46 deep 8665 live 993 near; s5 f4586_g7 adv +1.60 deep 12887 live 1369 near/normal_long; s8 afc8_g15 adv +1.93 deep 9664 live 1080 near; s9 a236_g13 adv +3.61 deep 3673 live 489 near; s7 621f_g15 adv +2.46 deep 6177 live 578 near; s8 e1dea_g6 adv +1.00 deep 9583 live 1171 near/normal_long; s7 c05a_g12 adv +1.60 deep 5078 live 647 near/normal_long
+P42 bad   rollouts  102; top-10   56 %, top-25   77 %, top-50   92 %, top-100  100 %
+      s8 0a627_g4 adv +3.61 deep 9128 live 1108 near/normal_long; s8 a627_g14 adv +3.61 deep 7156 live 937 near; s4 0fda_g10 adv +3.61 deep 5204 live 584 near; s1 3c646_g1 adv +3.61 deep 4780 live 493 near; s8 0341_g13 adv +2.46 deep 5488 live 680 near; s6 621ce_g1 adv +3.61 deep 2630 live 372 normal_long; s7 9065c_g0 adv +1.37 deep 7590 live 933 near; s5 5278_g10 adv +1.93 deep 6362 live 639 near
+A   good  rollouts   79; top-10   57 %, top-25   82 %, top-50   97 %, top-100  100 %
+K   good  rollouts   93; top-10   47 %, top-25   72 %, top-50   92 %, top-100  100 %
+M   good  rollouts  108; top-10   49 %, top-25   74 %, top-50   91 %, top-100  100 %
+N   good  rollouts   85; top-10   59 %, top-25   83 %, top-50   96 %, top-100  100 %
+Q4  good  rollouts   93; top-10   53 %, top-25   77 %, top-50   94 %, top-100  100 %
+J   good  rollouts  100; top-10   58 %, top-25   79 %, top-50   94 %, top-100  100 %
+P4  good  rollouts   85; top-10   51 %, top-25   79 %, top-50   96 %, top-100  100 %
+
+PROMPT-PAIRED (same step and prompt across all 10 arms): per-prompt R_deep (group value per 1k arm tokens); bad-arm mean minus good-arm mean; sign test; also for S+.
+  prompts present in all 10 arms: 320
+  R_deep: mean diff +0.0003 per prompt (sum +0.092); prompts with bad>good 93, bad<good 62 (z +2.49); top-5 |diff| prompts carry 29 % of total |diff|
+  S+ (live rewarded deep): mean diff +0.0001 per prompt (sum +0.045); prompts with bad>good 67, bad<good 54 (z +1.18); top-5 |diff| prompts carry 21 % of total |diff|

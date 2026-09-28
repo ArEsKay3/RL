@@ -114,6 +114,15 @@ DUMP_OVERRIDES=(
 )
 mkdir -p "${RESULTS_DIR}/dumps" "${RESULTS_DIR}/gym_results"
 
+# Standing rule (rkirby, 2026-09-28): every resume skips the replay-buffer
+# restore, regardless of trigger (wall timeout, Slurm requeue, manual). A
+# mid-collection requeue that restored the default buffer mixed pre-crash
+# in-flight rollouts into the wrong step and shifted chain V3's prompt
+# curriculum ~2 blocks ahead of V/V2 (2026-09-28). No-op on a fresh start.
+RESUME_OVERRIDES=(
+  "+checkpointing.load_replay_buffer=false"
+)
+
 [[ -f "${MLM_TREE}/megatron/core/inference/vllm_parity.py" ]] || {
   echo "ERROR: ${MLM_TREE} is not on the parity branch" >&2; exit 1; }
 grep -q "_run_post_refit_hooks" "${MLM_TREE}/megatron/core/resharding/refit.py" || {
@@ -147,4 +156,4 @@ echo "Megatron-LM mount: $(git -C "${MLM_TREE}" rev-parse --short HEAD) ($(git -
 echo "parity site: ${PARITY_SITE} via ${MW_SITE_PACKAGES}/zz_parity_paths.pth"
 echo "ptxas: ${PTXAS_PATH}  torch extensions: ${TORCH_EXT_DIR}"
 echo "dumps: ${RESULTS_DIR}/dumps  gym results: ${RESULTS_DIR}/gym_results"
-exec bash examples/nemo_gym/nemotron-3.5-nano/nano35_launch.sh swe "${SHAPE_OVERRIDES[@]}" "${DUMP_OVERRIDES[@]}" "${MINF_OVERRIDES[@]}" "$@"
+exec bash examples/nemo_gym/nemotron-3.5-nano/nano35_launch.sh swe "${SHAPE_OVERRIDES[@]}" "${DUMP_OVERRIDES[@]}" "${MINF_OVERRIDES[@]}" "${RESUME_OVERRIDES[@]}" "$@"

@@ -78,9 +78,10 @@ grep -v nel-eval-harbor "$CACHE/sq_raw.txt" | awk -F'|' '$3=="RUNNING"' | while 
     sc=$(grep -lm1 "SingleControllerActor" "$sess"/logs/worker-*.out 2>/dev/null | head -1)
     [ -n "$sc" ] && echo "$sc" > "$c"
   fi
+  sctag=worker; [ -z "$sc" ] && [ -f "$drv" ] && { sc="$drv"; sctag=driver; }
   st_json="$R/$exp/checkpoints/latest_checkpoint_status.json"
   ck=$(python3 -c "import json,sys;print(json.load(open('$st_json'))['last_checkpoint_step'])" 2>/dev/null || echo "?")
-  echo "  checkpoint=$ck  driver=$( [ -f "$drv" ] && date -r "$drv" +%H:%M:%S || echo none )  SC=$( [ -n "$sc" ] && date -r "$sc" +%H:%M:%S || echo none )"
+  echo "  checkpoint=$ck  driver=$( [ -f "$drv" ] && date -r "$drv" +%H:%M:%S || echo none )  SC($sctag)=$( [ -n "$sc" ] && date -r "$sc" +%H:%M:%S || echo none )"
   if [ -f "$drv" ]; then
     clean=$(sed 's/\x1b\[[0-9;]*m//g' "$drv")
     echo "  guard: removed_engine=$(echo "$clean" | grep -c 'Coordinator: removed engine') post_process_requests=$(echo "$clean" | grep -c post_process_requests)"

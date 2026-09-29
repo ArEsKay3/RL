@@ -13,35 +13,51 @@ through Keshav Santhanam's `vllm-numerical-parity` adapter tracks the vLLM
 arms (run A / chain K / chain Q⁗) on SWE-Bench Verified pass@1, instead of
 sagging the way plain MINF (chain G) did.
 
-| arm | seed | purpose |
-|---|---|---|
-| chain V | 42 | primary — **STOPPED at step_35**, no follower queued, pending rkirby |
-| chain V2 | 1234 | confirmation replica, running |
-| chain V3 | 4321 | confirmation replica, running |
+| arm | seed | purpose | status as of 2026-09-29 15:20 |
+|---|---|---|---|
+| chain V | 42 | primary | **STOPPED at step_35** (2026-09-28), never resumed |
+| chain V2 | 1234 | confirmation replica | **STOPPED at step_35** permanent, rolling **step_39** on disk |
+| chain V3 | 4321 | confirmation replica | **STOPPED at step_50** permanent, rolling **step_52** on disk |
 
 All three: MINF from scratch off `base_model/step_18/hf`, prefix cache kept
 across refits (`invalidate_prefix_cache_on_weight_update=false`), vLLM parity
 profile TP4/EP1/ETP4, `max_tokens=8480`, `inference_vllm_parity=true`.
-**No SWE-Bench Verified eval campaign yet** — rkirby: "let V run for a while
-before dedicating eval to it" (2026-09-27). That decision has not changed as
-of this handoff; check with him before opening one.
 
-## Run dirs, jobs, rungs (as of 2026-09-28 ~12:00 PDT)
+**All three arms are stopped by rkirby's explicit order** ("kill the V2 and
+V3 runs", 2026-09-29 15:20 PDT) — do not resubmit any of them without his
+word. A SWE-Bench Verified eval campaign on the already-exported rungs (V
+5-35, V2 5-35, V3 5-50) is running separately and is unaffected by the stop.
+
+## Run dirs, jobs, rungs (final state, 2026-09-29 15:20 PDT)
 
 ```
 chain V   users/rkirby/runs/nano35-swe-v2-from0-parity-minf-20260927/
           4052187 (steps 1-17, TIMEOUT 8h) -> 4060149 (18-35, TIMEOUT 8h,
           resumed with +checkpointing.load_replay_buffer=false)
-          rungs on disk: step_5 10 15 20 25 30 35. STOPPED, no follower.
+          rungs on disk: step_5 10 15 20 25 30 35. STOPPED, never resumed.
 
 chain V2  users/rkirby/runs/nano35-swe-v2-from0-parity-minf-seed1234-20260928/
-          4068670 (RUNNING) -> 4068674 -> 4068676 (all afterany-chained)
-          rungs on disk: step_2 4 (climbing)
+          4068670 -> 4076660 -> 4076674 -> 4095037 (CANCELLED by rkirby,
+          15:20:35 09-29). One incident along the way: segment 4076660 was
+          CANCELLED by the GPU-idle reaper (146504) during the 2026-09-29
+          cluster-wide Lustre outage, unrelated to arm config.
+          rungs on disk: step_5 10 15 20 25 30 35 + rolling step_39
+          (closed save, landed 15:20 just before the cancel).
 
 chain V3  users/rkirby/runs/nano35-swe-v2-from0-parity-minf-seed4321-20260928/
-          4068673 (RUNNING, one benign Slurm REQUEUE at 10:45 09-28,
-          Restarts=1, no code failure) -> 4068675 -> 4068677
-          rungs on disk: step_2 4 (climbing)
+          4068673 (Slurm REQUEUE 10:45 09-28, Restarts=1) -> 4076661 (FAILED,
+          NCCL TCPStore errors during the 2026-09-29 Lustre outage) ->
+          4076675 -> 4095038 (CANCELLED by rkirby, 15:20:36 09-29).
+          rungs on disk: step_5 10 15 20 25 30 35 40 45 50 + rolling step_52
+          (closed save).
+
+The mid-collection replay-buffer restore during 4076661's requeue (before
+the launcher baked in load_replay_buffer=false, see below) shifted chain
+V3's prompt-curriculum cursor ~2 blocks ahead of chain V/V2 from around
+step 4 on. Confirmed by training-batch-size evidence (512 rows/step held
+throughout) that the trainer's actual batches were not corrupted — only the
+curriculum position drifted. Chain V2 was not affected (no requeue on that
+segment). Relevant if anyone compares V2/V3 pass@1 step-for-step.
 ```
 
 Each run dir has `checkpoints/` (140 files/rung + rolling), `dumps/`
@@ -149,13 +165,15 @@ Full incident writeup: search memory `hydra-override-plus-vs-plain`.
 
 ## Open questions / decisions still pending
 
-- **Eval campaign**: on hold for all three arms per rkirby. Ask before
-  opening one; if reopened, rungs are already on disk and just need HF
-  export (`tools/export_checkpoint_hf_v2.sbatch` from the base workspace,
-  ~0.06 TiB/rung — pace a catch-up batch, don't fire all rungs at once).
-- **chain V (seed 42) resume**: stopped at step_35, not resumed as of this
-  handoff. Resume is possible — replay buffer + `pending_rollouts.pt` were
-  saved with the rung.
+- **Eval campaign**: RESOLVED — rkirby lifted the hold and a SWE-Bench
+  Verified campaign is running on the already-exported rungs (V 5-35, V2
+  5-35, V3 5-50), separate from and unaffected by the training stop below.
+- **All three arms are stopped**, per rkirby's explicit order 2026-09-29
+  15:20 PDT ("kill the V2 and V3 runs"; chain V was already stopped since
+  2026-09-28 and never resumed). **Do not resubmit any of V/V2/V3 without
+  his word.** Resume is technically possible for all three — replay buffer
+  + `pending_rollouts.pt` were saved with each stop point — but that is a
+  decision for him, not a default action.
 - **Replay-buffer policy on resume**: RESOLVED 2026-09-28, no longer open.
   V2/V3 initially resumed on the default (buffer restored), a deliberate
   per-arm choice at the time — until a Slurm requeue on chain V3 (job

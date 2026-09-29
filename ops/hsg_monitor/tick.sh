@@ -105,7 +105,7 @@ grep -v nel-eval-harbor "$CACHE/sq_raw.txt" | awk -F'|' '$3=="RUNNING"' | while 
   # replay arms emit no Gym bars, so track driver size and token-dump count as engine-agnostic signals
   dsize=$( [ -f "$drv" ] && stat -c %s "$drv" 2>/dev/null ); dsize=${dsize:-0}
   toks=$(ls "$R/$exp/dumps/token_level" 2>/dev/null | wc -l); toks=${toks:-0}
-  stf="$CACHE/tickstate_$exp.txt"
+  stf="$CACHE/tickstate_${exp}_${jid}.txt"
   if [ -s "$stf" ]; then
     read -r p_now p_bytes p_bars p_ck p_dsize p_toks < "$stf"
     p_dsize=${p_dsize:-0}; p_toks=${p_toks:-0}

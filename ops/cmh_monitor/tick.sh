@@ -54,7 +54,7 @@ arm_letter() {
 timeout 120 squeue -u rkirby -h -o "%i|%j|%T|%M|%q|%r" 2>/dev/null > "$CACHE/sq_raw.txt"
 echo "harbor=$(grep -c nel-eval-harbor "$CACHE/sq_raw.txt") held=$(grep -v nel-eval-harbor "$CACHE/sq_raw.txt" | grep -c JobHeldUser)"
 
-grep -v nel-eval-harbor "$CACHE/sq_raw.txt" | awk -F'|' '$3=="RUNNING"' | while IFS='|' read -r jid exp st el qos rsn; do
+grep -v nel-eval-harbor "$CACHE/sq_raw.txt" | awk -F'|' '$3=="RUNNING" && $2 !~ /^ *hf-export/' | while IFS='|' read -r jid exp st el qos rsn; do
   jid=$(echo "$jid" | tr -d ' '); el=$(echo "$el" | tr -d ' ')
   echo "=== chain $(arm_letter "$exp")  job $jid  elapsed $el"
   ld=$(ls -dt "$R/$exp/ray_logs/${jid}-logs" "$R/$exp/ray_logs/${jid}-"[0-9]*"-logs" 2>/dev/null | head -1)

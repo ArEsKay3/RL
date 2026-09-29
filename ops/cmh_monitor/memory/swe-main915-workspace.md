@@ -5,7 +5,7 @@ metadata:
   node_type: memory
   type: project
   originSessionId: 51d77432-fbb8-4536-b679-a1714b74af54
-  modified: 2026-09-29T11:55:26.860Z
+  modified: 2026-09-29T15:47:52.297Z
 ---
 
 Workspace: `/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/workspaces/swe_main915/`.
@@ -192,6 +192,18 @@ replay group(s)" + "Loaded 96 unfinished rollout group(s)" + "Restored 32 pooled
 "Restored 24 replay group(s)" + "Loaded 72 unfinished" + 32 spares. Health check after the first new
 step: dumps for steps 16+ (U) / 7+ (W), masked fraction ~0.4%, no penalty metrics. The Megatron-LM
 tree's only dirty entry is the untracked build dir `megatron/core/datasets/helpers_cpp` (harmless).
+**08:50 09-29 confirmation (rkirby asked "are you sure SC ignores it?"):** both resumed segments ran
+with `load_replay_buffer: false` in their resolved config and still restored: chain W 4090297 (started
+06:49) logged "Restored 24 replay group(s) from checkpoint" + "Loaded 72 unfinished rollout group(s)
+next to 24 canonical group(s)" + "Redispatched 72"; chain U 4090292 (started 04:57) logged "Restored 0
+replay group(s)" + "Loaded 96 unfinished ... next to 0 canonical" + "Redispatched 96". The controller
+actor's lines live under `ray_logs/<job>-logs/ray/session_*/logs/worker-*` (not in ray-driver.log,
+which only has the driver-side "Native TQ checkpoint restored and validated: groups=N"). The only code
+reader of the flag in the whole checkout is `nemo_rl/algorithms/grpo.py:4760` (async GRPO); no
+"Skipping replay buffer restore" line exists on the SC path. The restore repeats at every 4 h segment
+boundary (ft_save_period=1, so the resume point is the last completed step and its buffered groups).
+Progress at 08:45: U step_23 saved 08:38 (8 steps in 3.7 h, ~27 min/step), W step_10 saved 08:36
+(4 steps in 1.8 h).
 
 
 **Pushed 2026-09-29 08:25 PDT by the run manager on rkirby's order ("Push the U stack"), verified by ls-remote:** ArEsKay3/RL rkirby/swe-main915-latest @ 6a6f38b8; ArEsKay3/Megatron-LM mlm-main915-latest @ 475167fa4; ArEsKay3/Megatron-Bridge mlm-bridge-main915-latest @ 1f8873bb0; ArEsKay3/Gym rkirby/gym-main915 @ d54e6374e. .git dirs re-locked (chmod a-w) afterwards.

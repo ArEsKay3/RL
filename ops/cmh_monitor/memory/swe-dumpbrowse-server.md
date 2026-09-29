@@ -20,6 +20,8 @@ metadata:
 
 **Mask-list view (2026-09-28, rkirby: "see all the masked G data in one place"):** `#/mask/<run>/X|Y|Z` via /api/masklist (metrics rows with in_<L>_mask_rank joined to each step file's index; triggers indexing of missing files, max 2 concurrent via INDEX_SEM). Chain G: X 127 rows (0 repetitive, 0 truncated, 275k deep think tokens), Y 127; chain M: Z 213. Rollout route accepts `/turn/<k>` to open and scroll to a turn.
 
+**Pre-indexing + new arms (2026-09-29, rkirby: "add V2 and V3"):** runs are auto-discovered, so "adding" an arm = label it in arms.json (server restart to reload labels) + pre-index its files offline: `build_index.py <run> <file>` and `prewarm.sbatch <list>` (cpu partition, 12 parallel; `cd` must be hard-coded because sbatch copies the script to the spool dir). Chains V2 (38 files) and V3 (52) indexed in 7 min (job 4100665); Data Difference Deep Dive (2) added rollout_metrics_V2/V3.csv on request. arms.json now labels U (both main915 minf dirs) and W (main915 vllm); 35 runs labelled.
+
 **Why:** the token-level .pt dumps only carry ids; the rollout jsonl is the readable record of every turn, needed to look at loops by hand.
 
 **How to apply:** for any "look at the rollouts" request point the user at the browser (or add an API endpoint) instead of ad-hoc scripts; keep it stdlib-only (no venv on the login node, see [[swe-length-growth-investigation]]).

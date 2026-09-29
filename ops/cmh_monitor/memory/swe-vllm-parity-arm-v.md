@@ -5,7 +5,7 @@ metadata:
   node_type: memory
   type: project
   originSessionId: a7f966fb-b99e-4db0-bb54-a178ecde5ae0
-  modified: 2026-09-27T21:27:44.790Z
+  modified: 2026-09-29T22:23:08.108Z
 ---
 
 chain V (MINF from scratch, vLLM numerical parity, prefix cache kept across
@@ -69,3 +69,26 @@ own flag. Related: [[swe-prefix-keep-arm]], [[swe-p4-q4-run-to-70]],
 **Replay-buffer policy for V2/V3 resumes = default restore (VLLM parity session's call, 10:5x 09-28, not an rkirby instruction):** pending followers and the requeued 4068673 keep load_replay_buffer=true; the flag on chain V's resume is treated by that session as a one-off fix for V's crash history. Re-raise per arm only if an arm shows repeated failures around resume or a suspect buffer. 4068673 was RUNNING again by ~10:50 (Restarts=1), resuming from step_2.
 
 **chain V3 is NOT a clean seed replica from step 4 on (VLLM parity + Data Difference, 14:2x 09-28):** the 10:45 Slurm requeue restarted the driver through the checkpoint-resume path with the default replay-buffer restore, which merged the pre-crash in-flight prompts into the first post-restart commits - rollout dumps show 768 rows at target_step_00002 (weight_version 2: 512 + version 1: 256) and 640 at _00003 (all version 2), clean 512 from step 4; token_level dumps show 512 trained rows every step, so the per-step metrics are real training signal, but the curriculum cursor runs ~2 prompt blocks ahead of chain V/V2 from step 4 (my own table showed V3's steps 3-6 as V's batches in shifted order). Consequence: step-N-vs-step-N comparisons V3 vs V/V2 are confounded; seed-only reads should lean on V2. Lesson: a mid-collection requeue plus default restore shifts the data stream - on any future requeue of a replica, prefer +checkpointing.load_replay_buffer=false (chain V's resume recipe). No action taken on the running job; rkirby decides whether to restart V3 from scratch.
+
+
+**Eval campaign started 09:4x PDT 2026-09-29 (claim of the SWE Verified Eval Runner session: rkirby told it directly "Can you start running eval on V1, 2 and 3"):** chain V rungs 5-35, chain V2 rungs 5-30 (+ new rungs as they land), chain V3 rungs 5-35 (+ new); HF exports first (20 rungs, ~1.2 TiB; quota 90.86 TiB at 09:45), then submit_step.sh per rung. Supersedes the 09-27 eval hold. Run manager sent the formal arm notice 09:47 (configs verified from rung config.yaml: inference_vllm_parity true, invalidate_prefix_cache_on_weight_update false, opg false, seeds 42/1234/4321; caveats: V3 requeue curriculum shift, skip-replay resumes at step 23, never eval rolling checkpoints, no strip on running arms). V2 4076674 walls 12:31, V3 4076675 walls 12:32 with NO followers queued as of 09:45.
+
+Eval campaign job dirs (eval runner, 09:50 09-29; runs.json = record): chain V /scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/evaluation/jobs/chainV1-parity-minf-from0-swe; chain V2 .../evaluation/jobs/chainV2-parity-minf-from0-seed1234-swe; chain V3 .../evaluation/jobs/chainV3-parity-minf-from0-seed4321-swe. HF-export arrays 4094834 (V 5-35) / 4094835 (V2 5-30) / 4094836 (V3 5-35) submitted 09:46; eval shards (10 per rung) follow each verified export; model names rkirby-nano35-swe-v2-parity-minf-from0[-seedNNNN]-step-N.
+
+**09:57 09-29:** the parity session queued followers: chain V2 4076674 -> 4095037 -> 4095046; chain V3 4076675 -> 4095038 -> 4095047 (hero-res, 8 h, singleton + afterany, Requeue=1 — not the Requeue=0 used on 09-28; flag +checkpointing.load_replay_buffer=false to be verified from each job's ray_logs/<jobid>-logs/driver_command.sh when it starts). Eval runner submitted chain V2 SWE-Bench Verified evals 09:59-10:00: step_5 4095076-85, step_10 4095088-97, step_15 4095099-108, step_20 4095113-22, step_25 4095126-35, step_30 4095161-70 (10 shards each, auto-merge); V and V3 submissions follow ~10:03 / 10:13.
+
+Eval submissions 10:04-10:08 09-29 (eval runner): chain V rungs 5-35 jobs 4095282-4095385 (7 runs), chain V3 rungs 5-35 jobs 4095431-4095538 (7 runs); with V2 that is 20 rungs / 200 shards; exact ids in each job dir runs.json. V3 step_40 export expected within the hour.
+
+**Disk 10:02 09-29:** quota 92.5 TiB (85.4 at 04:41, 90.9 at 09:45): +1.2 TiB was the one-off HF exports, steady drift ~1.3 TiB/h from 4 running arms + 110 eval harbor jobs; alarm line 97.7, hard limit 100 kills segments at their next write. Reclaim decision pending rkirby (tier B = stopped arms gym_results ~10.5 TiB, jsonl/.pt untouched).
+
+11:05 09-29: chain V3 step_40 exported (4096088_40) and eval submitted, jobs 4096411-4096420. Eval runner reports ECS-throttling aborts (V 6, V2 2, V3 5) all resumed by afternotok continuations, 0 attempts lost.
+
+12:37 09-29: chain V3 step_45 exported (4097830_45) and eval submitted, jobs 4098096-4098105. Parity rollovers: chain V2 4076674 -> 4095037 (RUN 12:36:31, from step_35, flag verified in driver_command.sh); chain V3 4076675 -> 4095038 (RUN 12:36:48, from rolling step_46, flag verified). ECS-throttling retry-limit stubs re-queued by the eval runner under the submit-until-done rule (4098066, 4098083-85).
+
+13:00 09-29: chain V2 step_35 exported (4098194_35) and eval submitted, jobs 4098423-4098432. Chain U step_30 rung verified 12:56 (271 files). Quota 89.2 TiB at 12:57 after four checkpoint saves.
+
+14:37 09-29: chain V3 step_50 exported (4100320_50) and eval submitted, jobs 4100697-4100706. Quota 90.56 TiB.
+
+
+**STOPPED 15:20:28-36 PDT 2026-09-29 on rkirby's order ("kill the V2 and V3 runs"):** run manager cancelled followers 4095046/4095047 first, then running segments 4095037 (chain V2) and 4095038 (chain V3), all CANCELLED by 6428 per sacct. Verified directly on disk (VLLM parity session, same tick): chain V2 rolling checkpoint is **step_39** (not 38 — `latest_checkpoint_status.json` `last_checkpoint_step: 39`, closed save, dir exists), permanent rungs 5-35; chain V3 rolling **step_52**, permanent rungs 5-50. No parity job remains, none queued. Evals of the exported rungs (V 5-35, V2 5-35, V3 5-50) continue under the eval runner; no further rungs will land. Resume = fresh submission with +checkpointing.load_replay_buffer=false from the rolling checkpoints (now baked into `launch_swe_vllm_parity.sh`'s RESUME_OVERRIDES, no need to pass by hand). HANDOFF.md updated and pushed to `rkirby/swe-v2-vllm-parity` @ `383bac3e`.
+Correction: chain V2 saved rolling step_39 at 15:20 just before the cancel (status json 39), so V2 resumes from step_39, not 38.

@@ -11,6 +11,14 @@
   "arm": "U",
   "desc": "chain U: swe_main915 stack (NeMo RL main), MINF from scratch, 64 nodes"
  },
+ "nano35-swe-main915-64n-minf-20260928": {
+  "arm": "U",
+  "desc": "chain U: swe_main915 stack (NeMo RL main), MINF from scratch, 64 nodes"
+ },
+ "nano35-swe-main915-64n-vllm-20260928": {
+  "arm": "W",
+  "desc": "chain W: swe_main915 stack (NeMo RL main), vLLM from scratch, 64 nodes (twin of chain U)"
+ },
  "nano35-swe-v2-from0-noprefix-vllm-20260926": {
   "arm": "Q4",
   "desc": "chain Q⁗: vLLM from scratch, no prefix cache"

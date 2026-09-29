@@ -30,6 +30,12 @@ rollout's generated tokens, `min zlib` = lowest ratio over the rollout's long tu
 below 0.10), `max turn tok` = largest assistant turn, and a `runaway` badge = rollout
 truncated with its last turn never reaching a tool call.
 
+Pre-indexing offline: `python3 build_index.py <run> <target_step file>` builds one cache
+entry without the server (safe to run while the server is up; the server picks the cache up
+on the next visit). `sbatch prewarm.sbatch <list file>` runs many of them on the cpu partition,
+12 at a time; the list has one "<run> <file>" per line (see logs/prewarm_v23.txt for the
+chain V2 / V3 example: 90 files in 7 minutes).
+
 Strings longer than 20,000 characters are elided from the record view and loaded on click.
 Values under keys named like api_key / secret / password are redacted by the server.
 

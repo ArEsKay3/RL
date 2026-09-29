@@ -1,11 +1,11 @@
 ---
 name: swe-main915-workspace
-description: SWE-E2E v2+MINF stack rebuilt on nemo_rl actual main@9-15 (not the swe_915 branch tip); Gym aws_region_name fix; chain U held
+description: SWE-E2E stack on nemo_rl main (swe_main915); chain U (MINF) idle at step_15 and chain W (vLLM) idle at step_6 since the 09-28 outage, followers cancelled 09-29; load_replay_buffer is inert on main's SC resume (what it restores, decoded per checkpoint, port design)
 metadata: 
   node_type: memory
   type: project
   originSessionId: 51d77432-fbb8-4536-b679-a1714b74af54
-  modified: 2026-09-28T18:28:13.476Z
+  modified: 2026-09-29T11:55:26.860Z
 ---
 
 Workspace: `/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/workspaces/swe_main915/`.
@@ -110,3 +110,85 @@ Megatron-LM `475167fa4`, Bridge `1f8873bb`, Gym `d54e6374e`. Manage Ongoing Runs
 the health signals (masked-seq count ~0, no penalty metrics, 0 stitch/non-contiguous). More
 segments = rerun `ENGINE=minf bash launch_swe_main915.sh` the same day (RUN_DATE fixes the name;
 pass `RUN_DATE=20260928` on a later day).
+
+**2026-09-29 — post-outage state + a rule gap.** chain U 4072307/4072308 TIMEOUT (seg 2 died ~20:49
+09-28 on the data-plane checkpoint save, `TQ_STORAGE ... Resource temporarily unavailable`, the start
+of the Lustre degradation; step_15 complete, tmp_step_16 incomplete and auto-removed on next save);
+chain W 4077153 TIMEOUT (step_6 complete 20:24, then SC ping failures). Followers 4072310 / 4077154 /
+4077156 are PENDING JobHeldUser (monitor re-held everything after the admins' mass release). **NeMo RL
+main's single-controller path ignores `checkpointing.load_replay_buffer`** -- the key is consumed only
+by async-GRPO (`grpo.py:195-216`); `single_controller_utils/setup.py` restores the native TQ data plane
+whenever `replay_buffer_metadata.pt` exists and `single_controller.py` restores the replay metadata
+unconditionally. Chain U seg 2 logged "Restoring native TQ checkpoint … step_9/data_plane" and
+"restored and validated: groups=30" with no "Skipping replay buffer restore" line, so rkirby's
+skip-restore rule ([[feedback-always-skip-replay-buffer-restore]]) is NOT honored on this stack even
+though the yaml sets false; the v2 stack had the gate (`_maybe_restore_replay_buffer` +
+`_load_pending_rollouts_for_regeneration`). Do not release U/W followers until rkirby decides (port
+the gate to main, or accept restore for these arms).
+
+**2026-09-28 14:44 — vLLM counterpart submitted** (rkirby: "launch another run on batch, outside the
+reservation, that uses VLLM but has the same setup otherwise"): jobs **4077153 / 4077154 / 4077156**
+(batch / normal, 4 h singleton segments, 64 nodes), `EXP_NAME=nano35-swe-main915-64n-vllm-20260928`,
+run dir `.../runs/nano35-swe-main915-64n-vllm-20260928`, config `swe_sc_cmh_dump_vllm.yaml`, nemo_rl
+`6a6f38b8` (same recipe as chain U minus the engine; proposed label chain W). The vLLM path was never
+smoke-tested on this stack, so smoke **4077148** (`nano35-swe-main915-vllm-smoke-16n`, reservation
+queue) ran first: **PASSED** 15:30 (exit 0, 40:47, 256/256 unmasked, max err 1.028, 0 errors, no
+penalty metrics, resolved==reward) -> chain W stays queued (PENDING Resources on batch at 15:30).
+Chain U segment 1 (4072307) RUNNING on batch since ~13:17; **validated at full scale 14:50**: steps
+1-2 + partial 3 (1152 seqs) masked 0.4% (pre-fix 15-20%), err>2 5/1152, 150-200-turn bucket 1/177,
+spikes 0.00-0.03/1e4 everywhere, 113679/113794 turns hit the Mamba cache, ~33 min/step, reward 0.43.
+Both arms: sampler `in_order` (max_lookahead_versions 1), min_groups_for_streaming_train 8,
+max_buffered_rollouts 96, max_inflight_prompts 64, GBS 512, 32 prompts x 16, seed 42 -- identical to
+chain V's resolved config; only `data.train.split_validation_size/seed` differ (0/0 vs None/None,
+main's schema, inert).
+
+**2026-09-28 12:07 — cluster-move handoff prepared (manager relayed rkirby: document + check code
+into his forks).** nemo_rl `6a6f38b8` adds `swe_main915_workspace/` (launcher, HANDOFF.md,
+analysis/prefix_skip_bug tooling, tools/) and moves the Gym submodule pointer to `d54e6374e`;
+HANDOFF.md also at the workspace top. nemo_rl and Megatron-LM were repacked to drop
+`.git/objects/info/alternates` -> `workspaces/pipeline_B` (Megatron-LM had no packs of its own);
+none of the four clones is shallow. **Pushes are NOT done: my session's permission classifier
+blocks `git push` (Data Exfiltration); rkirby must run the four commands in HANDOFF.md section 2**
+(targets: ArEsKay3/RL origin, ArEsKay3/Megatron-LM, ArEsKay3/Megatron-Bridge, ArEsKay3/Gym -- all
+forks exist; `gh` is not installed on the login node). Do not ask a peer session to push instead.
+
+**2026-09-29 04:35-05:00 — post-outage state + what a resume on main's SC path really does.**
+The U/W followers 4072310 / 4077154 / 4077156 were CANCELLED at 04:32 (rkirby, via the monitor
+session: "cancel all held jobs that are not follow ups of running jobs"), so no chain U / chain W job
+exists; any resume is a fresh `launch_swe_main915.sh` submission (same EXP_NAME, picks
+`get_latest_checkpoint_path` = highest step_N) and needs rkirby's word. Resume points: chain U step_15
+(19:51 09-28, `tmp_step_16` is a 78 KB stub), chain W step_6 (20:24). No rollout snapshots exist
+(`rollout_checkpointing` unset); seg 2 had resumed from a step_9 pre-timeout save
+(`checkpoint_must_save_by`) that ft_keep_latest_k=1 later removed.
+Decoded with the torch-free reader `/home/rkirby/.claude/jobs/51d77432/tmp/inspect_resume_state.py`
+(`replay|ledger|reserve <file.pt>`): U step_15 = 0 canonical groups, 96 in-flight ledger groups
+(targets 15/16/null, 0 of 1536 siblings sealed), 32 spares, dispatch_index 16; W step_6 = 24
+canonical (target 6, weights v5) + 72 in-flight (0 sealed); W step_5 = 29 canonical; U step_10 = 32;
+U step_5 = 32. `token_capture.enabled` is False on this recipe, so siblings never seal, and every
+in-flight group is regenerated in full at restart (the persisted `sibling` granularity is moot).
+Main's SC resume = restore canonical buffered groups from the TQ data plane (unconditionally; the
+`load_replay_buffer` flag is read only by async GRPO) + regenerate in-flight groups from
+`rollout_recovery.pt` (prompt idx -> dataset rehydration) + restore 32 spares + live dataloader
+cursor. Seg 2's actual restart: "Restored 30 replay group(s)", "Loaded 66 unfinished rollout
+group(s)", "Redispatched 66": its step 9 trained 30 early-finishers + 2 fresh groups, the
+short-biased mix the rule targets. Consequence: a chain U resume from step_15 is rule-compliant in
+effect (0 retained, all 96 regenerated); a chain W resume from step_6 would reuse 24/32 groups of
+step 6. Port design if rkirby wants strict empty-buffer resumes on main: in
+`single_controller.py::_maybe_restore_replay_buffer`, under `load_replay_buffer=false`, read the
+replay metadata, take `meta.tags[i]["prompt_idx"]` / `target_step` / `start_weight` per canonical
+group, `clear_samples` those sample ids from the canonical partition, inject equivalent
+ADMITTED/GENERATING ledger groups (fresh uuids, all attempts `reserved`) before
+`recovery_ledger.load_state_dict`, and let `_rehydrate_rollout_recovery_prompts` +
+`_redispatch_restored_rollouts` do the rest; validate with a 16-node save-then-resume smoke (a
+step-1 save usually has most target-1 groups complete, so the path is exercised).
+
+**2026-09-29 04:55 — rkirby: "Resume U and W" (as is; no port, W accepts its 24 retained groups).**
+Resubmitted with the original recipe (`RUN_DATE=20260928 ENGINE=minf|vllm bash launch_swe_main915.sh`,
+one 64-node / 4 h / batch / normal singleton segment per invocation, same run dirs and overrides as
+the 09-28 jobs; dry runs matched the old `driver_command.sh` line for line): chain U (MINF) **4090292 ->
+4090293 -> 4090295** resuming from step_15; chain W (vLLM twin) **4090297 -> 4090298 -> 4090299**
+resuming from step_6. Expected restore lines in `ray_logs/<jobid>-logs/ray-driver.log`: U "Restored 0
+replay group(s)" + "Loaded 96 unfinished rollout group(s)" + "Restored 32 pooled spare prompt(s)"; W
+"Restored 24 replay group(s)" + "Loaded 72 unfinished" + 32 spares. Health check after the first new
+step: dumps for steps 16+ (U) / 7+ (W), masked fraction ~0.4%, no penalty metrics. The Megatron-LM
+tree's only dirty entry is the untracked build dir `megatron/core/datasets/helpers_cpp` (harmless).

@@ -1,8 +1,11 @@
 ---
 name: swe-mask-replay-xyz-arms
-description: "chains X/Y/Z masked-replay arms: chain X FINAL step_30 (stopped 04:38 09-28); chain AA ON HOLD at step_10 since 08:46 09-28 (4061468 held, resumable); AB gated; Y/Z held; job ids, Slurm gating chain, per-step expected mask totals, and the three gating traps"
-metadata:
+description: "chains X/Y/Z masked-replay arms: chain X FINAL step_30 (stopped 04:38 09-28); chain AA stopped at step_10 (08:46 09-28); ALL remaining job ids (AA seg 2, AB, Y, Z) CANCELLED 04:32 09-29 after the admin release, restart = fresh submission; job ids, Slurm gating chain, per-step expected mask totals, and the three gating traps"
+metadata: 
+  node_type: memory
   type: project
+  originSessionId: 824af663-9c1e-4cb4-9c9e-fd1feb14c5fa
+  modified: 2026-09-29T11:44:49.535Z
 ---
 
 Launched 2026-09-27 18:53 on rkirby's word ("let X,Y,Z run sequentially"), from `workspaces/swe_mask_replay/launch_swe_mask_replay.sh`. All 64 n, 8 h, hero-res / batch_long / `sla_res_nemotron_sw_post`. Target **step_30** each (10 replayed + 20 live) - **extended from 25 to 30 by rkirby 2026-09-28 00:0x**, who also said X/Y/Z run before any chain AA. No config change needed: `max_num_steps` is 1156, so only the monitor's stop trigger moved. **Timeline (Cross Train's arithmetic, 2026-09-28 00:10, supersedes my earlier ~03:00 estimate):** seg 1 (4055486) walls 02:53:29 with chain X at step 27-29, not 30. A segment resume regenerates every untrained prompt of the in-flight step with the usual long tail — chain Q⁗2's seg 2 took **~60 min from job start to first close** (15:31 → 16:3x) — and splice arms add the foreign-index startup ladder. So on 4055489 the first close lands ~60-70 min after 02:56, then 20-25 min/step: **chain X step_30 ≈ 04:05-04:50**. chain Y then needs ~5 min startup + ~40 min replay + 20 live steps at 20-30 min = 7.5-11 h, walls its seg 1 at step ~26-30 and likely needs its seg 2 with the same ~60 min resume cost: **chain Y done ~12:30-16:30 09-28**, **chain Z ~21:00 09-28 to ~03:00 09-29**. **AA is a 09-29 decision** unless Z is skipped.
@@ -47,5 +50,7 @@ Recipe: plain `launch_swe_splice.sh`, `+foreign_rollout.steps=8:10|1:7` from cha
 Startup is expected to show the splice `SingleController ping failed` ladder while `ForeignRolloutSource` indexes chain G's ten steps (see [[splice-foreign-index-startup-cost]]), then the `foreign_rollout: mask_file=... sample_ids=127 expected per target_step={...}` init line and the `Rollout dump enabled ... token_ids=digest` banner.
 
 **No `dumps/rollouts/*.jsonl` during steps 1-10** — replayed groups skip the jsonl writer; `token_level/step_00001..` is written. First jsonl is `target_step_00010`. See [[swe-token-ids-dump-patch]].
+
+**2026-09-29 04:32 — all of the ids above are void.** After the Lustre outage the admins held and then (~03:08) released every pending rkirby job, which erased the user holds on Y/Z/AA; on rkirby's order the manager then cancelled every held job: AA seg 2 4061468, AB 4061469/4061470, Y 4055490/4055491, Z 4055492/4055493 (sacct: CANCELLED by 6428 at 04:32:15, never started). The gating chain no longer exists; a restart is a fresh submission per arm (same launcher + overrides, see HANDOFF.md §5), and the traps apply again only once new ids exist. See [[cmh-lustre-outage-admin-hold-20260929]].
 
 Related: [[swe-splice-experiments]], [[feedback-arm-labels]].

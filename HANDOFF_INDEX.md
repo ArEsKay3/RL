@@ -15,3 +15,11 @@ Status per workstream (updated as sessions report; "claimed" = the session's rep
 | log analysis: loop-share pipeline, reports, run-dir map, tools incl. dumpbrowse | Log Analysis | analysis/loopfeedback/HANDOFF.md (branch and on disk under swe_dump/analysis/loopfeedback/) | ArEsKay3/RL rkirby/swe-analysis-logs @ 889b0a80 (orphan branch: analysis/ + tools/ only) | verified pushed (ls-remote 12:0x) |
 | dump browser (server, UI, start script, notebooks) | Data Browser | tools/dumpbrowse/HANDOFF.md (branch and on disk under swe_dump/tools/dumpbrowse/) | ArEsKay3/RL rkirby/swe-tools-dumpbrowse @ 36d45dd | verified pushed (ls-remote 12:0x) |
 | SWE-Bench Verified eval runner | SWE Verified Eval Runner (not live at 11:54) | records copied to ops/evaluation/jobs by the manager | — | copied |
+
+## Update 2026-09-29 08:15 PDT (run manager)
+
+ls-remote at 08:10: RL rkirby/cmh-ops-monitor-20260928 (this push), rkirby/swe-v2-vllm-parity @ 576c3901 (moved on since f910fe13), rkirby/swe-v2-splice @ 494d17c6 (moved on since eb327474), rkirby/swe-tools-dumpbrowse @ 282c3f7f, rkirby/swe-analysis-datadiff @ f7095cd, rkirby/swe-analysis-logs @ 889b0a80, rkirby/swe-915-nomask @ 3a7fde92c, rkirby/swe-v2-dump @ 7f8a2b9d, rkirby/swe-v2-minf @ 952eaf85b, rkirby/engine-loop-test @ 561ccba2; Megatron-LM rkirby/mlm-880de0fce-dynengine-logprob-guard @ 91cb08ea7, rkirby/vllm-parity-armV @ d37db1077, rkirby/fork-915 @ a012970be, rkirby/rlvr-nolap-repro @ 880de0fce.
+
+**Still NOT on GitHub: the chain U / chain W stack** (RL rkirby/swe-main915-latest, Megatron-LM mlm-main915-latest @ 475167fa4, Megatron-Bridge mlm-bridge-main915-latest @ 1f8873bb0, Gym rkirby/gym-main915 @ d54e6374e) — committed locally in workspaces/swe_main915; push commands in workspaces/swe_main915/HANDOFF.md section 2. rkirby must run them (that session is not allowed to push).
+
+Queue state and the void never-cancel list: see ops/cmh_monitor/HANDOFF.md section 7.

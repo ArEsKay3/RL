@@ -54,7 +54,7 @@ arm_letter() {
 timeout 120 squeue -u rkirby -h -o "%i|%j|%T|%M|%q|%r" 2>/dev/null > "$CACHE/sq_raw.txt"
 echo "harbor=$(grep -c nel-eval-harbor "$CACHE/sq_raw.txt") held=$(grep -v nel-eval-harbor "$CACHE/sq_raw.txt" | grep -c JobHeldUser)"
 
-grep -v nel-eval-harbor "$CACHE/sq_raw.txt" | awk -F'|' '$3=="RUNNING" && ($5=="hero-res" || $2 ~ /nano35-swe-main915-64n/)' | while IFS='|' read -r jid exp st el qos rsn; do
+grep -v nel-eval-harbor "$CACHE/sq_raw.txt" | awk -F'|' '$3=="RUNNING"' | while IFS='|' read -r jid exp st el qos rsn; do
   jid=$(echo "$jid" | tr -d ' '); el=$(echo "$el" | tr -d ' ')
   echo "=== chain $(arm_letter "$exp")  job $jid  elapsed $el"
   ld=$(ls -dt "$R/$exp/ray_logs/${jid}-logs" "$R/$exp/ray_logs/${jid}-"[0-9]*"-logs" 2>/dev/null | head -1)
@@ -74,7 +74,7 @@ grep -v nel-eval-harbor "$CACHE/sq_raw.txt" | awk -F'|' '$3=="RUNNING" && ($5=="
     clean=$(sed 's/\x1b\[[0-9;]*m//g' "$drv")
     echo "  guard: removed_engine=$(echo "$clean" | grep -c 'Coordinator: removed engine') post_process_requests=$(echo "$clean" | grep -c post_process_requests)"
   case "$exp" in *main915-64n*)
-    echo "  U-health: noncontig=$(grep -c 'Non-contiguous messages found' "$drv" 2>/dev/null) compact_prompt_err=$(grep -c 'compact_prompt_token_ids' "$drv" 2>/dev/null) malformed_think=$(grep -c 'malformed_think_tag_rate' "$drv" 2>/dev/null) empty_final=$(grep -c 'empty_final_answer_rate' "$drv" 2>/dev/null) penalty_metrics=$(grep -c 'reward_penalt\|advantage_penalt' "$drv" 2>/dev/null) memory_only_mode=$(grep -c 'Running in memory-only mode' "$drv" 2>/dev/null)";;
+    echo "  U-health: noncontig=$(grep -c 'Non-contiguous messages found' "$drv" 2>/dev/null) compact_prompt_err=$(grep -c 'compact_prompt_token_ids' "$drv" 2>/dev/null) malformed_think=$(grep -c 'malformed_think_tag_rate' "$drv" 2>/dev/null) empty_final=$(grep -c 'empty_final_answer_rate' "$drv" 2>/dev/null) penalty_metrics=$(grep -o "'[a-z_/]*penalt[a-z_/]*': [0-9.e-]*" "$sc" 2>/dev/null | grep -v "'kl_penalty': 0.0" | grep -vc "_penalt[a-z_/]*': 0.0$") memory_only_mode=$(grep -c 'Running in memory-only mode' "$drv" 2>/dev/null)";;
   esac
     eng=$(grep -ao '| step [0-9]* | [0-9:]*' "$drv" 2>/dev/null | tail -1)
     [ -n "$eng" ] && echo "  engine: newest${eng#*|} (count $(grep -ac '| step [0-9]* | [0-9]' "$drv" 2>/dev/null))"

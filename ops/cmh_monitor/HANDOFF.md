@@ -131,3 +131,13 @@ Never evaluate the rolling checkpoint; re-queue retry-limit shards until .shard_
 3. AA/AB step target (25 assumed, never confirmed).
 4. gym_results reclaim (~43 TiB) on finished arms; policy/ strip on more exported rungs.
 5. chain U start on the regular batch queue (estimate drifting past 14:39).
+
+## 7. Addendum 2026-09-29 08:15 PDT — state after the Lustre outage
+
+- 00:11 09-29: /lustre/fsw hung, batch_long drained, every pending rkirby job became JobHeldAdmin (all user holds lost). 03:08 admins released the queue; four legacy placeholders started (main chain, run B, chain L, chain K) with load_replay_buffer=false picked up from the live launcher. rkirby then ordered: cancel K and L (04:29), cancel every held placeholder and run B + main chain (04:32). **No held job exists any more; the never-cancel list in section 1 is void. Every resume of a stopped arm is now a fresh submission** (all launchers add +checkpointing.load_replay_buffer=false; see memory/feedback-no-start-with-replay-buffer-restore.md).
+- Side effects of the 03:09 starts: chain K's step_28 endpoint rolling checkpoint was replaced by step_29; run B rolling advanced to step_30; chain L to step_32; main chain resumed from step_58 (no step_59 close before the cancel).
+- Running at 08:15: chain V2 4076674 (rolling step_28, rungs 5..25) and chain V3 4076675 (rolling step_33, rungs 5..30) on hero-res, resumed from step_22 with the skip flag; chain U 4090292 -> 4090293 -> 4090295 (rolling step_21, rungs 5..20) and chain W 4090297 -> 4090298 -> 4090299 (rolling step_8, rung 5) on batch/normal 4 h segments, resubmitted by the Get Latest Main session on rkirby's "Resume U and W". NeMo RL main's single-controller path ignores checkpointing.load_replay_buffer (that session's finding): U reused 0 buffered groups, W reused 24 — rkirby accepted.
+- chain V2 seg 2 4076660 ended CANCELLED by the GPU-idle reaper during the hang; chain V3 seg 2 4076661 FAILED 22:22 09-28; chain U seg 2 4072308 and chain W seg 1 4077153 ended TIMEOUT.
+- Monitor changes: tick.sh now reports every RUNNING job (not only hero-res/main915); penalty_metrics reads the SC metrics dict. The per-job tmp dir is wiped on a session restart — restore tick.sh/sclog.sh from this branch. gh is not installed on the CMH login node; use a sparse git clone.
+- Slurm broker MCP (slurm_query / slurm_job_status / slurm_cancel_job) kept working while the login node was unusable (load 500-1400); cancel actions need rkirby's explicit order in the same turn or the permission classifier blocks them.
+- Memory snapshot under memory/ refreshed to this commit.

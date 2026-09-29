@@ -7,8 +7,7 @@ def head(line):
     i=line.find(', "messages": ')
     if i<0: i=line.find(',"messages":')
     r=json.loads(line[:i]+"}") if i>0 else json.loads(line)
-    j=line.find('"agent_error_kind": '); k=line.find('"per_turn_metrics": {}')
-    r["_harness_fail"]=(j>0 and line[j+20:j+24]=="null" and k>0)
+    r["_harness_fail"]=('"agent_timed_out": false' in line and '"agent_error_kind": null' in line)
     return r
 def pct(v,q):
     v=sorted(v); return v[min(len(v)-1,int(q*len(v)))] if v else 0

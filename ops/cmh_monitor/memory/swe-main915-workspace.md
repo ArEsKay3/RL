@@ -192,3 +192,6 @@ replay group(s)" + "Loaded 96 unfinished rollout group(s)" + "Restored 32 pooled
 "Restored 24 replay group(s)" + "Loaded 72 unfinished" + 32 spares. Health check after the first new
 step: dumps for steps 16+ (U) / 7+ (W), masked fraction ~0.4%, no penalty metrics. The Megatron-LM
 tree's only dirty entry is the untracked build dir `megatron/core/datasets/helpers_cpp` (harmless).
+
+
+**Pushed 2026-09-29 08:25 PDT by the run manager on rkirby's order ("Push the U stack"), verified by ls-remote:** ArEsKay3/RL rkirby/swe-main915-latest @ 6a6f38b8; ArEsKay3/Megatron-LM mlm-main915-latest @ 475167fa4; ArEsKay3/Megatron-Bridge mlm-bridge-main915-latest @ 1f8873bb0; ArEsKay3/Gym rkirby/gym-main915 @ d54e6374e. .git dirs re-locked (chmod a-w) afterwards.

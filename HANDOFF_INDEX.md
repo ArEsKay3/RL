@@ -23,3 +23,7 @@ ls-remote at 08:10: RL rkirby/cmh-ops-monitor-20260928 (this push), rkirby/swe-v
 **Still NOT on GitHub: the chain U / chain W stack** (RL rkirby/swe-main915-latest, Megatron-LM mlm-main915-latest @ 475167fa4, Megatron-Bridge mlm-bridge-main915-latest @ 1f8873bb0, Gym rkirby/gym-main915 @ d54e6374e) — committed locally in workspaces/swe_main915; push commands in workspaces/swe_main915/HANDOFF.md section 2. rkirby must run them (that session is not allowed to push).
 
 Queue state and the void never-cancel list: see ops/cmh_monitor/HANDOFF.md section 7.
+
+## Update 2026-09-29 08:25 PDT — chain U / chain W stack PUSHED (verified by ls-remote)
+
+rkirby: "Push the U stack" → pushed from workspaces/swe_main915 by the run manager: ArEsKay3/RL `rkirby/swe-main915-latest` @ 6a6f38b8; ArEsKay3/Megatron-LM `mlm-main915-latest` @ 475167fa4; ArEsKay3/Megatron-Bridge `mlm-bridge-main915-latest` @ 1f8873bb0; ArEsKay3/Gym `rkirby/gym-main915` @ d54e6374e. Every workstream in this index is now on the forks. Rebuild recipe: `swe_main915_workspace/HANDOFF.md` in the RL branch (section "Rebuilding the workspace elsewhere").

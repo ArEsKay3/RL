@@ -72,16 +72,20 @@ Source runs for replay: chain G = `RUNS/nano35-swe-v2-stream128-inorder1-cmh-64n
 | chain P‴ | MINF from P20, nvshmem, prefix cache KEPT across refits | `nano35-swe-v2-fromP20-nvshmem-keepprefix-minf-20260925` | 4009432, 4016063 (nvshmem init fail), 4016064, 4016982 (quota) | 30 closed (21-50), rungs 20/25/30/35/40/45/50 | knob has no measurable effect on engine-vs-trainer logprobs |
 | chain P⁗ | MINF from scratch, prefix cache kept | `nano35-swe-v2-from0-nvshmem-keepprefix-minf-20260925` | 4013305, 4013423, 4022656, 4022657, 4022658 (+4022659-61 cancelled) | FINAL step_60 (00:28 09-27), rungs 5..60 | pass@1 0.49-0.53, above G/J from step 15 |
 | chain Q⁗ | vLLM from scratch, vLLM prefix caching OFF | `nano35-swe-v2-from0-noprefix-vllm-20260926` | 4022856, 4022857, 4022858 (+4022859/4033276/4033277 cancelled) | FINAL step_40 (07:27 09-27), rungs 5..40 | pass@1 flat 0.49-0.50 |
-| chain P⁗2 | P⁗ replica, grpo.seed=1234 | `nano35-swe-v2-from0-nvshmem-keepprefix-minf-seed1234-20260926` | 4033269, 4033270 (startup hang), 4033271; **4033272/4033273 HELD** | ON HOLD at 22 closed, rungs 5/10/15/20 + 22 | pass@1 5-20 within seed noise of P⁗ |
-| chain Q⁗2 | Q⁗ replica, seed 1234 | `nano35-swe-v2-from0-noprefix-vllm-seed1234-20260927` | 4045355, 4045356; **4045357/4045358/4045363 HELD** | ON HOLD at 20 closed, rungs 5/10/15/20 | pass@1 level with run A at 5-20 |
+| chain P⁗2 | P⁗ replica, grpo.seed=1234 | `nano35-swe-v2-from0-nvshmem-keepprefix-minf-seed1234-20260926` | 4033269, 4033270 (startup hang), 4033271; 4033272/4033273 cancelled 04:32 09-29 (never ran) | STOPPED at 22 closed, rungs 5/10/15/20 + 22; no job queued | pass@1 5-20 within seed noise of P⁗ |
+| chain Q⁗2 | Q⁗ replica, seed 1234 | `nano35-swe-v2-from0-noprefix-vllm-seed1234-20260927` | 4045355, 4045356; 4045357/4045358/4045363 cancelled 04:32 09-29 (never ran) | STOPPED at 20 closed, rungs 5/10/15/20; no job queued | pass@1 level with run A at 5-20 |
 | chain X | masked replay TEST: G 1-10 with 127 rewarded-deep rows sample_mask 0, live to 30 | `nano35-swe-v2-splice-vllm-runGdata-to10-maskX-rewarded-deep-20260927` | 4055486, 4055489 | FINAL step_30 (04:38 09-28), rungs 5..30 | does NOT loop: 2.86 % (11-15), 2.53 % (16-20) vs R 4.18/6.48 % |
-| chain Y | masked replay CONTROL: 127 random rewarded rows | `…-maskY-random-rewarded-20260927` | **4055490/4055491 HELD** (never ran) | target step_30 | — |
-| chain Z | masked replay MIRROR on chain M: 213 punished-deep rows | `nano35-swe-v2-splice-vllm-runMdata-to10-maskZ-punished-deep-20260927` | **4055492/4055493 HELD** (never ran) | target step_30 | — |
-| chain AA | step-range ablation: G steps 8-10 only replayed, live 1-7 and 11-25 | `nano35-swe-v2-splice-vllm-runGdata-8to10-20260928` | 4061467 (cancelled 08:46 09-28 on rkirby's "put AA on hold"), **4061468 HELD** | ON HOLD at 10 closed, rungs 5/10; live 11+ not run | replayed 8-10 identical to G |
-| chain AB | G steps 1-7 only replayed, live 8-25 | `nano35-swe-v2-splice-vllm-runGdata-1to7-20260928` | 4061469 (afterany 4061467+4061468), 4061470 | gated, never ran | — |
+| chain Y | masked replay CONTROL: 127 random rewarded rows | `…-maskY-random-rewarded-20260927` | 4055490/4055491 cancelled 04:32 09-29 (never ran) | not started; target step_30; needs a fresh submission | — |
+| chain Z | masked replay MIRROR on chain M: 213 punished-deep rows | `nano35-swe-v2-splice-vllm-runMdata-to10-maskZ-punished-deep-20260927` | 4055492/4055493 cancelled 04:32 09-29 (never ran) | not started; target step_30; needs a fresh submission | — |
+| chain AA | step-range ablation: G steps 8-10 only replayed, live 1-7 and 11-25 | `nano35-swe-v2-splice-vllm-runGdata-8to10-20260928` | 4061467 (cancelled 08:46 09-28 on rkirby's "put AA on hold"), 4061468 cancelled 04:32 09-29 (never ran) | STOPPED at 10 closed, rungs 5/10; live 11+ not run; a fresh submission resumes from step_10 | replayed 8-10 identical to G |
+| chain AB | G steps 1-7 only replayed, live 8-25 | `nano35-swe-v2-splice-vllm-runGdata-1to7-20260928` | 4061469/4061470 cancelled 04:32 09-29 (never ran) | not started; needs a fresh submission | — |
 | chain AC | control: M steps 8-10 replayed | `nano35-swe-v2-splice-vllm-runMdata-8to10-20260928` (empty scaffold) | not submitted | rendered only | — |
 
 Order rkirby last set (2026-09-28 ~00:55): X → AA → AB → Y → Z; AA/AB target step_25 (never confirmed), X/Y/Z step_30.
+**2026-09-29:** a Lustre outage (00:11) led the admins to hold and then (~03:08) release every pending rkirby job, which
+erased all user holds and started four legacy placeholders; at 04:32 rkirby (via the run manager) had every held job
+cancelled. No splice-family job exists in Slurm any more; the order above is a plan, not a queue state. Every restart is a
+fresh submission (§5); a run dir that already has rungs resumes from its latest rung automatically.
 Stop = the run manager's trigger: when `checkpoints/step_N` is complete (140 files, `policy/weights/iter_0000000`,
 `config.yaml`, `training_info.json`, status json; no `tmp_*`), scancel BOTH job ids of the arm by name.
 Evals (SWE-Bench Verified pass@1) are the "SWE Verified Eval Runner" session's: job dirs under
@@ -114,8 +118,8 @@ bash W/swe_lr0/launch_swe_lr0.sh policy.megatron_cfg.optimizer.lr=0.0 policy.meg
 policy.megatron_cfg.scheduler.lr_warmup_init=0.0 +policy.megatron_cfg.checkpoint.load_optim=false
 +checkpointing.load_replay_buffer=false policy.megatron_cfg.distributed_data_parallel_config.overlap_param_gather=false`;
 to freeze fully also set `policy.megatron_cfg.moe_router_bias_update_rate=0.0`.
-Resume a held arm: `scontrol release <seg id>` (AA: 4061468; Y: 4055490 then 4055491 follows; Z: 4055492/93;
-P⁗2: 4033272; Q⁗2: 4045357). Validate any new override set BEFORE submitting with the workspace's `test_*.sbatch`
+Resume a stopped arm (AA from step_10, P⁗2 from step_22, Q⁗2 from step_20; Y/Z/AB from scratch): re-submit with the
+same launcher and overrides as above — no held job ids exist since 04:32 09-29. Validate any new override set BEFORE submitting with the workspace's `test_*.sbatch`
 (cpu partition, driver venv, replays the entrypoint's Hydra path); `DRY_RUN=1` alone never runs Hydra.
 Hold trick when a launcher job must not start: pre-submit `sbatch --hold -A nemotron_sw_post -p cpu -N1 -t 1 -J <EXP_NAME> --wrap true`,
 launch (blocks on singleton), `scontrol hold <job>`, then scancel the placeholder.

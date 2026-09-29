@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import array
 import asyncio
 import json
 import math
@@ -314,6 +315,7 @@ class NemoGymConfig(TypedDict):
     # nemo_rl.distributed.virtual_cluster.  See the port layout there.
     port_range_low: NotRequired[int]
     port_range_high: NotRequired[int]
+    retain_raw_token_ids: NotRequired[bool]
     invalid_tool_call_patterns: NotRequired[
         List[str] | None
     ]  # Substrings in assistant text content that indicate an invalid tool call
@@ -1207,6 +1209,11 @@ output prompt token ids till seen: {output_item_dict["prompt_token_ids"][: len(s
             prompt_token_ids = output_item_dict.pop("prompt_token_ids")
             generation_token_ids = output_item_dict.pop("generation_token_ids")
             generation_log_probs = output_item_dict.pop("generation_log_probs")
+            if self.cfg.get("retain_raw_token_ids", False):
+                output_item_dict["prompt_token_ids"] = array.array("i", prompt_token_ids)
+                output_item_dict["generation_token_ids"] = array.array(
+                    "i", generation_token_ids
+                )
             routed_experts_raw = output_item_dict.pop("routed_experts", None)
             new_prompt_token_ids = prompt_token_ids[len(seen_token_ids) :]
 

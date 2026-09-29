@@ -15,6 +15,8 @@
 #
 # Trailing arguments are forwarded as Hydra overrides. Same knobs as the base
 # launcher (RESERVATION, SMOKE, EXP_NAME, RUN_DATE, ENABLE_PREFIX_CACHING).
+# TOKIDS=1 selects swe_sc_cmh_parity_minf_tokids.yaml (raw per-turn token ids
+# in the rollout dumps) and the *-tokids-* run names.
 set -euo pipefail
 
 WS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -82,6 +84,11 @@ if [[ "${ENGINE}" == "minf" ]]; then
   )
   FULL_EXP_NAME="nano35-swe-main915-64n-parity-minf-${RUN_DATE}"
   SMOKE_EXP_NAME="nano35-swe-main915-parity-minf-smoke-16n"
+  if [[ "${TOKIDS:-0}" == "1" ]]; then
+    export CONFIG_PATH=examples/nemo_gym/nemotron-3.5-nano/swe_sc_cmh_parity_minf_tokids.yaml
+    FULL_EXP_NAME="nano35-swe-main915-64n-parity-minf-tokids-${RUN_DATE}"
+    SMOKE_EXP_NAME="nano35-swe-main915-parity-minf-tokids-smoke-16n"
+  fi
 else
   export CONFIG_PATH=examples/nemo_gym/nemotron-3.5-nano/swe_sc_cmh_dump_vllm.yaml
   ENGINE_OVERRIDES=(

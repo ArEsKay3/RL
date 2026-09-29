@@ -1,0 +1,9 @@
+# Chain AD's parity recipe plus the raw per-turn token-id dump: every trainable
+# Gym output item keeps the prompt_token_ids and generation_token_ids the engine
+# reported for that turn, and they land verbatim in each rollout row's
+# full_result.response.output[*] in dumps/rollouts/*.jsonl.
+defaults: swe_sc_cmh_parity_minf.yaml
+
+env:
+  nemo_gym:
+    retain_raw_token_ids: true

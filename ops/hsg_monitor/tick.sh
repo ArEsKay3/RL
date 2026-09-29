@@ -42,6 +42,8 @@ arm_letter() {
     nano35-swe-main915*smoke*)               echo "? (main@9-15 smoke, not a lettered arm)";;
     nano35-swe-main915*minf*)                echo "U (MINF from scratch, NeMo RL main 09-24 stack, masking off)";;
     nano35-swe-main915*vllm*)                echo "W (main@9-15 vLLM from scratch, masking off)";;
+    *-parity-minf-hsg-seed1234-*)            echo "V-HSG2 (MINF from scratch, vLLM-parity build, HSG, seed 1234; letter pending rkirby)";;
+    *-parity-minf-hsg-seed4321-*)            echo "V-HSG3 (MINF from scratch, vLLM-parity build, HSG, seed 4321; letter pending rkirby)";;
     *-from0-parity-minf-hsg-*)               echo "V-HSG (MINF from scratch, vLLM-parity build, HSG; letter pending rkirby)";;
     *-parity-minf-smoke-*)                   echo "? (vLLM-parity smoke, not a lettered arm)";;
     *-from0-parity-minf-seed1234-*)          echo "V2 (MINF from scratch, vLLM-parity build, seed 1234)";;

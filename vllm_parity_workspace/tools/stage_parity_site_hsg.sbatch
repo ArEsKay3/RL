@@ -32,6 +32,7 @@ for d in nvidia_cutlass_dsl-4.5.2.dist-info nvidia_cutlass_dsl_libs_base-4.5.2.d
          nvidia_cutlass_dsl_libs_cu13-4.5.2.dist-info quack_kernels-0.5.0.dist-info; do
   cp -r \"\$SP/\$d\" \"\$S/\" 2>/dev/null || true
 done
+cp -rL /opt/ray_venvs/nemo_rl.models.generation.vllm.vllm_worker_async.VllmAsyncGenerationWorker/lib/python3.13/site-packages/vllm/model_executor/layers/fused_moe/configs \"\$S/vllm_moe_configs\"
 printf '%s\n%s\n' '${WS}/parity_site' '${WS}/parity_site/nvidia_cutlass_dsl/python_packages' > ${WS}/parity_paths.pth
 export TORCH_EXTENSIONS_DIR=${WS}/torch_extensions
 export TRITON_PTXAS_BLACKWELL_PATH=/usr/local/cuda-13.2/bin/ptxas

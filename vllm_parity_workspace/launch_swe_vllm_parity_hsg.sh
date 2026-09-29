@@ -127,6 +127,9 @@ RESUME_OVERRIDES=(
   echo "ERROR: ${MLM_TREE} is not on the parity branch" >&2; exit 1; }
 grep -q "_run_post_refit_hooks" "${MLM_TREE}/megatron/core/resharding/refit.py" || {
   echo "ERROR: ${MLM_TREE} lacks the Mamba post-refit cache refresh" >&2; exit 1; }
+MOE_CONFIG_DIR="${MOE_CONFIG_DIR:-${PARITY_SITE}/vllm_moe_configs}"
+[[ -d "${MOE_CONFIG_DIR}" && -n "$(ls "${MOE_CONFIG_DIR}"/E=*.json 2>/dev/null | head -1)" ]] || {
+  echo "ERROR: ${MOE_CONFIG_DIR} has no vLLM fused_moe tables; run tools/stage_parity_site.sbatch" >&2; exit 1; }
 [[ -d "${PARITY_SITE}/quack" && -d "${PARITY_SITE}/nvidia_cutlass_dsl/python_packages/cutlass" ]] || {
   echo "ERROR: ${PARITY_SITE} is missing quack / cutlass; run tools/stage_parity_site.sbatch" >&2; exit 1; }
 
@@ -135,7 +138,7 @@ grep -q "_run_post_refit_hooks" "${MLM_TREE}/megatron/core/resharding/refit.py" 
 cat > "${PARITY_PTH}" <<PTH
 ${PARITY_SITE}
 ${PARITY_SITE}/nvidia_cutlass_dsl/python_packages
-import os; os.environ.setdefault('TRITON_PTXAS_BLACKWELL_PATH', '${PTXAS_PATH}'); os.environ.setdefault('TORCH_EXTENSIONS_DIR', '${TORCH_EXT_DIR}')
+import os; os.environ.setdefault('TRITON_PTXAS_BLACKWELL_PATH', '${PTXAS_PATH}'); os.environ.setdefault('TORCH_EXTENSIONS_DIR', '${TORCH_EXT_DIR}'); os.environ.setdefault('MEGATRON_PARITY_MOE_CONFIG_DIR', '${MOE_CONFIG_DIR}')
 PTH
 
 EXTRA_MOUNTS="${WS}:${WS},/lustre:/lustre"
@@ -150,6 +153,6 @@ echo "engine: minf (vLLM parity)  config: ${CONFIG_PATH}"
 echo "nemo_rl: $(git rev-parse --short HEAD) ($(git branch --show-current)) dirty=$(git status --porcelain | wc -l)"
 echo "Megatron-LM mount: $(git -C "${MLM_TREE}" rev-parse --short HEAD) ($(git -C "${MLM_TREE}" branch --show-current)) -> ${MLM_MOUNT_TARGET}"
 echo "parity site: ${PARITY_SITE} via ${MW_SITE_PACKAGES}/zz_parity_paths.pth"
-echo "ptxas: ${PTXAS_PATH}  torch extensions: ${TORCH_EXT_DIR}"
+echo "ptxas: ${PTXAS_PATH}  torch extensions: ${TORCH_EXT_DIR}  moe tables: ${MOE_CONFIG_DIR}"
 echo "dumps: ${RESULTS_DIR}/dumps  gym results: ${RESULTS_DIR}/gym_results"
 exec bash examples/nemo_gym/nemotron-3.5-nano/nano35_launch.sh swe "${SHAPE_OVERRIDES[@]}" "${DUMP_OVERRIDES[@]}" "${MINF_OVERRIDES[@]}" "${RESUME_OVERRIDES[@]}" "$@"

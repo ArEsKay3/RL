@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="520" font-family="Helvetica,Arial" font-size="12"><rect width="1100" height="520" fill="white"/>
+<text x="60" y="22" font-size="15" font-weight="bold">Loop-token share per training step: HSG vLLM-parity arms vs CMH comparators (joint % = repetitive-block tokens / all generated tokens)</text>
+<line x1="60" y1="470.0" x2="770" y2="470.0" stroke="#ddd"/><text x="52" y="474.0" text-anchor="end">0%</text>
+<line x1="60" y1="398.33333333333337" x2="770" y2="398.33333333333337" stroke="#ddd"/><text x="52" y="402.33333333333337" text-anchor="end">5%</text>
+<line x1="60" y1="326.6666666666667" x2="770" y2="326.6666666666667" stroke="#ddd"/><text x="52" y="330.6666666666667" text-anchor="end">10%</text>
+<line x1="60" y1="255.0" x2="770" y2="255.0" stroke="#ddd"/><text x="52" y="259.0" text-anchor="end">15%</text>
+<line x1="60" y1="183.33333333333334" x2="770" y2="183.33333333333334" stroke="#ddd"/><text x="52" y="187.33333333333334" text-anchor="end">20%</text>
+<line x1="60" y1="111.66666666666666" x2="770" y2="111.66666666666666" stroke="#ddd"/><text x="52" y="115.66666666666666" text-anchor="end">25%</text>
+<line x1="60" y1="40.0" x2="770" y2="40.0" stroke="#ddd"/><text x="52" y="44.0" text-anchor="end">30%</text>
+<text x="60.0" y="488" text-anchor="middle">1</text>
+<text x="151.02564102564102" y="488" text-anchor="middle">6</text>
+<text x="242.05128205128204" y="488" text-anchor="middle">11</text>
+<text x="333.0769230769231" y="488" text-anchor="middle">16</text>
+<text x="424.1025641025641" y="488" text-anchor="middle">21</text>
+<text x="515.1282051282051" y="488" text-anchor="middle">26</text>
+<text x="606.1538461538462" y="488" text-anchor="middle">31</text>
+<text x="697.1794871794872" y="488" text-anchor="middle">36</text>
+<text x="415.0" y="508" text-anchor="middle">training step</text>
+<rect x="405.8974358974359" y="40" width="182.051282051282" height="430" fill="#f4f4f4"/><text x="496.9230769230769" y="54" text-anchor="middle" fill="#666">verdict window 20-30</text>
+<polyline fill="none" stroke="#d62728" stroke-width="3" points="60.0,437.2 78.2,461.2 96.4,456.1 114.6,445.5 132.8,470.0 151.0,470.0 169.2,400.1 187.4,289.1"/>
+<circle cx="60.0" cy="437.2" r="4" fill="#d62728" stroke="#d62728" stroke-width="2"/>
+<circle cx="78.2" cy="461.2" r="4" fill="#d62728" stroke="#d62728" stroke-width="2"/>
+<circle cx="96.4" cy="456.1" r="4" fill="#d62728" stroke="#d62728" stroke-width="2"/>
+<circle cx="114.6" cy="445.5" r="4" fill="#d62728" stroke="#d62728" stroke-width="2"/>
+<circle cx="132.8" cy="470.0" r="4" fill="white" stroke="#d62728" stroke-width="2"/>
+<circle cx="151.0" cy="470.0" r="4" fill="white" stroke="#d62728" stroke-width="2"/>
+<circle cx="169.2" cy="400.1" r="4" fill="white" stroke="#d62728" stroke-width="2"/>
+<circle cx="187.4" cy="289.1" r="4" fill="white" stroke="#d62728" stroke-width="2"/>
+<line x1="785" y1="50" x2="815" y2="50" stroke="#d62728" stroke-width="3"/><text x="822" y="54">V-HSG (MINF, vLLM-parity, HSG, seed 42)</text>
+<polyline fill="none" stroke="#ff7f0e" stroke-width="3" points="60.0,470.0 78.2,470.0"/>
+<circle cx="60.0" cy="470.0" r="4" fill="white" stroke="#ff7f0e" stroke-width="2"/>
+<circle cx="78.2" cy="470.0" r="4" fill="white" stroke="#ff7f0e" stroke-width="2"/>
+<line x1="785" y1="68" x2="815" y2="68" stroke="#ff7f0e" stroke-width="3"/><text x="822" y="72">V-HSG2 (seed 1234)</text>
+<polyline fill="none" stroke="#9467bd" stroke-width="3" points="60.0,458.1 78.2,450.5 96.4,470.0 114.6,470.0 132.8,468.6 151.0,468.5"/>
+<circle cx="60.0" cy="458.1" r="4" fill="white" stroke="#9467bd" stroke-width="2"/>
+<circle cx="78.2" cy="450.5" r="4" fill="white" stroke="#9467bd" stroke-width="2"/>
+<circle cx="96.4" cy="470.0" r="4" fill="white" stroke="#9467bd" stroke-width="2"/>
+<circle cx="114.6" cy="470.0" r="4" fill="white" stroke="#9467bd" stroke-width="2"/>
+<circle cx="132.8" cy="468.6" r="4" fill="white" stroke="#9467bd" stroke-width="2"/>
+<circle cx="151.0" cy="468.5" r="4" fill="white" stroke="#9467bd" stroke-width="2"/>
+<line x1="785" y1="86" x2="815" y2="86" stroke="#9467bd" stroke-width="3"/><text x="822" y="90">V-HSG3 (seed 4321)</text>
+<polyline fill="none" stroke="#e377c2" stroke-width="1.5" points="60.0,436.6 78.2,468.4 96.4,425.0 114.6,440.1 132.8,447.1 151.0,436.6 169.2,396.4 187.4,366.2 205.6,457.5 223.8,458.3 242.1,436.9 260.3,451.8 278.5,457.1 296.7,437.0 314.9,444.5 333.1,438.4 351.3,439.6 369.5,470.0 387.7,371.2 405.9,464.0 424.1,459.1 442.3,429.9 460.5,470.0 478.7,464.2 496.9,465.5 515.1,470.0 533.3,470.0 551.5,470.0 569.7,458.5 587.9,438.0 606.2,458.7 624.4,466.8 642.6,470.0 660.8,463.5 679.0,470.0"/>
+<line x1="785" y1="104" x2="815" y2="104" stroke="#e377c2" stroke-width="1.5"/><text x="822" y="108">chain V (CMH, vLLM-parity MINF)</text>
+<polyline fill="none" stroke="#8c564b" stroke-width="1.5" points="60.0,453.9 78.2,442.5 96.4,448.5 114.6,413.0 132.8,456.6 151.0,426.8 169.2,419.1 187.4,334.3 205.6,449.2 223.8,463.0 242.1,456.4 260.3,453.8 278.5,470.0 296.7,445.4 314.9,456.3 333.1,470.0 351.3,470.0 369.5,470.0 387.7,454.6 405.9,470.0 424.1,470.0 442.3,470.0 460.5,470.0 478.7,462.1 496.9,470.0 515.1,470.0 533.3,470.0 551.5,470.0 569.7,470.0 587.9,470.0 606.2,469.6 624.4,470.0 642.6,470.0 660.8,470.0 679.0,470.0 697.2,470.0 715.4,465.6 733.6,470.0 751.8,469.6 770.0,469.8"/>
+<line x1="785" y1="122" x2="815" y2="122" stroke="#8c564b" stroke-width="1.5"/><text x="822" y="126">chain P'''' (CMH MINF keep-prefix)</text>
+<polyline fill="none" stroke="#2ca02c" stroke-width="1.5" points="60.0,443.8 78.2,442.6 96.4,413.1 114.6,421.4 132.8,470.0 151.0,460.0 169.2,422.5 187.4,313.5 205.6,426.0 223.8,465.7 242.1,396.3 260.3,469.2 278.5,452.7 296.7,420.9 314.9,443.2 333.1,436.5 351.3,433.1 369.5,447.7 387.7,339.1 405.9,441.4 424.1,463.2 442.3,429.1 460.5,463.5 478.7,467.5 496.9,469.3 515.1,462.0 533.3,451.6 551.5,470.0 569.7,470.0 587.9,443.8 606.2,467.5 624.4,427.9 642.6,470.0 660.8,470.0 679.0,466.3 697.2,470.0 715.4,468.8 733.6,464.9 751.8,470.0 770.0,470.0"/>
+<line x1="785" y1="140" x2="815" y2="140" stroke="#2ca02c" stroke-width="1.5"/><text x="822" y="144">chain J (CMH MINF clean)</text>
+<polyline fill="none" stroke="#000000" stroke-width="1.5" points="60.0,461.6 78.2,470.0 96.4,442.5 114.6,453.2 132.8,450.6 151.0,464.7 169.2,373.6 187.4,338.1 205.6,446.7 223.8,452.7 242.1,449.4 260.3,429.2 278.5,441.3 296.7,433.0 314.9,361.4 333.1,335.8 351.3,399.2 369.5,426.4 387.7,329.9 405.9,400.6 424.1,385.7 442.3,354.8 460.5,400.8 478.7,331.9 496.9,322.7 515.1,350.0 533.3,262.7 551.5,335.3 569.7,291.0 587.9,170.6 606.2,269.0 624.4,335.5 642.6,254.4 660.8,282.0 679.0,68.0 697.2,102.7"/>
+<line x1="785" y1="158" x2="815" y2="158" stroke="#000000" stroke-width="1.5"/><text x="822" y="162">chain G (CMH MINF poisoned)</text>
+<polyline fill="none" stroke="#1f77b4" stroke-width="1.5" points="60.0,420.3 78.2,434.6 96.4,470.0 114.6,460.2 132.8,458.0 151.0,470.0 169.2,431.0 187.4,362.3 205.6,470.0 223.8,444.1 242.1,417.1 260.3,453.2 278.5,453.7 296.7,455.6 314.9,435.0 333.1,447.9 351.3,456.2 369.5,459.8 387.7,414.1 405.9,470.0 424.1,470.0 442.3,470.0 460.5,469.6 478.7,470.0 496.9,455.8 515.1,470.0 533.3,468.4 551.5,468.6 569.7,468.6 587.9,462.7 606.2,462.0 624.4,461.7 642.6,470.0 660.8,466.3 679.0,468.3 697.2,454.7 715.4,460.4 733.6,468.2 751.8,464.9 770.0,426.0"/>
+<line x1="785" y1="176" x2="815" y2="176" stroke="#1f77b4" stroke-width="1.5"/><text x="822" y="180">run A (CMH vLLM)</text>
+<polyline fill="none" stroke="#17becf" stroke-width="1.5" points="60.0,400.7 78.2,470.0 96.4,420.9 114.6,424.8 132.8,457.3 151.0,463.8 169.2,359.4 187.4,331.5 205.6,424.3 223.8,443.5 242.1,408.5 260.3,433.7 278.5,430.1 296.7,358.2 314.9,420.6 333.1,437.1 351.3,411.3 369.5,461.8 387.7,389.1 405.9,450.1 424.1,458.9 442.3,439.6 460.5,470.0 478.7,466.1 496.9,459.8 515.1,453.0 533.3,464.8 551.5,470.0 569.7,470.0 587.9,470.0 606.2,467.3 624.4,468.8 642.6,470.0 660.8,470.0 679.0,470.0 697.2,470.0 715.4,469.8 733.6,470.0 751.8,470.0 770.0,470.0"/>
+<line x1="785" y1="194" x2="815" y2="194" stroke="#17becf" stroke-width="1.5"/><text x="822" y="198">chain Q'''' (CMH vLLM no prefix)</text>
+<text x="785" y="222" fill="#444">open circle = step with &gt;50 harness-failed rows (reward forced 0)</text>
+</svg>

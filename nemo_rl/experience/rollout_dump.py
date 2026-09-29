@@ -30,6 +30,7 @@ Every writer swallows its own failures: a dump problem must not end a run.
 
 from __future__ import annotations
 
+import array
 import hashlib
 import json
 import math
@@ -70,6 +71,8 @@ def resolve_dump_dir(master_config: Any) -> Optional[str]:
 
 
 def _json_default(value: Any) -> Any:
+    if isinstance(value, array.array):
+        return value.tolist()
     if isinstance(value, torch.Tensor):
         if value.numel() == 1:
             return value.item()

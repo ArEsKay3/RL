@@ -42,6 +42,7 @@ arm_letter() {
     nano35-swe-main915*smoke*)               echo "? (main@9-15 smoke, not a lettered arm)";;
     nano35-swe-main915*minf*)                echo "U (MINF from scratch, NeMo RL main 09-24 stack, masking off)";;
     nano35-swe-main915*vllm*)                echo "W (main@9-15 vLLM from scratch, masking off)";;
+    *-from0-parity-minf-hsg-*)               echo "V-HSG (MINF from scratch, vLLM-parity build, HSG; letter pending rkirby)";;
     *-parity-minf-smoke-*)                   echo "? (vLLM-parity smoke, not a lettered arm)";;
     *-from0-parity-minf-seed1234-*)          echo "V2 (MINF from scratch, vLLM-parity build, seed 1234)";;
     *-from0-parity-minf-seed4321-*)          echo "V3 (MINF from scratch, vLLM-parity build, seed 4321)";;
@@ -49,7 +50,6 @@ arm_letter() {
     *-cmh-64n-minf)                          echo "main chain (MINF from scratch, original)";;
     vparity-stage-hsg*)                      echo "? (vLLM-parity HSG staging job, not an arm)";;
     *-parity-minf-smoke-hsg-*)               echo "? (vLLM-parity HSG smoke, not a lettered arm)";;
-    *-from0-parity-minf-hsg-*)               echo "V-HSG (MINF from scratch, vLLM-parity build, HSG; letter pending rkirby)";;
     *smoke-hsg*)                             echo "? (HSG smoke, not a lettered arm)";;
     *-hsg-64n-minf_dump-*)                   echo "? (HSG MINF dump arm, letter pending rkirby)";;
     *-hsg-64n-vllm_dump-*)                   echo "? (HSG vLLM dump arm, letter pending rkirby)";;

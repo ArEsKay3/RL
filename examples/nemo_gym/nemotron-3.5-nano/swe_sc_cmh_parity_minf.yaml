@@ -1,0 +1,16 @@
+# SWE-E2E on NeMo RL main with Megatron in-engine inference running the vLLM
+# numerical-parity adapter (the Megatron-LM-parity tree). Inherits chain U's
+# MINF dump recipe unchanged, including prefix caching and the 50 GB Mamba
+# prefix cache; only the parity flag and the audited TP4/EP1/ETP4 profile
+# with its 8480-token scheduler budget differ.
+defaults: swe_sc_cmh_dump_minf.yaml
+
+policy:
+  megatron_cfg:
+    model_overrides:
+      inference_vllm_parity: true
+  generation:
+    mcore_generation_config:
+      expert_model_parallel_size: 1
+      expert_tensor_parallel_size: 4
+      max_tokens: 8480

@@ -1,0 +1,3 @@
+arm,step,rows,gen_tokens,reasoning_tokens,joint_pct,strict_pct,repetitive_blocks,rep_adv_pos,rep_adv_neg,rep_adv_zero,runaway_blocks,truncated_rollouts,block_max_tokens
+VH,1,512,13470660,6092558,2.29,5.062,5,0,2,3,8,11,84795
+VH,2,512,10570273,4849751,0.614,1.338,2,0,0,2,1,1,55110

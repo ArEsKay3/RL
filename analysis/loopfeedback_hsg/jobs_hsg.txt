@@ -1,0 +1,3 @@
+VH nano35-swe-v2-from0-parity-minf-hsg-20260929 V-HSG: MINF from scratch, vLLM-parity build, HSG, seed 42
+VH2 nano35-swe-v2-from0-parity-minf-hsg-seed1234-20260929 V-HSG2: same, seed 1234
+VH3 nano35-swe-v2-from0-parity-minf-hsg-seed4321-20260929 V-HSG3: same, seed 4321

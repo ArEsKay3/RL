@@ -1,3 +1,4 @@
+- [HSG: regular batch queue, nemotron_sw_post](feedback-hsg-batch-queue.md) — rkirby 2026-09-29: no reservation on HSG; batch partition, QOS normal, 4 h segments
 - [HSG cluster facts (2026-09-29 move)](hsg-cluster-facts.md) — run root /lustre/fsw/portfolios/llmservice/users/rkirby/runs, batch 4 h / normal QOS, account nemotron_sw_post, 4-GPU GB200 nodes, monitor branch rkirby/hsg-ops-monitor-20260929; CMH paths/jobs/reservation are history
 - [Autonomy for minf-v2](autonomy-minf-v2.md) — user: launch minf-v2 with the smoke-chosen refit backend and keep relaunching until a full 4h 86-node run completes
 - [apt-get hang in setup_command](apt-get-hang-in-setup-command.md) — worker stuck at 28/32 actors = apt-get update hanging (no egress); timeout 60 in launch.sh; live rescue pkill apt-get

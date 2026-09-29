@@ -96,7 +96,7 @@ grep -v nel-eval-harbor "$CACHE/sq_raw.txt" | awk -F'|' '$3=="RUNNING"' | while 
   if [ -n "$sc" ]; then
     echo "  resume(SC): restoring=$(grep -c 'Restoring dataloader state' "$sc") skip_replay=$(grep -c 'Skipping replay buffer restore' "$sc") regenerated=$(grep -c 'regenerated .* pending prompt' "$sc")"
   fi
-  [ -n "$sc" ] && echo "  last train step: $(grep -oE 'train step [0-9]+/' "$sc" | tail -1)  failures: rollout-dump=$(grep -c '\[rollout-dump\] FAILED' "$sc") token-dump=$(grep -c '\[token-dump\] FAILED' "$sc") died=$(grep -ciE 'actor.*(died|dead)|RayActorError' "$sc")"
+  [ -n "$sc" ] && echo "  last train step: $(grep -oE 'train step [0-9]+/' "$sc" | tail -1)  failures: rollout-dump=$(grep -c '\[rollout-dump\] FAILED' "$sc") token-dump=$(grep -c '\[token-dump\] FAILED' "$sc") died=$(grep -v MasterConfig "$sc" | grep -ciE 'actor.*(died|dead)|RayActorError')"
   echo "  newest dumps: $(ls -t --time-style=+%H:%M "$R/$exp/dumps/rollouts" -l 2>/dev/null | awk 'NR>1&&NR<4{printf "%s@%s(%s) ", $7,$6,$5}')"
   # cross-tick delta: automatic liveness verdict, no manual resampling needed
   now=$(date +%s)

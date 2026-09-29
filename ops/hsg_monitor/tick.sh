@@ -47,6 +47,9 @@ arm_letter() {
     *-from0-parity-minf-seed4321-*)          echo "V3 (MINF from scratch, vLLM-parity build, seed 4321)";;
     *-from0-parity-minf-*)                   echo "V (MINF from scratch, vLLM-parity build)";;
     *-cmh-64n-minf)                          echo "main chain (MINF from scratch, original)";;
+    vparity-stage-hsg*)                      echo "? (vLLM-parity HSG staging job, not an arm)";;
+    *-parity-minf-smoke-hsg-*)               echo "? (vLLM-parity HSG smoke, not a lettered arm)";;
+    *-from0-parity-minf-hsg-*)               echo "V-HSG (MINF from scratch, vLLM-parity build, HSG; letter pending rkirby)";;
     *smoke-hsg*)                             echo "? (HSG smoke, not a lettered arm)";;
     *-hsg-64n-minf_dump-*)                   echo "? (HSG MINF dump arm, letter pending rkirby)";;
     *-hsg-64n-vllm_dump-*)                   echo "? (HSG vLLM dump arm, letter pending rkirby)";;
@@ -58,6 +61,10 @@ timeout 120 squeue -u rkirby -h -o "%i|%j|%T|%M|%q|%r|%P|%D|%L" 2>/dev/null > "$
 echo "jobs=$(grep -vc nel-eval-harbor "$CACHE/sq_raw.txt") running=$(grep -v nel-eval-harbor "$CACHE/sq_raw.txt" | grep -c '|RUNNING|') pending=$(grep -v nel-eval-harbor "$CACHE/sq_raw.txt" | grep -c '|PENDING|') held=$(grep -v nel-eval-harbor "$CACHE/sq_raw.txt" | grep -c JobHeld) harbor=$(grep -c nel-eval-harbor "$CACHE/sq_raw.txt")"
 grep -v nel-eval-harbor "$CACHE/sq_raw.txt" | awk -F'|' '$3!="RUNNING"{printf "  queued: %s %s %s qos=%s part=%s nodes=%s reason=%s start_in=%s\n",$1,$2,$3,$5,$7,$8,$6,$9}'
 
+grep -v nel-eval-harbor "$CACHE/sq_raw.txt" | cut -d'|' -f1,2 | while IFS='|' read -r jid exp; do
+  jid=$(echo "$jid" | tr -d ' '); af="$CACHE/audit_${jid}.txt"
+  if [ ! -s "$af" ] || ! grep -q 'source: driver_command.sh' "$af" 2>/dev/null; then bash "$CACHE/audit_flags.sh" "$jid" > "$af" 2>&1; echo "--- flag audit (first read or pre-start render) $jid $(arm_letter "$exp")"; cat "$af"; else echo "audit $jid $(arm_letter "$exp"): $(grep VERDICT "$af" | sed 's/^ *//')"; fi
+done
 grep -v nel-eval-harbor "$CACHE/sq_raw.txt" | awk -F'|' '$3=="RUNNING"' | while IFS='|' read -r jid exp st el qos rsn part nn tl; do
   jid=$(echo "$jid" | tr -d ' '); el=$(echo "$el" | tr -d ' ')
   echo "=== chain $(arm_letter "$exp")  job $jid  elapsed $el  left $tl  $part/$qos  nodes $nn"

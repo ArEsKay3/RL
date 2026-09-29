@@ -202,6 +202,11 @@ def merged_inference_megatron_cfg(policy_config: PolicyConfig) -> dict[str, Any]
         explicit_etp = cast(
             Optional[int], gen_overrides.get("expert_tensor_parallel_size")
         )
+        vllm_parity = bool(
+            (merged.get("model_overrides") or {}).get("inference_vllm_parity")
+        )
+        if vllm_parity and explicit_etp is not None and explicit_etp > 1:
+            return merged
         if explicit_etp is not None and explicit_etp > 1:
             raise ValueError(
                 "transformer_impl=inference_optimized does not support expert "

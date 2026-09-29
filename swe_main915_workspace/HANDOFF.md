@@ -22,6 +22,7 @@ W&B `ultra-v3-swe-e2e-convergence / nano35-swe-main915-64n-minf-20260928`. Monit
 |---|---|---|---|---|
 | `nemo_rl/` | `rkirby/swe-main915-latest` | `b97225bb6` (+ this handoff commit) | NeMo RL `main` `4aaa48fab` (2026-09-24) | `git@github.com:ArEsKay3/RL.git` (already `origin`) |
 | `Megatron-LM/` | `mlm-main915-latest` | `475167fa4` | Megatron-LM `main` `6a366090` (2026-09-22, the commit Bridge pins) | `git@github.com:ArEsKay3/Megatron-LM.git` |
+| `Megatron-LM-parity/` (separate clone, parity arm only) | `mlm-main915-parity` | `f28af974d` | `mlm-main915-latest` `475167fa4` + santhnm2 `vllm-numerical-parity-main` (`cfa2b0b48`, `0353d829c`) + rkirby's two gate fixes | `git@github.com:ArEsKay3/Megatron-LM.git` (branch `mlm-main915-parity`; add remote `fork` first) |
 | `Megatron-Bridge/` | `mlm-bridge-main915-latest` | `1f8873bb0` (= upstream, no local commits) | Bridge pin of NeMo RL main | `git@github.com:ArEsKay3/Megatron-Bridge.git` |
 | `nemo_rl/3rdparty/Gym-workspace/Gym/` | `rkirby/gym-main915` | `d54e6374e` | Gym `267305e2a` (NeMo RL main's pin) | `git@github.com:ArEsKay3/Gym.git` |
 
@@ -40,6 +41,7 @@ WS=/scratch/fsw/portfolios/nemotron/projects/nemotron_sw_post/users/rkirby/works
 chmod -R u+w $WS/nemo_rl/.git $WS/Megatron-LM/.git $WS/Megatron-Bridge/.git $WS/nemo_rl/3rdparty/Gym-workspace/Gym/.git
 git -C $WS/nemo_rl push origin rkirby/swe-main915-latest
 git -C $WS/Megatron-LM remote add fork git@github.com:ArEsKay3/Megatron-LM.git 2>/dev/null; git -C $WS/Megatron-LM push fork mlm-main915-latest
+git -C $WS/Megatron-LM-parity remote add fork git@github.com:ArEsKay3/Megatron-LM.git 2>/dev/null; git -C $WS/Megatron-LM-parity push fork mlm-main915-parity
 git -C $WS/Megatron-Bridge remote add fork git@github.com:ArEsKay3/Megatron-Bridge.git 2>/dev/null; git -C $WS/Megatron-Bridge push fork mlm-bridge-main915-latest
 git -C $WS/nemo_rl/3rdparty/Gym-workspace/Gym remote add fork git@github.com:ArEsKay3/Gym.git 2>/dev/null; git -C $WS/nemo_rl/3rdparty/Gym-workspace/Gym push fork d54e6374e:refs/heads/rkirby/gym-main915
 ```
@@ -160,3 +162,65 @@ rlvr line) — copy that pattern rather than editing defaults in place.
 
 Runs: `$MINE/runs/nano35-swe-main915-*` (chain U + the three smokes). Persistent cache:
 `$MINE/persistent_cache/<EXP_NAME>`. `gym_results/` is the disk hog (~40 GB per 2-step smoke).
+
+## 10. vLLM numerical-parity arm on this stack (added 2026-09-29)
+
+Purpose: Megatron in-engine inference running Keshav Santhanam's vLLM numerical-parity adapter on
+the same stack, recipe, data and dumps as chain U, so plain MINF (U) vs parity MINF vs vLLM (W)
+differ only in the inference path. rkirby's ask (2026-09-29 15:30): "get the changes in this branch
+[santhnm2/Megatron-LM vllm-numerical-parity-main] into this and run a VLLM parity run".
+
+**Code.**
+- `Megatron-LM-parity/`: a separate local clone (the live `Megatron-LM/` that U/W bind-mount was
+  never touched). Branch `mlm-main915-parity`, HEAD `f28af974d` = `mlm-main915-latest` (`475167fa4`)
+  + `ddb41a01a` (cherry-pick of the adapter commit `cfa2b0b48` "Add self-contained vLLM numerical
+  parity inference"; only `uv.lock` conflicted, ours kept, inert at runtime) + `ca9309086` (their docs
+  commit `0353d829c`) + `05cea8670` and `f28af974d` (rkirby's two eval-mode gate fixes `517934242` /
+  `d37db1077` from `rkirby/vllm-parity-armV`, still absent upstream: without them the trainer's
+  `get_logprobs_presharded` pass enters the parity QKV/norm paths). The adapter's core hunks landed
+  verbatim (empty interdiff against its own base `c035a426e`). Remotes in that clone: `live` (the
+  local `Megatron-LM` repo), `santhnm2`, `upstream`, `oldparity` (the swe_vllm_parity tree).
+- nemo_rl `rkirby/swe-main915-latest` commit `579293f2`:
+  `examples/nemo_gym/nemotron-3.5-nano/swe_sc_cmh_parity_minf.yaml` (defaults
+  `swe_sc_cmh_dump_minf.yaml`; `policy.megatron_cfg.model_overrides.inference_vllm_parity: true`;
+  generation `expert_model_parallel_size: 1`, `expert_tensor_parallel_size: 4`, `max_tokens: 8480`;
+  everything else exactly chain U, including prefix caching and `prefix_caching_mamba_gb: 50`; the
+  chain V prefix-keep knob is deliberately NOT ported), plus `merged_inference_megatron_cfg`
+  (`nemo_rl/models/generation/megatron/config.py`) keeping an explicit generation ETP>1 only when
+  that override is set — NeMo RL main otherwise pins generation ETP to 1 and raises.
+- `launch_swe_main915_parity.sh` (workspace root; copy under `nemo_rl/swe_main915_workspace/`):
+  the base launcher with `MLM_TREE=Megatron-LM-parity`, the parity yaml, EXP names
+  `nano35-swe-main915-64n-parity-minf-<RUN_DATE>` / `nano35-swe-main915-parity-minf-smoke-16n`, and
+  a generated `parity_paths.pth` bind-mounted to
+  `/opt/ray_venvs/nemo_rl.models.policy.workers.megatron_policy_worker.MegatronPolicyWorker/lib/python3.13/site-packages/zz_parity_paths.pth`
+  (adds `parity_site/` to every worker interpreter and sets `TRITON_PTXAS_BLACKWELL_PATH` and
+  `TORCH_EXTENSIONS_DIR=$WS/torch_extensions`).
+- `parity_site/`: `quack` 0.5.0 plus a copy of CUTLASS DSL 4.5.2, staged by
+  `tools/stage_parity_site.sbatch` from THIS stack's container
+  (`nemo-rl_fd45cb8-67127697-gym.sqsh`, gym venv `/opt/gym_venvs/responses_api_models/local_vllm_model/.venv`,
+  py 3.13.14 / torch 2.11.0+cu130 / triton 3.6.0 = the MegatronPolicyWorker venv). That venv already
+  ships cutlass-dsl 4.5.2, tvm-ffi 0.1.11, torch-c-dlpack-ext 0.1.5, cuda-bindings 13.3.1; only quack
+  was missing. Never reuse `swe_vllm_parity/parity_site` (different image). Staging job 4102161:
+  `STAGING_OK`, `megatron_parity_cuda` built in 35 s. On another container/cluster re-run
+  `sbatch [--partition/--qos/--reservation ...] tools/stage_parity_site.sbatch` after editing its
+  container path.
+
+**Launch.**
+```bash
+cd $WS
+SMOKE=1 RESERVATION=1 WALLTIME=2:00:00 bash launch_swe_main915_parity.sh   # 16 nodes, 2 steps
+RESERVATION=1 bash launch_swe_main915_parity.sh                            # 64 nodes, 8 h singleton segment
+RUN_DATE=<same date> RESERVATION=1 bash launch_swe_main915_parity.sh       # adds a segment to that arm
+```
+
+**Evidence.** Smoke 4102198 (2026-09-29 15:49, 16 nodes, reservation): the adapter is live — the
+dynamic-engine log carries the parity-only graph dimensions (`[4]: 0 P + 4 D | attention
+requests=N`), the startup refit ran over `nccl_reshard` with `xferdtensor_python (exact-transfer)`
+(payload 61.31 GiB, EP1/ETP4 destination), rollouts served at 4-6 ms decode steps. Step-level numbers:
+see the memory/handoff update at smoke close.
+
+**Known limits** (adapter docs + the chain V audit): the audited profile is TP4/EP1/ETP4 with prefix
+caching disabled and one NVLink node; we run it with prefix caching and the Mamba prefix cache like
+chain U, and with repeated train-to-generation refits, neither of which the audit covers. The
+`tl.exp -> fast_exp` change in the shared SSD forward kernels is unconditional (also affects the
+training forward of this arm). Report the two gate bugs upstream if not already done.

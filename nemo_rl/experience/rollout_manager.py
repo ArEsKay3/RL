@@ -52,7 +52,7 @@ from nemo_rl.experience.interfaces import (
     PromptGroupRecord,
 )
 from nemo_rl.experience.metric_utils import calculate_single_metric, pct
-from nemo_rl.experience.rollout_dump import RolloutDumpWriter
+from nemo_rl.experience.rollout_dump import RolloutDumpWriter, _json_default
 from nemo_rl.experience.rollout_recovery import (
     PromptGroupPhase,
     RolloutRecoveryLedger,
@@ -1298,7 +1298,10 @@ class AsyncNemoGymRolloutImpl:
                 )
         if self._log_full_result_tables:
             rollout_metrics[f"{agent_name}/full_result"] = Table(
-                data=[[json.dumps(r, separators=(",", ":"))] for r in agent_extras],
+                data=[
+                    [json.dumps(r, separators=(",", ":"), default=_json_default)]
+                    for r in agent_extras
+                ],
                 columns=["Full result"],
             )
 

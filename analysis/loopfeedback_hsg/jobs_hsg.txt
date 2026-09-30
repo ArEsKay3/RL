@@ -4,3 +4,6 @@ VH3 nano35-swe-v2-from0-parity-minf-hsg-seed4321-20260929 V-HSG3: same, seed 432
 VHn nano35-swe-v2-from0-parity-minf-noprefix-hsg-20260929 V-HSG-noprefix: MINF from scratch, vLLM-parity build, MINF prefix cache off, HSG, seed 42
 VHn2 nano35-swe-v2-from0-parity-minf-noprefix-hsg-seed1234-20260929 V-HSG2-noprefix: same, seed 1234
 VHn3 nano35-swe-v2-from0-parity-minf-noprefix-hsg-seed4321-20260929 V-HSG3-noprefix: same, seed 4321
+VHnB nano35-swe-v2-from0-parity-minf-noprefix-hsg-20260930 V-HSG-noprefix-0930: MINF from scratch, vLLM-parity build, MINF prefix cache off, HSG, seed 42, relaunched 09-30
+VHnB2 nano35-swe-v2-from0-parity-minf-noprefix-hsg-seed1234-20260930 V-HSG2-noprefix-0930: same, seed 1234
+VHnB3 nano35-swe-v2-from0-parity-minf-noprefix-hsg-seed4321-20260930 V-HSG3-noprefix-0930: same, seed 4321

@@ -988,5 +988,20 @@
 "gen_p90": 8221,
 "gen_max": 9432,
 "total_p50": 29966
+},
+{
+"arm": "VHnC",
+"step": 1,
+"rows": 16,
+"groups": 1,
+"reward": 0.1875,
+"harness_fail": 0,
+"truncated": 0,
+"turns_p50": 37,
+"gen_mean": 7544,
+"gen_p50": 7175,
+"gen_p90": 10224,
+"gen_max": 10472,
+"total_p50": 42189
 }
 ]

@@ -900,6 +900,36 @@
 "total_p50": 52356
 },
 {
+"arm": "VHnB",
+"step": 3,
+"rows": 432,
+"groups": 27,
+"reward": 0.0185,
+"harness_fail": 378,
+"truncated": 0,
+"turns_p50": 28,
+"gen_mean": 5288,
+"gen_p50": 4955,
+"gen_p90": 7407,
+"gen_max": 26773,
+"total_p50": 32957
+},
+{
+"arm": "VHnB",
+"step": 4,
+"rows": 384,
+"groups": 24,
+"reward": 0.0026,
+"harness_fail": 307,
+"truncated": 0,
+"turns_p50": 6,
+"gen_mean": 739,
+"gen_p50": 713,
+"gen_p90": 1178,
+"gen_max": 8709,
+"total_p50": 15155
+},
+{
 "arm": "VHnB2",
 "step": 1,
 "rows": 512,

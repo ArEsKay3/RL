@@ -76,7 +76,9 @@
 <circle cx="187.4" cy="370.7" r="4" fill="white" stroke="#e6550d" stroke-width="2"/>
 <circle cx="205.6" cy="430.8" r="4" fill="white" stroke="#e6550d" stroke-width="2"/>
 <line x1="785" y1="140" x2="815" y2="140" stroke="#e6550d" stroke-width="3"/><text x="822" y="144">V-HSG3-noprefix (seed 4321)</text>
+<polyline fill="none" stroke="#31a354" stroke-width="3" points="60.0,470.0 78.2,470.0"/>
 <circle cx="60.0" cy="470.0" r="4" fill="white" stroke="#31a354" stroke-width="2"/>
+<circle cx="78.2" cy="470.0" r="4" fill="white" stroke="#31a354" stroke-width="2"/>
 <line x1="785" y1="158" x2="815" y2="158" stroke="#31a354" stroke-width="3"/><text x="822" y="162">V-HSG-noprefix-0930 (relaunch, seed 42)</text>
 <polyline fill="none" stroke="#756bb1" stroke-width="3" points="60.0,470.0 78.2,470.0"/>
 <circle cx="60.0" cy="470.0" r="4" fill="white" stroke="#756bb1" stroke-width="2"/>

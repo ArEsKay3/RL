@@ -219,6 +219,28 @@ requests=N`), the startup refit ran over `nccl_reshard` with `xferdtensor_python
 (payload 61.31 GiB, EP1/ETP4 destination), rollouts served at 4-6 ms decode steps. Step-level numbers:
 see the memory/handoff update at smoke close.
 
+### 10a. Raw per-turn token-id dumps (chain AD twin, added 2026-09-29 17:45)
+
+rkirby: "another run equivalent to AD, but dump all prompt_token_ids and generation_token_ids
+faithfully as they appear on each turn" (the earlier `async_rl.dump.token_ids` modes never emitted
+prompt_token_ids: `nemo_gym.py` pops them off each output item before the message log is built).
+
+- nemo_rl `46ba369b` + `5db5017a`: `env.nemo_gym.retain_raw_token_ids: true` keeps the
+  engine-reported `prompt_token_ids` / `generation_token_ids` on every trainable Gym output item
+  (as int32 arrays in memory; `_build_gym_actor_config` routes the flag to the actor); they land in
+  each dump row at `full_result.response.output[*].prompt_token_ids` / `.generation_token_ids`,
+  beside `prompt_str` / `generation_str`. Default off; message dicts, replay buffer and batch are
+  untouched. Recipe `swe_sc_cmh_parity_minf_tokids.yaml` = chain AD's recipe + that flag;
+  `TOKIDS=1 bash launch_swe_main915_parity.sh` selects it (`*-tokids-*` run names).
+- Verifier: `check_tokids_dump.py <run_dir>` (copy in `nemo_rl/swe_main915_workspace/tools/`):
+  presence on every trainable turn, generation ids == the assistant message's `token_ids`, prompt
+  ids == concatenation of all previous message `token_ids`. Smoke 4104336: 3390/3390 on all three.
+- Cost: ~21 MB per rollout row (9 MB without), i.e. ~11 GB of rollout jsonl per 512-rollout step
+  (prompt ids are the full prefix at every turn, ~2 M ids per 60-turn episode).
+- Run: `nano35-swe-main915-64n-parity-minf-tokids-20260929`, jobs 4104754 -> 4104794 (reservation,
+  8 h segments, started 17:45:56 09-29); run dir under `users/rkirby/runs/`. Label pending from the
+  run manager (proposed chain AE).
+
 **Known limits** (adapter docs + the chain V audit): the audited profile is TP4/EP1/ETP4 with prefix
 caching disabled and one NVLink node; we run it with prefix caching and the Mamba prefix cache like
 chain U, and with repeated train-to-generation refits, neither of which the audit covers. The

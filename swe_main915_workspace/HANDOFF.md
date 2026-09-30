@@ -52,6 +52,10 @@ bind-mounted read-write into them (`USE_SNAPSHOT=0`).
 
 ### Rebuilding the workspace elsewhere (e.g. HSG)
 
+If the Megatron-LM fork branches are not reachable, `nemo_rl/swe_main915_workspace/patches/`
+carries both Megatron-LM series as `git am`-able patches onto public commits (see its README.md):
+`megatron-lm-main915-latest/` onto upstream `6a3660905`, `megatron-lm-parity/` on top of that.
+
 ```bash
 git clone -b rkirby/swe-main915-latest git@github.com:ArEsKay3/RL.git nemo_rl
 git -C nemo_rl submodule update --init 3rdparty/Megatron-Bridge-workspace/Megatron-Bridge   # optional; the launcher mounts its own

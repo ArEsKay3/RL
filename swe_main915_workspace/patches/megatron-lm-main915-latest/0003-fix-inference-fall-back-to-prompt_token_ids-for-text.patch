@@ -1,0 +1,59 @@
+From 9900d8be571b69d997e39caac990d2992b5037e5 Mon Sep 17 00:00:00 2001
+From: Robert Kirby <rkirby@nvidia.com>
+Date: Sun, 27 Sep 2026 14:16:31 -0700
+Subject: [PATCH 3/5] fix(inference): fall back to prompt_token_ids for
+ text-only prefix stitching
+
+compact_prompt_token_ids is only ever populated by VLM requests
+(DynamicVLMInferenceRequest in dynamic_engine.py's multimodal admission
+path, gated behind has_images); everywhere else this same file already
+falls back to prompt_tokens when it *sets* compact_prompt_token_ids
+(line ~1371: result.get("compact_prompt_tokens") or
+result["prompt_tokens"]), so for text-only history the two are always
+identical. The read side never had that same fallback, so any client
+that drops the field in transit (observed: OpenHands' own
+nemo_gym_client.py keeps a hardcoded 3-field allowlist that doesn't
+include it) hard-fails every multi-turn request with "Prefix stitching
+requires compact_prompt_token_ids ...", terminating every episode
+after turn 1 (0/512 reward on chain U, job 4050528). Add the same
+fallback on the read side, gated on previous_media_slots being empty
+so multimodal turns keep the strict requirement -- there the two
+values can genuinely diverge and silently substituting would be wrong,
+not just permissive.
+
+Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
+---
+ .../endpoints/chat_completions.py               | 17 ++++++++++++++++-
+ 1 file changed, 16 insertions(+), 1 deletion(-)
+
+diff --git a/megatron/core/inference/text_generation_server/dynamic_text_gen_server/endpoints/chat_completions.py b/megatron/core/inference/text_generation_server/dynamic_text_gen_server/endpoints/chat_completions.py
+index 8be4b37a2..f67e38c92 100644
+--- a/megatron/core/inference/text_generation_server/dynamic_text_gen_server/endpoints/chat_completions.py
++++ b/megatron/core/inference/text_generation_server/dynamic_text_gen_server/endpoints/chat_completions.py
+@@ -1019,7 +1019,22 @@ try:
+                                     "Prefix stitching requires compact_prompt_token_ids "
+                                     "from the previous Megatron-Inference response."
+                                 )
+-                            previous_prompt_token_ids = last_assistant_message["prompt_token_ids"]
++                            # Text-only history never diverges: only VLM requests populate
++                            # compact_prompt_tokens (see DynamicVLMInferenceRequest in
++                            # dynamic_engine.py); everywhere else this server's own
++                            # response already falls back to prompt_tokens when it sets
++                            # compact_prompt_token_ids, so an agent harness that drops the
++                            # field in transit is recoverable losslessly from
++                            # prompt_token_ids as long as no media sits in this prefix.
++                            previous_prompt_token_ids = last_assistant_message.get(
++                                "prompt_token_ids"
++                            )
++                            if not isinstance(previous_prompt_token_ids, list):
++                                raise ValueError(
++                                    "Prefix stitching requires compact_prompt_token_ids or "
++                                    "prompt_token_ids from the previous Megatron-Inference "
++                                    "response."
++                                )
+                     eos_token_ids = _model_eos_token_ids(tokenizer)
+                     assert eos_token_ids, "Your tokenizer must have an EOS token ID!"
+                     # _replace_prefix_tokens_metadata's engine-side stager path only
+-- 
+2.43.0
+

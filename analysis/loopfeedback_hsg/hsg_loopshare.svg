@@ -85,6 +85,9 @@
 <circle cx="78.2" cy="470.0" r="4" fill="white" stroke="#756bb1" stroke-width="2"/>
 <line x1="785" y1="176" x2="815" y2="176" stroke="#756bb1" stroke-width="3"/><text x="822" y="180">V-HSG2-noprefix-0930 (seed 1234)</text>
 <line x1="785" y1="194" x2="815" y2="194" stroke="#636363" stroke-width="3"/><text x="822" y="198">V-HSG3-noprefix-0930 (seed 4321)</text>
+<polyline fill="none" stroke="#006d2c" stroke-width="3" points="60.0,455.9 78.2,455.9"/>
+<circle cx="60.0" cy="455.9" r="4" fill="#006d2c" stroke="#006d2c" stroke-width="2"/>
+<circle cx="78.2" cy="455.9" r="4" fill="#006d2c" stroke="#006d2c" stroke-width="2"/>
 <line x1="785" y1="212" x2="815" y2="212" stroke="#006d2c" stroke-width="3"/><text x="822" y="216">V-HSG-noprefix-r2 (round 2, seed 42)</text>
 <line x1="785" y1="230" x2="815" y2="230" stroke="#54278f" stroke-width="3"/><text x="822" y="234">V-HSG2-noprefix-r2 (seed 1234)</text>
 <line x1="785" y1="248" x2="815" y2="248" stroke="#a63603" stroke-width="3"/><text x="822" y="252">V-HSG3-noprefix-r2 (seed 4321)</text>

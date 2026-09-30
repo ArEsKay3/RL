@@ -1,0 +1,45 @@
+From 05cea867072a6b933b4e56d9bb8cccc080101799 Mon Sep 17 00:00:00 2001
+From: rkirby <rkirby@nvidia.com>
+Date: Sun, 27 Sep 2026 12:44:08 -0700
+Subject: [PATCH 3/4] Confine the compiled grouped gated norm to the parity
+ adapter
+
+ExtendedRMSNorm.forward gated only on not self.training, so the compiled
+vLLM-order norm also replaced the fused path in every eval-mode forward:
+NeMo RL's trainer logprob passes and plain non-parity MINF generation.
+vllm_parity.VllmHybridParity is the only writer of
+inference_vllm_compile_norm, so keying on its presence keeps the audited
+parity behaviour and restores the base path everywhere else.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+(cherry picked from commit 517934242504bc50507e87821b88ecf39507e78f)
+---
+ megatron/core/ssm/mamba_mixer.py | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/megatron/core/ssm/mamba_mixer.py b/megatron/core/ssm/mamba_mixer.py
+index e05bd3651..4ae300a33 100644
+--- a/megatron/core/ssm/mamba_mixer.py
++++ b/megatron/core/ssm/mamba_mixer.py
+@@ -123,7 +123,8 @@ class ExtendedRMSNorm(RMSNormGated):
+     def forward(self, x: torch.Tensor, z: Optional[torch.Tensor] = None) -> torch.Tensor:
+         """Use the reference's compiled grouped gate/norm path during inference."""
+         if (
+-            not self.training
++            hasattr(self, 'inference_vllm_compile_norm')
++            and not self.training
+             and z is not None
+             and not self.norm_before_gate
+             and self.group_size is not None
+@@ -131,7 +132,7 @@ class ExtendedRMSNorm(RMSNormGated):
+             shape = x.shape
+             norm = (
+                 compiled_grouped_gated_rmsnorm
+-                if getattr(self, 'inference_vllm_compile_norm', True)
++                if self.inference_vllm_compile_norm
+                 else grouped_gated_rmsnorm
+             )
+             return norm(self, x.reshape(-1, shape[-1]), z.reshape(-1, shape[-1])).view(shape)
+-- 
+2.43.0
+

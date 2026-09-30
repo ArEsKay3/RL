@@ -1,0 +1,35 @@
+From f28af974d134ecd223bc3129e003ba06c6c93b3e Mon Sep 17 00:00:00 2001
+From: rkirby <rkirby@nvidia.com>
+Date: Sun, 27 Sep 2026 13:44:54 -0700
+Subject: [PATCH 4/4] Gate the parity QKV path on InferenceMode, not eval mode
+
+SelfAttention.get_query_key_value_tensors used 'not self.training', but
+NeMo RL runs eval-mode forwards on the training model: get_logprobs_presharded
+calls model.eval(), so the trainer's logprob pass entered the parity QKV path
+and handed vLLM-layout tensors to TE's context-parallel flash attention,
+failing with SystemError inside AttnFuncWithCPAndKVP2P (smoke 4050516).
+InferenceMode.is_active() is the gate hybrid_block already uses, and the whole
+parity forward runs inside it.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+(cherry picked from commit d37db1077cb77ec08fb846485accd92ca39cd639)
+---
+ megatron/core/transformer/attention.py | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/megatron/core/transformer/attention.py b/megatron/core/transformer/attention.py
+index 089cbf3ff..7b55090ca 100644
+--- a/megatron/core/transformer/attention.py
++++ b/megatron/core/transformer/attention.py
+@@ -1961,7 +1961,7 @@ class SelfAttention(Attention):
+         If `output_gate` is True, then also derives `gate` tensor.
+         If `split_qkv=False`, then the unsplit mixed_qkv tensor is returned.
+         """
+-        if self.config.inference_vllm_parity and not self.training:
++        if self.config.inference_vllm_parity and InferenceMode.is_active():
+             from megatron.core.inference.vllm_parity import attention_qkv
+ 
+             if output_gate or not split_qkv:
+-- 
+2.43.0
+

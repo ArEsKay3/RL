@@ -76,7 +76,11 @@
 <circle cx="187.4" cy="370.7" r="4" fill="white" stroke="#e6550d" stroke-width="2"/>
 <circle cx="205.6" cy="430.8" r="4" fill="white" stroke="#e6550d" stroke-width="2"/>
 <line x1="785" y1="140" x2="815" y2="140" stroke="#e6550d" stroke-width="3"/><text x="822" y="144">V-HSG3-noprefix (seed 4321)</text>
+<circle cx="60.0" cy="470.0" r="4" fill="white" stroke="#31a354" stroke-width="2"/>
 <line x1="785" y1="158" x2="815" y2="158" stroke="#31a354" stroke-width="3"/><text x="822" y="162">V-HSG-noprefix-0930 (relaunch, seed 42)</text>
+<polyline fill="none" stroke="#756bb1" stroke-width="3" points="60.0,470.0 78.2,470.0"/>
+<circle cx="60.0" cy="470.0" r="4" fill="white" stroke="#756bb1" stroke-width="2"/>
+<circle cx="78.2" cy="470.0" r="4" fill="white" stroke="#756bb1" stroke-width="2"/>
 <line x1="785" y1="176" x2="815" y2="176" stroke="#756bb1" stroke-width="3"/><text x="822" y="180">V-HSG2-noprefix-0930 (seed 1234)</text>
 <line x1="785" y1="194" x2="815" y2="194" stroke="#636363" stroke-width="3"/><text x="822" y="198">V-HSG3-noprefix-0930 (seed 4321)</text>
 <polyline fill="none" stroke="#e377c2" stroke-width="1.5" points="60.0,436.6 78.2,468.4 96.4,425.0 114.6,440.1 132.8,447.1 151.0,436.6 169.2,396.4 187.4,366.2 205.6,457.5 223.8,458.3 242.1,436.9 260.3,451.8 278.5,457.1 296.7,437.0 314.9,444.5 333.1,438.4 351.3,439.6 369.5,470.0 387.7,371.2 405.9,464.0 424.1,459.1 442.3,429.9 460.5,470.0 478.7,464.2 496.9,465.5 515.1,470.0 533.3,470.0 551.5,470.0 569.7,458.5 587.9,438.0 606.2,458.7 624.4,466.8 642.6,470.0 660.8,463.5 679.0,470.0"/>

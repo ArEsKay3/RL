@@ -65,9 +65,10 @@ PTXAS_PATH="${PTXAS_PATH:-/usr/local/cuda-13.2/bin/ptxas}"
 TORCH_EXT_DIR="${TORCH_EXT_DIR:-${WS}/torch_extensions}"
 mkdir -p "${TORCH_EXT_DIR}"
 
+MINF_PREFIX_CACHING="${MINF_PREFIX_CACHING:-true}"
 MINF_OVERRIDES=(
   policy.megatron_cfg.distributed_data_parallel_config.overlap_param_gather=false
-  policy.generation.mcore_generation_config.enable_prefix_caching=true
+  "policy.generation.mcore_generation_config.enable_prefix_caching=${MINF_PREFIX_CACHING}"
 )
 FULL_EXP_NAME="nano35-swe-v2-from0-parity-minf-hsg-${RUN_DATE}"
 SMOKE_EXP_NAME="nano35-swe-v2-parity-minf-smoke-hsg-16n"
@@ -113,11 +114,13 @@ export PERSISTENT_CACHE="${PERSISTENT_CACHE:-${MINE}/persistent_cache/${EXP_NAME
 export RESULTS_DIR="${RESULTS_DIR:-${MINE}/runs/${EXP_NAME}}"
 mkdir -p "${PERSISTENT_CACHE}" "${RESULTS_DIR}"
 
+GYM_CACHE_DIR="${GYM_CACHE_DIR:-${MINE}/gym_cache/${EXP_NAME}}"
 DUMP_OVERRIDES=(
   "async_rl.dump.dir=${RESULTS_DIR}/dumps"
   "+env.nemo_gym.results_dir=${RESULTS_DIR}/gym_results"
+  "+env.nemo_gym.initial_global_config_dict.cache_dir=${GYM_CACHE_DIR}"
 )
-mkdir -p "${RESULTS_DIR}/dumps" "${RESULTS_DIR}/gym_results"
+mkdir -p "${RESULTS_DIR}/dumps" "${RESULTS_DIR}/gym_results" "${GYM_CACHE_DIR}"
 
 RESUME_OVERRIDES=(
   "+checkpointing.load_replay_buffer=false"
@@ -149,10 +152,10 @@ EXTRA_MOUNTS="${EXTRA_MOUNTS},${PARITY_PTH}:${MW_SITE_PACKAGES}/zz_parity_paths.
 export EXTRA_MOUNTS
 
 cd "${WORKTREE}"
-echo "engine: minf (vLLM parity)  config: ${CONFIG_PATH}"
+echo "engine: minf (vLLM parity)  config: ${CONFIG_PATH}  prefix caching: ${MINF_PREFIX_CACHING}"
 echo "nemo_rl: $(git rev-parse --short HEAD) ($(git branch --show-current)) dirty=$(git status --porcelain | wc -l)"
 echo "Megatron-LM mount: $(git -C "${MLM_TREE}" rev-parse --short HEAD) ($(git -C "${MLM_TREE}" branch --show-current)) -> ${MLM_MOUNT_TARGET}"
 echo "parity site: ${PARITY_SITE} via ${MW_SITE_PACKAGES}/zz_parity_paths.pth"
 echo "ptxas: ${PTXAS_PATH}  torch extensions: ${TORCH_EXT_DIR}  moe tables: ${MOE_CONFIG_DIR}"
-echo "dumps: ${RESULTS_DIR}/dumps  gym results: ${RESULTS_DIR}/gym_results"
+echo "dumps: ${RESULTS_DIR}/dumps  gym results: ${RESULTS_DIR}/gym_results  gym cache: ${GYM_CACHE_DIR}"
 exec bash examples/nemo_gym/nemotron-3.5-nano/nano35_launch.sh swe "${SHAPE_OVERRIDES[@]}" "${DUMP_OVERRIDES[@]}" "${MINF_OVERRIDES[@]}" "${RESUME_OVERRIDES[@]}" "$@"

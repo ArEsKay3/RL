@@ -97,7 +97,7 @@
 <circle cx="205.6" cy="438.4" r="4" fill="#006d2c" stroke="#006d2c" stroke-width="2"/>
 <circle cx="223.8" cy="460.9" r="4" fill="#006d2c" stroke="#006d2c" stroke-width="2"/>
 <line x1="785" y1="212" x2="815" y2="212" stroke="#006d2c" stroke-width="3"/><text x="822" y="216">V-HSG-noprefix-r2 (round 2, seed 42)</text>
-<polyline fill="none" stroke="#54278f" stroke-width="3" points="60.0,463.3 78.2,443.4 96.4,458.8 114.6,439.9 132.8,468.4 151.0,468.8 169.2,435.7 187.4,336.2"/>
+<polyline fill="none" stroke="#54278f" stroke-width="3" points="60.0,463.3 78.2,443.4 96.4,458.8 114.6,439.9 132.8,468.4 151.0,468.8 169.2,435.7 187.4,336.2 205.6,445.4 223.8,442.3"/>
 <circle cx="60.0" cy="463.3" r="4" fill="#54278f" stroke="#54278f" stroke-width="2"/>
 <circle cx="78.2" cy="443.4" r="4" fill="#54278f" stroke="#54278f" stroke-width="2"/>
 <circle cx="96.4" cy="458.8" r="4" fill="#54278f" stroke="#54278f" stroke-width="2"/>
@@ -106,6 +106,8 @@
 <circle cx="151.0" cy="468.8" r="4" fill="#54278f" stroke="#54278f" stroke-width="2"/>
 <circle cx="169.2" cy="435.7" r="4" fill="#54278f" stroke="#54278f" stroke-width="2"/>
 <circle cx="187.4" cy="336.2" r="4" fill="#54278f" stroke="#54278f" stroke-width="2"/>
+<circle cx="205.6" cy="445.4" r="4" fill="#54278f" stroke="#54278f" stroke-width="2"/>
+<circle cx="223.8" cy="442.3" r="4" fill="#54278f" stroke="#54278f" stroke-width="2"/>
 <line x1="785" y1="230" x2="815" y2="230" stroke="#54278f" stroke-width="3"/><text x="822" y="234">V-HSG2-noprefix-r2 (seed 1234)</text>
 <polyline fill="none" stroke="#a63603" stroke-width="3" points="60.0,430.3 78.2,443.7 96.4,439.4 114.6,456.2 132.8,460.7 151.0,457.0 169.2,401.3 187.4,327.2 205.6,470.0 223.8,442.5"/>
 <circle cx="60.0" cy="430.3" r="4" fill="#a63603" stroke="#a63603" stroke-width="2"/>

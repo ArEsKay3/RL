@@ -1,0 +1,64 @@
+From 475167fa47b367bb7f29e893730a4116247c98fa Mon Sep 17 00:00:00 2001
+From: Robert Kirby <rkirby@nvidia.com>
+Date: Mon, 28 Sep 2026 05:52:58 -0700
+Subject: [PATCH 5/5] fix(inference): never apply a KV-only prefix skip to a
+ hybrid model past its first chunk
+
+`_compute_prefix_match` derives `prefix_skip_tokens` from the KV hash match whenever
+the chunk starts block-aligned, and only zeroes it for hybrid models on the first
+chunk (`finished == 0`). A hybrid model's Mamba state is restored only on the first
+chunk, and only when a Mamba prefix cache exists, so a block-aligned continuation
+chunk that hash-matches its blocks skips tokens the recurrent layers never see. The
+">= 2 computed tokens" clamp then leaves exactly 256 computed tokens per 16384-token
+chunk while attention still reads the matched KV: generation stays mostly coherent
+but a few percent of decode steps become confidently wrong.
+
+Memory-only prefix caching (prefix_caching_mamba_gb unset) makes this routine: every
+turn re-prefills its whole prompt, chunk boundaries are not Mamba-aligned (that guard
+needs the allocator), and a request prefilling alone gets exact 16384-token chunks so
+every boundary is aligned. On a 16-node Nemotron-3.5-nano SWE-agent RL smoke this
+produced |engine - trainer| logprob spikes >3 nats on 0.5-0.8% of decode tokens past
+position 131072 (vs 0.001% with the v2 stack, which defaulted to a 50 GB Mamba cache);
+279 of the 334 affected turns reported num_cached_tokens > 0 (median 16128) even though
+memory-only mode must report 0, and the engine step log shows solo 256-token prefill
+chunks late in every rollout step.
+
+Skip only on the first chunk of a hybrid model with a Mamba-backed restore; every other
+chunk recomputes all of its tokens (matched blocks stay deduplicated through the
+dummy-block write redirect). Non-hybrid models are unchanged.
+
+Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>
+---
+ megatron/core/inference/contexts/dynamic_context.py | 9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
+
+diff --git a/megatron/core/inference/contexts/dynamic_context.py b/megatron/core/inference/contexts/dynamic_context.py
+index 13353171c..5bc16a3eb 100644
+--- a/megatron/core/inference/contexts/dynamic_context.py
++++ b/megatron/core/inference/contexts/dynamic_context.py
+@@ -3223,9 +3223,8 @@ class DynamicInferenceContext(MTPContextMixin, BaseInferenceContext):
+         else:
+             prefix_skip_tokens = 0
+ 
+-        # Hybrid models with Mamba caching: skip based on Mamba match count.
+-        # Only applies to the first chunk (finished == 0); continuation chunks
+-        # already had Mamba state restored during the first chunk.
++        # Hybrid models may only skip on the first chunk, backed by a restored
++        # Mamba state; no later boundary has a recurrent state to resume from.
+         if self.is_hybrid_model and self.mamba_slot_allocator is not None and finished == 0:
+             num_mamba_matched = self._find_mamba_match_count(
+                 req=req,
+@@ -3249,8 +3248,8 @@ class DynamicInferenceContext(MTPContextMixin, BaseInferenceContext):
+                     prefix_skip_tokens = raw_skip
+             else:
+                 prefix_skip_tokens = 0
+-        elif self.is_hybrid_model and finished == 0:
+-            if record_mamba_match:
++        elif self.is_hybrid_model:
++            if record_mamba_match and finished == 0:
+                 req._mamba_num_matched_blocks = 0
+             prefix_skip_tokens = 0
+ 
+-- 
+2.43.0
+

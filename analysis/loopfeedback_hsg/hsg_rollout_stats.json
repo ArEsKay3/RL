@@ -373,5 +373,35 @@
 "gen_p90": 10001,
 "gen_max": 11788,
 "total_p50": 26795
+},
+{
+"arm": "VHn",
+"step": 1,
+"rows": 48,
+"groups": 3,
+"reward": 0.2708,
+"harness_fail": 0,
+"truncated": 0,
+"turns_p50": 42,
+"gen_mean": 9563,
+"gen_p50": 8537,
+"gen_p90": 14765,
+"gen_max": 22246,
+"total_p50": 45209
+},
+{
+"arm": "VHn",
+"step": 2,
+"rows": 64,
+"groups": 4,
+"reward": 0.8125,
+"harness_fail": 0,
+"truncated": 0,
+"turns_p50": 39,
+"gen_mean": 8246,
+"gen_p50": 7425,
+"gen_p90": 14636,
+"gen_max": 19236,
+"total_p50": 46459
 }
 ]

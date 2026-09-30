@@ -332,16 +332,31 @@
 {
 "arm": "VH3",
 "step": 9,
-"rows": 48,
-"groups": 3,
-"reward": 0.0,
+"rows": 192,
+"groups": 12,
+"reward": 0.4688,
 "harness_fail": 0,
 "truncated": 0,
-"turns_p50": 28,
-"gen_mean": 5747,
-"gen_p50": 5327,
-"gen_p90": 8269,
-"gen_max": 15328,
-"total_p50": 27573
+"turns_p50": 46,
+"gen_mean": 12925,
+"gen_p50": 10208,
+"gen_p90": 25284,
+"gen_max": 42275,
+"total_p50": 41172
+},
+{
+"arm": "VH3",
+"step": 10,
+"rows": 160,
+"groups": 10,
+"reward": 0.6,
+"harness_fail": 0,
+"truncated": 0,
+"turns_p50": 47,
+"gen_mean": 11966,
+"gen_p50": 10198,
+"gen_p90": 20929,
+"gen_max": 53325,
+"total_p50": 51060
 }
 ]

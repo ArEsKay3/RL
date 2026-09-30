@@ -43,5 +43,5 @@ case "$lrb" in false|False) ;; *) bad="$bad load_replay_buffer_not_false";; esac
 case "$exp" in *main915*) [ "$lrb" != "false" ] && bad="$bad (main915: yaml false but INERT on SC path, resume needs rkirby OK)";; esac
 case "$opg" in false|False) ;; *) bad="$bad overlap_param_gather_not_false";; esac
 [ -n "$sj" ] && { [ "$(g Account)" != "nemotron_sw_post" ] && bad="$bad account=$(g Account)"; [ "$(g Reservation)" != "(null)" ] && [ -n "$(g Reservation)" ] && bad="$bad reservation=$(g Reservation)"; [ "$(echo "$sj" | grep -c OccupiedIdleGPUsJobReaper)" = 0 ] && bad="$bad no_reaper_exemption"; case "$(g Partition)" in batch|batch_long) ;; *) bad="$bad partition=$(g Partition)";; esac; }
-case "$cfg" in *minf*) case "$mpc" in true|True|"") ;; *) bad="$bad minf_prefix_caching=$mpc(rule 09-24 says true)";; esac;; esac
+case "$exp" in *noprefix*) case "$mpc" in false|False) ;; *) bad="$bad minf_prefix_caching=${mpc:-ABSENT}(noprefix arm expects false)";; esac;; *) case "$cfg" in *minf*) case "$mpc" in true|True|"") ;; *) bad="$bad minf_prefix_caching=$mpc(rule 09-24 says true)";; esac;; esac;; esac
 if [ -n "$bad" ]; then echo "  VERDICT: FAIL:$bad"; else echo "  VERDICT: PASS"; fi

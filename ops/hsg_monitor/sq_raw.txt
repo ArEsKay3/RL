@@ -1,1 +1,1 @@
-7543778|vparity-stage-hsg|RUNNING|0:42|short|None|batch|1|29:18
+7548591|nano35-swe-v2-from0-parity-minf-hsg-seed4321-20260929|RUNNING|3:16:52|normal|None|batch|64|43:08

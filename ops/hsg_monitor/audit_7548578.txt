@@ -1,0 +1,9 @@
+AUDIT job 7548578 nano35-swe-v2-from0-parity-minf-hsg-seed1234-20260929
+  source: driver_command.sh
+  slurm: state=RUNNING partition=batch qos=normal account=nemotron_sw_post reservation= nodes=64 wall=04:00:00 requeue=0 comment_reaper=2
+  provenance: branch=rkirby/swe-v2-vllm-parity-hsg commit=d10b184c6 dirty= container=rl-gym.64248325.sqsh
+  config=examples/nemo_gym/nemotron-3.5-nano/swe_sc_cmh_parity_minf.yaml engine=minf
+  load_replay_buffer=false  overlap_param_gather=false  minf_prefix_caching=true  vllm_prefix_caching=absent(=on)  invalidate_prefix_on_refit=yaml
+  seed=1234 prompts/step=32 gbs=512 min_groups=8 max_buffered=96 nodes=64 gen_nodes=32 segment=16 max_steps=1000000 ckpt_enabled=
+  other overrides: policy.megatron_cfg.context_parallel_size=4 grpo.seed=1234 
+  VERDICT: PASS

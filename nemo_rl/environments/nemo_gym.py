@@ -1600,6 +1600,7 @@ def _build_gym_actor_config(
     invalid_tool_call_patterns = nemo_gym_dict.pop("invalid_tool_call_patterns", None)
     thinking_tags = nemo_gym_dict.pop("thinking_tags", None)
     tokenizer_config = nemo_gym_dict.pop("tokenizer_config", None)
+    retain_raw_token_ids = bool(nemo_gym_dict.pop("retain_raw_token_ids", False))
     port_range = {
         key: value
         for key in ("port_range_low", "port_range_high")
@@ -1638,6 +1639,7 @@ def _build_gym_actor_config(
         require_routed_experts=enable_router_replay,
         routed_experts_dtype=routed_experts_dtype,
         use_fastokens=use_fastokens,
+        retain_raw_token_ids=retain_raw_token_ids,
         initial_global_config_dict=nemo_gym_dict,
         token_capture=token_capture,
         **port_range,

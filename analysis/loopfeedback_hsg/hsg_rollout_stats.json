@@ -1380,6 +1380,36 @@
 "total_p50": 80255
 },
 {
+"arm": "VHnC2",
+"step": 13,
+"rows": 96,
+"groups": 6,
+"reward": 0.3958,
+"harness_fail": 0,
+"truncated": 0,
+"turns_p50": 42,
+"gen_mean": 9409,
+"gen_p50": 7375,
+"gen_p90": 17289,
+"gen_max": 30419,
+"total_p50": 40376
+},
+{
+"arm": "VHnC2",
+"step": 14,
+"rows": 176,
+"groups": 11,
+"reward": 0.3977,
+"harness_fail": 0,
+"truncated": 0,
+"turns_p50": 53,
+"gen_mean": 13013,
+"gen_p50": 12517,
+"gen_p90": 20988,
+"gen_max": 30619,
+"total_p50": 52996
+},
+{
 "arm": "VHnC3",
 "step": 1,
 "rows": 512,
@@ -1562,16 +1592,31 @@
 {
 "arm": "VHnC3",
 "step": 13,
-"rows": 64,
-"groups": 4,
-"reward": 0.5,
+"rows": 128,
+"groups": 8,
+"reward": 0.4453,
 "harness_fail": 0,
 "truncated": 0,
-"turns_p50": 39,
-"gen_mean": 9488,
-"gen_p50": 7765,
-"gen_p90": 19673,
-"gen_max": 25535,
-"total_p50": 38247
+"turns_p50": 56,
+"gen_mean": 16922,
+"gen_p50": 13030,
+"gen_p90": 35750,
+"gen_max": 46631,
+"total_p50": 52550
+},
+{
+"arm": "VHnC3",
+"step": 14,
+"rows": 192,
+"groups": 12,
+"reward": 0.3229,
+"harness_fail": 0,
+"truncated": 0,
+"turns_p50": 51,
+"gen_mean": 12855,
+"gen_p50": 10577,
+"gen_p90": 24564,
+"gen_max": 44115,
+"total_p50": 51646
 }
 ]

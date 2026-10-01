@@ -6,7 +6,7 @@ import glob, json, sys
 
 rd = sys.argv[1]
 rows, pairs, per_shard = [], set(), {}
-for f in glob.glob(f"{rd}/shard_*/**/results.jsonl", recursive=True):
+for f in glob.glob(f"{rd}/shard_*/harbor___swebench_verified_1_0/*/results.jsonl"):
     shard = f[len(rd) + 1:].split("/")[0]
     for line in open(f, errors="ignore"):
         d = json.loads(line)

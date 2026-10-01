@@ -15,7 +15,7 @@ live = {sq[i] for i in range(0, len(sq), 2)}
 
 def verified(sd):
     n = 0
-    for f in glob.glob(f"{sd}/**/results.jsonl", recursive=True):
+    for f in glob.glob(f"{sd}/harbor___swebench_verified_1_0/*/results.jsonl"):
         n += sum(1 for _ in open(f, errors="ignore"))
     return n
 

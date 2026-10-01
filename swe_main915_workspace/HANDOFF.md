@@ -281,7 +281,7 @@ On HSG edit the `#SBATCH --output/--error` paths and `MINE`/`SWE_BASE`, or set `
 `EXPORT_CONTAINER`, `EXPORT_BASE_HF`, `EXPORT_OUT_ROOT`. Stripping `policy/` after a complete export
 reclaims ~368 GB per rung and leaves the rung unusable for training resume.
 
-Push state at this commit (pushes need rkirby): `nemo_rl` branch `rkirby/swe-main915-latest` has
-every commit after 6a6f38b8 unpushed; `Megatron-LM-parity` branch `mlm-main915-parity` (f28af974d)
-has never been pushed (`git -C Megatron-LM-parity push fork mlm-main915-parity`; the same series is
-carried as `patches/megatron-lm-parity/` here); Megatron-LM, Megatron-Bridge and Gym are pushed.
+Push state (2026-10-01 14:35 PDT): every tree is on the ArEsKay3 forks — RL `rkirby/swe-main915-latest`
+(this commit and its parent 1bd093ae), Megatron-LM `mlm-main915-latest` 475167fa4 and `mlm-main915-parity`
+f28af974d, Megatron-Bridge `mlm-bridge-main915-latest` 1f8873bb0, Gym `rkirby/gym-main915` d54e6374e.
+The parity series is also carried as `patches/megatron-lm-parity/` here.

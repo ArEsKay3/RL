@@ -40,7 +40,7 @@ for step in sorted(d, key=lambda s: int(s[5:])):
         if os.path.exists(p): ids |= set(open(p).read().split())
     live = sum(1 for i in ids if i in sq and sq[i] in ("RUNNING", "PENDING", "COMPLETING"))
     rows = 0
-    for f in glob.glob(f"{rd}/shard_*/**/results.jsonl", recursive=True):
+    for f in glob.glob(f"{rd}/shard_*/**/verified_log.jsonl", recursive=True):
         rows += sum(1 for _ in open(f, errors="ignore"))
     rep = "merged" if os.path.exists(f"{rd}/report.md") else ("MERGE NEEDED" if done == 10 else "-")
     if done == 10 and not os.path.exists(f"{rd}/report.md") and rows >= 2500:

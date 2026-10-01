@@ -39,8 +39,12 @@ PY
 )"
 fi
 bad=""
-case "$lrb" in false|False) ;; *) bad="$bad load_replay_buffer_not_false";; esac
-case "$exp" in *main915*) [ "$lrb" != "false" ] && bad="$bad (main915: yaml false but INERT on SC path, resume needs rkirby OK)";; esac
+case "$exp" in *main915*)
+  ylrb=$(grep -hoE '^\s*load_replay_buffer:\s*\S+' /lustre/fsw/portfolios/llmservice/users/rkirby/workspaces/swe_main915/nemo_rl/examples/nemo_gym/nemotron-3.5-nano/swe_sc_cmh_common.yaml 2>/dev/null | awk '{print $2}' | head -1)
+  echo "  main915: yaml load_replay_buffer=${ylrb:-?} (flag is INERT on the main SC path; a resume needs rkirby's OK)"
+  case "${lrb:-$ylrb}" in false|False) ;; *) bad="$bad load_replay_buffer_not_false";; esac;;
+  *) case "$lrb" in false|False) ;; *) bad="$bad load_replay_buffer_not_false";; esac;;
+esac
 case "$opg" in false|False) ;; *) bad="$bad overlap_param_gather_not_false";; esac
 [ -n "$sj" ] && { [ "$(g Account)" != "nemotron_sw_post" ] && bad="$bad account=$(g Account)"; [ "$(g Reservation)" != "(null)" ] && [ -n "$(g Reservation)" ] && bad="$bad reservation=$(g Reservation)"; [ "$(echo "$sj" | grep -c OccupiedIdleGPUsJobReaper)" = 0 ] && bad="$bad no_reaper_exemption"; case "$(g Partition)" in batch|batch_long) ;; *) bad="$bad partition=$(g Partition)";; esac; }
 case "$exp" in *noprefix*) case "$mpc" in false|False) ;; *) bad="$bad minf_prefix_caching=${mpc:-ABSENT}(noprefix arm expects false)";; esac;; *) case "$cfg" in *minf*) case "$mpc" in true|True|"") ;; *) bad="$bad minf_prefix_caching=$mpc(rule 09-24 says true)";; esac;; esac;; esac

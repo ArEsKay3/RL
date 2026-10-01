@@ -1,4 +1,4 @@
-# HSG vLLM-parity arms: loop-share verdict (2026-10-01 15:52 CDT)
+# HSG vLLM-parity arms: loop-share verdict (2026-10-01 16:23 CDT)
 
 Joint loop share = tokens in repetitive reasoning blocks (>= 1,000 tokens, zlib < 10 %) / all generated tokens of the step's 512 trained rollouts. Verdict window = steps 20-30. Test = paired sign-flip permutation on per-step differences (same prompts per step on every arm). Only clean steps are used (0 harness-failed rows; restart duplicates excluded).
 
@@ -125,3 +125,5 @@ Joint loop share = tokens in repetitive reasoning blocks (>= 1,000 tokens, zlib 
 | V-HSG3-noprefix-r2 | 33 | 13.471 | 18.626 | 49 (3/9/37) | 31 | 31 | 0.2695 | 0 | 45992 / 39615 / 84641 | 0.0 | 0.0 | 0.0 | 0.0 | 0.0 | 15.0 |
 | V-HSG3-noprefix-r2 | 34 | 15.184 | 20.476 | 65 (6/19/40) | 36 | 36 | 0.25 | 0 | 44649 / 36199 / 79017 | 0.5 | 0.3 | 0.0 | 0.0 | 0.0 | 13.1 |
 | V-HSG3-noprefix-r2 | 35 | 15.57 | 20.732 | 51 (1/15/35) | 41 | 43 | 0.2598 | 1 | 47365 / 39407 / 82055 | 0.0 | 0.1 | 0.0 | 0.3 | 0.0 | 28.0 |
+| V-HSG3-noprefix-r2 | 36 | 17.539 | 22.684 | 75 (7/42/26) | 42 | 44 | 0.3262 | 0 | 46432 / 36189 / 86446 |  | 1.1 | 0.0 | 0.0 | 0.0 | 25.6 |
+| V-HSG3-noprefix-r2 | 37 | 12.968 | 16.812 | 65 (3/10/52) | 36 | 40 | 0.1465 | 0 | 52439 / 46579 / 89593 |  | 0.7 | 0.0 | 0.1 | 0.3 |  |

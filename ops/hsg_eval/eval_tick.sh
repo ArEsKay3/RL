@@ -6,6 +6,8 @@ MINE=/lustre/fsw/portfolios/llmservice/users/rkirby
 STEPS="${EVAL_STEPS:-5 10 15 20 25 30 35 40 45 50 55 60}"
 squeue -u rkirby -h -o "%i %T" > "$T/.sq.txt" 2>/dev/null
 NSUB=0; MAXSUB="${EVAL_MAX_SUBMIT:-1}"
+[ -e "$T/PAUSE_SUBMIT" ] && { MAXSUB=0; echo "submissions PAUSED ($T/PAUSE_SUBMIT)"; }
+[ -e "$T/PAUSE_RESUME" ] && echo "resumes PAUSED ($T/PAUSE_RESUME)"
 while IFS=$'\t' read -r ARM RUN LABEL; do
   J=$MINE/evaluation/jobs/$ARM; mkdir -p "$J"; [ -s "$J/runs.json" ] || echo '{}' > "$J/runs.json"
   echo "## chain $LABEL  [$ARM]"
@@ -21,7 +23,7 @@ while IFS=$'\t' read -r ARM RUN LABEL; do
       fi
     fi
   done
-  python3 "$T/resume_dead_shards.py" "$J" 2>&1 | grep -E "resumed|FAILED|SUBMIT" | grep -v "resumed: 0" | sed 's/^/  resume: /'
+  [ -e "$T/PAUSE_RESUME" ] || python3 "$T/resume_dead_shards.py" "$J" 2>&1 | grep -E "resumed|FAILED|SUBMIT" | grep -v "resumed: 0" | sed 's/^/  resume: /'
   python3 - "$J" "$T" <<'PY'
 import json, os, subprocess, sys, glob
 J, T = sys.argv[1:3]

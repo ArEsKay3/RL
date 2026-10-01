@@ -49,3 +49,6 @@ code_snapshots*/
 
 # Claude Code review memory (local only)
 .claude/review-memory/
+ops/hsg_eval/PAUSE_*
+ops/hsg_eval/.sq.txt
+ops/hsg_eval/__pycache__/

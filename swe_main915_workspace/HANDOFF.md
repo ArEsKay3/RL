@@ -164,7 +164,7 @@ rlvr line) — copy that pattern rather than editing defaults in place.
 
 ## 9. Data (stays on Lustre)
 
-Runs: `$MINE/runs/nano35-swe-main915-*` (chain U + the three smokes). Persistent cache:
+Runs: `$MINE/runs/nano35-swe-main915-*` (chains U, W, AD, AE, AF, see section 11, plus the smokes). Persistent cache:
 `$MINE/persistent_cache/<EXP_NAME>`. `gym_results/` is the disk hog (~40 GB per 2-step smoke).
 
 ## 10. vLLM numerical-parity arm on this stack (added 2026-09-29)
@@ -242,11 +242,46 @@ prompt_token_ids: `nemo_gym.py` pops them off each output item before the messag
 - Cost: ~21 MB per rollout row (9 MB without), i.e. ~11 GB of rollout jsonl per 512-rollout step
   (prompt ids are the full prefix at every turn, ~2 M ids per 60-turn episode).
 - Run: `nano35-swe-main915-64n-parity-minf-tokids-20260929`, jobs 4104754 -> 4104794 (reservation,
-  8 h segments, started 17:45:56 09-29); run dir under `users/rkirby/runs/`. Label pending from the
-  run manager (proposed chain AE).
+  8 h segments, started 17:45:56 09-29); run dir under `users/rkirby/runs/`. Labelled chain AE; current
+  jobs and resume command in section 11.
 
 **Known limits** (adapter docs + the chain V audit): the audited profile is TP4/EP1/ETP4 with prefix
 caching disabled and one NVLink node; we run it with prefix caching and the Mamba prefix cache like
 chain U, and with repeated train-to-generation refits, neither of which the audit covers. The
 `tl.exp -> fast_exp` change in the shared SSD forward kernels is unconditional (also affects the
 training forward of this arm). Report the two gate bugs upstream if not already done.
+
+## 11. Arm status at the handoff (2026-10-01 08:50 PDT) + HF export
+
+All run dirs are `$MINE/runs/<name>`; rungs every 5 steps under `checkpoints/step_N`, rolling
+checkpoint = the highest `step_N`. `latest_checkpoint_status.json` gives the resume step.
+
+| Arm | Run dir name | State | Jobs (last -> queued) | Resume command (from this workspace root) |
+|---|---|---|---|---|
+| U (MINF, prefix skip fix) | `nano35-swe-main915-64n-minf-20260928` | STOPPED at step_57 since 09-30 09:12; rungs 5..55 exported, `policy/` stripped on exported rungs | 4090292/93/95 (cancelled) | `RUN_DATE=20260928 bash launch_swe_main915.sh` |
+| W (vLLM twin of U) | `nano35-swe-main915-64n-vllm-20260928` | LIVE, step 87 at 08:36 10-01 | 4134102 (reservation, walls 09:35 10-01) -> 4140712 (batch 4 h) | `RUN_DATE=20260928 ENGINE=vllm bash launch_swe_main915.sh` |
+| AD (MINF + vLLM parity adapter) | `nano35-swe-main915-64n-parity-minf-20260929` | STOPPED at step_80 (rung 21:13 09-30, jobs cancelled 21:16); 16 rungs all with `hf/`; `policy/` stripped on 15 of them 10-01 ~07:30 | 4133857 / 4133862 (cancelled) | `RUN_DATE=20260929 bash launch_swe_main915_parity.sh` |
+| AE (AD twin + raw token-id dumps, section 10a) | `nano35-swe-main915-64n-parity-minf-tokids-20260929` | LIVE, step 56 at 08:06 10-01; dumps ~1.8 TiB | 4140482 (batch, walls 09:05 10-01) -> 4143274 (batch 4 h) | `TOKIDS=1 RUN_DATE=20260929 bash launch_swe_main915_parity.sh` |
+| AF (vLLM from scratch, this stack at nemo_rl 8f663913) | `nano35-swe-main915-64n-vllm-20260930` | LIVE, step 40 at 08:43 10-01; token-level repetition from step 7 flagged by the Code Investigations session (its note `swe-chain-af-vllm-looping`) | 4133665 (reservation, walls 09:11 10-01) -> 4140994 (batch 4 h) | `RUN_DATE=20260930 ENGINE=vllm bash launch_swe_main915.sh` |
+
+Every segment restores the dataloader + native TQ data plane from the newest `step_N` and
+regenerates the in-flight groups (section 4); `checkpointing.load_replay_buffer` is inert on this
+single-controller path (section 4), which is why `Restored 0 replay group(s)` is the normal line.
+
+HF export of a rung (used by the SWE-Bench Verified evals of U/W/AD/AE/AF):
+`tools/export_checkpoint_hf_main915.sbatch` (one node, 4 GPUs, 1.5 h, this stack's container and
+trees via the same identity checks as the launcher: Megatron-Bridge 1f8873bb0, Megatron-LM
+descending from 9900d8be5). Submit as an array over the steps with the `hf-export-` job-name prefix
+so it stays outside the training chain's singleton:
+
+    env -u TMPDIR sbatch -J hf-export-<run dir name> --array=5,10,15 tools/export_checkpoint_hf_main915.sbatch
+
+Output lands in `checkpoints/step_N/hf` (62 GB; a complete export has `model.safetensors.index.json`).
+On HSG edit the `#SBATCH --output/--error` paths and `MINE`/`SWE_BASE`, or set `EXPORT_WS`,
+`EXPORT_CONTAINER`, `EXPORT_BASE_HF`, `EXPORT_OUT_ROOT`. Stripping `policy/` after a complete export
+reclaims ~368 GB per rung and leaves the rung unusable for training resume.
+
+Push state at this commit (pushes need rkirby): `nemo_rl` branch `rkirby/swe-main915-latest` has
+every commit after 6a6f38b8 unpushed; `Megatron-LM-parity` branch `mlm-main915-parity` (f28af974d)
+has never been pushed (`git -C Megatron-LM-parity push fork mlm-main915-parity`; the same series is
+carried as `patches/megatron-lm-parity/` here); Megatron-LM, Megatron-Bridge and Gym are pushed.

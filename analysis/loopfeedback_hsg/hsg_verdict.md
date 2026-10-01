@@ -1,4 +1,4 @@
-# HSG vLLM-parity arms: loop-share verdict (2026-10-01 11:51 CDT)
+# HSG vLLM-parity arms: loop-share verdict (2026-10-01 12:22 CDT)
 
 Joint loop share = tokens in repetitive reasoning blocks (>= 1,000 tokens, zlib < 10 %) / all generated tokens of the step's 512 trained rollouts. Verdict window = steps 20-30. Test = paired sign-flip permutation on per-step differences (same prompts per step on every arm). Only clean steps are used (0 harness-failed rows; restart duplicates excluded).
 
@@ -6,7 +6,7 @@ Joint loop share = tokens in repetitive reasoning blocks (>= 1,000 tokens, zlib 
 
 | arm | steps | mean % | vs chain V (CMH vLLM-parity MINF) (mean %) | vs run A (CMH vLLM) (mean %) | vs chain Q'''' (CMH vLLM, prefix caching off) (mean %) | vs chain J (CMH MINF clean) (mean %) | vs chain P'''' (CMH MINF keep-prefix) (mean %) | vs chain G (CMH MINF poisoned) (mean %) |
 |---|---|---|---|---|---|---|---|---|
-| V-HSG-noprefix-r2 (MINF from scratch, vLLM-parity build, MINF prefix cache off, seed 42, round 2 on Lustre) | 20-29 | 0.65 | 0.55: diff +0.10, higher 5/10, p=0.766 | 0.13: diff +0.52, higher 6/10, p=0.031 | 0.68: diff -0.03, higher 4/10, p=0.910 | 0.78: diff -0.13, higher 4/10, p=0.699 | 0.05: diff +0.60, higher 6/10, p=0.031 | 8.82: diff -8.17, higher 0/10, p=0.002 |
+| V-HSG-noprefix-r2 (MINF from scratch, vLLM-parity build, MINF prefix cache off, seed 42, round 2 on Lustre) | 20-29 | 0.65 | 0.55: diff +0.10, higher 5/10, p=0.750 | 0.13: diff +0.52, higher 6/10, p=0.031 | 0.68: diff -0.03, higher 4/10, p=0.918 | 0.78: diff -0.13, higher 4/10, p=0.699 | 0.05: diff +0.60, higher 6/10, p=0.031 | 8.82: diff -8.17, higher 0/10, p=0.002 |
 | V-HSG2-noprefix-r2 (same, seed 1234) | 20-30 | 3.86 | 0.70: diff +3.15, higher 11/11, p=0.001 | 0.17: diff +3.69, higher 11/11, p=0.001 | 0.62: diff +3.24, higher 11/11, p=0.001 | 0.88: diff +2.98, higher 11/11, p=0.001 | 0.05: diff +3.81, higher 11/11, p=0.001 | 9.92: diff -6.06, higher 1/11, p=0.004 |
 | V-HSG3-noprefix-r2 (same, seed 4321) | 20-30 | 3.54 | 0.70: diff +2.84, higher 11/11, p=0.001 | 0.17: diff +3.37, higher 11/11, p=0.001 | 0.62: diff +2.92, higher 10/11, p=0.002 | 0.88: diff +2.66, higher 10/11, p=0.002 | 0.05: diff +3.49, higher 11/11, p=0.001 | 9.92: diff -6.38, higher 0/11, p=0.001 |
 
@@ -42,7 +42,7 @@ Joint loop share = tokens in repetitive reasoning blocks (>= 1,000 tokens, zlib 
 | V-HSG-noprefix-r2 | 26 | 0.0 | 0.0 | 0 (0/0/0) | 4 | 6 | 0.3086 | 0 | 29801 / 25683 / 57594 | 0.0 | 0.0 | 1.2 | 0.6 | 0.0 | 8.4 |
 | V-HSG-noprefix-r2 | 27 | 0.0 | 0.0 | 0 (0/0/0) | 9 | 10 | 0.2695 | 0 | 35950 / 34488 / 62077 | 0.0 | 0.1 | 0.4 | 1.3 | 0.0 | 14.5 |
 | V-HSG-noprefix-r2 | 28 | 0.0 | 0.0 | 0 (0/0/0) | 4 | 7 | 0.209 | 0 | 28132 / 25319 / 49247 | 0.0 | 0.1 | 0.0 | 0.0 | 0.0 | 9.4 |
-| V-HSG-noprefix-r2 | 29 | 0.879 | 2.004 | 2 (1/1/0) | 5 | 7 | 0.3281 | 0 | 28057 / 24005 / 50382 | 0.8 | 0.1 | 0.0 | 0.0 | 0.0 | 12.5 |
+| V-HSG-noprefix-r2 | 29 | 0.894 | 2.007 | 2 (1/1/0) | 5 | 7 | 0.2578 | 0 | 27472 / 23141 / 50382 | 0.8 | 0.1 | 0.0 | 0.0 | 0.0 | 12.5 |
 | V-HSG2-noprefix-r2 | 1 | 0.465 | 1.039 | 4 (0/1/3) | 3 | 3 | 0.3691 | 0 | 26505 / 21666 / 51672 | 2.3 | 3.5 | 4.8 | 1.8 | 1.1 | 0.6 |
 | V-HSG2-noprefix-r2 | 2 | 1.856 | 3.937 | 3 (0/2/1) | 5 | 5 | 0.4883 | 0 | 20811 / 16481 / 39612 | 0.1 | 2.5 | 0.0 | 1.9 | 1.9 | 0.0 |
 | V-HSG2-noprefix-r2 | 3 | 0.779 | 1.527 | 3 (0/2/1) | 2 | 3 | 0.2773 | 0 | 26786 / 23564 / 49604 | 3.1 | 0.0 | 3.4 | 4.0 | 1.5 | 1.9 |

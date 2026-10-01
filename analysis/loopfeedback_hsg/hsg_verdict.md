@@ -1,4 +1,4 @@
-# HSG vLLM-parity arms: loop-share verdict (2026-10-01 18:21 CDT)
+# HSG vLLM-parity arms: loop-share verdict (2026-10-01 18:53 CDT)
 
 Joint loop share = tokens in repetitive reasoning blocks (>= 1,000 tokens, zlib < 10 %) / all generated tokens of the step's 512 trained rollouts. Verdict window = steps 20-30. Test = paired sign-flip permutation on per-step differences (same prompts per step on every arm). Only clean steps are used (0 harness-failed rows; restart duplicates excluded).
 
@@ -94,6 +94,8 @@ Joint loop share = tokens in repetitive reasoning blocks (>= 1,000 tokens, zlib 
 | V-HSG2-noprefix-r2 | 45 | 0.037 | 0.062 | 1 (1/0/0) | 0 | 0 | 0.2148 | 0 | 28247 / 26694 / 49018 |  |  |  | 0.0 | 0.0 |  |
 | V-HSG2-noprefix-r2 | 46 | 0.626 | 1.125 | 4 (0/3/1) | 4 | 6 | 0.2695 | 0 | 22195 / 19228 / 38798 |  |  |  | 0.0 | 0.0 |  |
 | V-HSG2-noprefix-r2 | 47 | 2.561 | 4.298 | 4 (0/0/4) | 5 | 5 | 0.2227 | 0 | 26612 / 21061 / 51300 |  |  |  | 0.4 | 0.0 |  |
+| V-HSG2-noprefix-r2 | 48 | 0.1 | 0.173 | 1 (0/1/0) | 2 | 2 | 0.2656 | 0 | 25419 / 20539 / 50583 |  |  |  | 0.0 | 0.3 |  |
+| V-HSG2-noprefix-r2 | 49 | 1.884 | 3.157 | 6 (2/1/3) | 1 | 1 | 0.2832 | 0 | 24962 / 22086 / 43665 |  |  |  | 0.2 | 0.0 |  |
 | V-HSG3-noprefix-r2 | 1 | 2.773 | 5.853 | 11 (0/3/8) | 6 | 7 | 0.375 | 0 | 26462 / 21839 / 49078 | 2.3 | 3.5 | 4.8 | 1.8 | 1.1 | 0.6 |
 | V-HSG3-noprefix-r2 | 2 | 1.836 | 3.924 | 4 (0/2/2) | 4 | 8 | 0.4844 | 0 | 21418 / 16507 / 40281 | 0.1 | 2.5 | 0.0 | 1.9 | 1.9 | 0.0 |
 | V-HSG3-noprefix-r2 | 3 | 2.138 | 4.126 | 4 (0/1/3) | 2 | 2 | 0.2676 | 0 | 26562 / 23178 / 47945 | 3.1 | 0.0 | 3.4 | 4.0 | 1.5 | 1.9 |
@@ -131,3 +133,5 @@ Joint loop share = tokens in repetitive reasoning blocks (>= 1,000 tokens, zlib 
 | V-HSG3-noprefix-r2 | 35 | 15.57 | 20.732 | 51 (1/15/35) | 41 | 43 | 0.2598 | 1 | 47365 / 39407 / 82055 | 0.0 | 0.1 | 0.0 | 0.3 | 0.0 | 28.0 |
 | V-HSG3-noprefix-r2 | 36 | 17.539 | 22.684 | 75 (7/42/26) | 42 | 44 | 0.3262 | 0 | 46432 / 36189 / 86446 |  | 1.1 | 0.0 | 0.0 | 0.0 | 25.6 |
 | V-HSG3-noprefix-r2 | 37 | 12.968 | 16.812 | 65 (3/10/52) | 36 | 40 | 0.1465 | 0 | 52439 / 46579 / 89593 |  | 0.7 | 0.0 | 0.1 | 0.3 |  |
+| V-HSG3-noprefix-r2 | 38 | 15.934 | 20.664 | 70 (1/15/54) | 44 | 47 | 0.2305 | 0 | 49600 / 41608 / 94597 |  | 0.1 | 0.0 | 0.4 | 0.0 |  |
+| V-HSG3-noprefix-r2 | 39 | 13.964 | 18.427 | 68 (6/13/49) | 38 | 40 | 0.2285 | 0 | 51225 / 44563 / 84171 |  | 0.4 | 0.0 | 0.0 | 0.0 |  |

@@ -1,3 +1,1 @@
-vhsg-np-r2-seed42-swe	nano35-swe-v2-from0-parity-minf-noprefix-hsg-r2-20260930	V-HSG-np-r2 (MINF from scratch, vLLM-parity build, no prefix cache, HSG, seed 42)
-vhsg2-np-r2-seed1234-swe	nano35-swe-v2-from0-parity-minf-noprefix-hsg-r2-seed1234-20260930	V-HSG2-np-r2 (same, seed 1234)
-vhsg3-np-r2-seed4321-swe	nano35-swe-v2-from0-parity-minf-noprefix-hsg-r2-seed4321-20260930	V-HSG3-np-r2 (same, seed 4321)
+chainW-main915-vllm-swe	nano35-swe-main915-64n-vllm-20260930	W (vLLM from scratch, NeMo RL main 09-24 stack, masking off; HF rungs migrated from CMH)

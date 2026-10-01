@@ -9,7 +9,7 @@
 #
 #   sbatch tools/stage_parity_site.sbatch
 #SBATCH --job-name=vparity-stage-hsg
-#SBATCH --output=/home/rkirby/swe_vllm_parity/stage-%j.out
+#SBATCH --output=/lustre/fsw/portfolios/llmservice/users/rkirby/workspaces/swe_vllm_parity/stage-%j.out
 #SBATCH --account=nemotron_sw_post
 #SBATCH --partition=batch
 #SBATCH --qos=short
@@ -19,7 +19,7 @@
 #SBATCH --time=00:30:00
 set -euo pipefail
 
-WS=/home/rkirby/swe_vllm_parity
+WS=/lustre/fsw/portfolios/llmservice/users/rkirby/workspaces/swe_vllm_parity
 C=/lustre/fs1/portfolios/coreai/projects/coreai_dlalgo_ci/nemo_rl_ci/sqsh_files/rl-gym.64248325.sqsh
 
 srun --container-image="$C" --container-mounts="${WS}:${WS}" --no-container-mount-home bash -lc "

@@ -153,7 +153,7 @@ export EXTRA_MOUNTS
 
 cd "${WORKTREE}"
 echo "engine: minf (vLLM parity)  config: ${CONFIG_PATH}  prefix caching: ${MINF_PREFIX_CACHING}"
-echo "nemo_rl: $(git rev-parse --short HEAD) ($(git branch --show-current)) dirty=$(git status --porcelain | wc -l)"
+echo "nemo_rl: $(git rev-parse --short HEAD) ($(git branch --show-current)) dirty=$(git status --porcelain --ignore-submodules=all | wc -l)"
 echo "Megatron-LM mount: $(git -C "${MLM_TREE}" rev-parse --short HEAD) ($(git -C "${MLM_TREE}" branch --show-current)) -> ${MLM_MOUNT_TARGET}"
 echo "parity site: ${PARITY_SITE} via ${MW_SITE_PACKAGES}/zz_parity_paths.pth"
 echo "ptxas: ${PTXAS_PATH}  torch extensions: ${TORCH_EXT_DIR}  moe tables: ${MOE_CONFIG_DIR}"

@@ -35,7 +35,11 @@ for step in steps:
                     queued.append(line.split("queued:")[1].split()[0])
         prev = d[step]["resume_jobs"].get(str(s))
         primary = [str(d[step]["job_ids"][s])] if len(d[step].get("job_ids", [])) == 10 else []
-        if any(j in live for j in primary + log_ids + chain + queued) or (prev and prev["job_id"] in live):
+        known = [j for j in dict.fromkeys(primary + log_ids + chain + queued + ([prev["job_id"]] if prev and prev.get("job_id") else [])) if j]
+        if any(j in live for j in known):
+            rows.append((step, s, "live", "")); continue
+        fresh = subprocess.run(["squeue", "-h", "-j", ",".join(known), "-o", "%i"], capture_output=True, text=True).stdout.split() if known else []
+        if fresh:
             rows.append((step, s, "live", "")); continue
         r = subprocess.run(["sbatch", f"{sd}/nel_eval.sbatch"], capture_output=True, text=True)
         jid = r.stdout.strip().split()[-1] if r.returncode == 0 else ""

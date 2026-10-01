@@ -34,7 +34,8 @@ for step in steps:
                 if "Auto-resume follow-up queued:" in line:
                     queued.append(line.split("queued:")[1].split()[0])
         prev = d[step]["resume_jobs"].get(str(s))
-        if any(j in live for j in log_ids + chain + queued) or (prev and prev["job_id"] in live):
+        primary = [str(d[step]["job_ids"][s])] if len(d[step].get("job_ids", [])) == 10 else []
+        if any(j in live for j in primary + log_ids + chain + queued) or (prev and prev["job_id"] in live):
             rows.append((step, s, "live", "")); continue
         r = subprocess.run(["sbatch", f"{sd}/nel_eval.sbatch"], capture_output=True, text=True)
         jid = r.stdout.strip().split()[-1] if r.returncode == 0 else ""

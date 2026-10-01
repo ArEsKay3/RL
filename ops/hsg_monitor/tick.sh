@@ -69,7 +69,7 @@ arm_letter() {
 }
 
 timeout 120 squeue -u rkirby -h -o "%i|%j|%T|%M|%q|%r|%P|%D|%L" 2>/dev/null | sed -E 's/^([^|]*\|)(hf-export-|nel-eval)/\1AUXJOB:\2/' > "$CACHE/sq_raw.txt"
-grep '|AUXJOB:' "$CACHE/sq_raw.txt" | awk -F'|' '{split($2,a,":"); printf "  aux: %s %s %s %s %s\n",$1,a[2],$3,$4,$6}' | sort -k3 | head -40
+grep '|AUXJOB:' "$CACHE/sq_raw.txt" | awk -F'|' '{split($2,a,":"); n=a[2]; sub(/^hf-export-/,"hf-export:",n); sub(/_[0-9]+$/,"",$1); k=n"|"$3; c[k]++; if(!(k in ids)) ids[k]=$1; else ids[k]=ids[k]","$1} END{for(k in c){split(k,p,"|"); printf "  aux: %-10s x%-3d %s [%s]\n",p[2],c[k],p[1],substr(ids[k],1,80)}}' | sort -k3,3 -k2,2
 echo "arm_jobs=$(grep -vc AUXJOB "$CACHE/sq_raw.txt") running=$(grep -v AUXJOB "$CACHE/sq_raw.txt" | grep -c '|RUNNING|') pending=$(grep -v AUXJOB "$CACHE/sq_raw.txt" | grep -c '|PENDING|') held=$(grep -v AUXJOB "$CACHE/sq_raw.txt" | grep -c JobHeld) aux_export_eval=$(grep -c AUXJOB "$CACHE/sq_raw.txt")"
 grep -v AUXJOB "$CACHE/sq_raw.txt" | awk -F'|' '$3!="RUNNING"{printf "  queued: %s %s %s qos=%s part=%s nodes=%s reason=%s start_in=%s\n",$1,$2,$3,$5,$7,$8,$6,$9}'
 

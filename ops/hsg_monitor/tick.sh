@@ -68,15 +68,16 @@ arm_letter() {
   esac
 }
 
-timeout 120 squeue -u rkirby -h -o "%i|%j|%T|%M|%q|%r|%P|%D|%L" 2>/dev/null > "$CACHE/sq_raw.txt"
-echo "jobs=$(grep -vc nel-eval-harbor "$CACHE/sq_raw.txt") running=$(grep -v nel-eval-harbor "$CACHE/sq_raw.txt" | grep -c '|RUNNING|') pending=$(grep -v nel-eval-harbor "$CACHE/sq_raw.txt" | grep -c '|PENDING|') held=$(grep -v nel-eval-harbor "$CACHE/sq_raw.txt" | grep -c JobHeld) harbor=$(grep -c nel-eval-harbor "$CACHE/sq_raw.txt")"
-grep -v nel-eval-harbor "$CACHE/sq_raw.txt" | awk -F'|' '$3!="RUNNING"{printf "  queued: %s %s %s qos=%s part=%s nodes=%s reason=%s start_in=%s\n",$1,$2,$3,$5,$7,$8,$6,$9}'
+timeout 120 squeue -u rkirby -h -o "%i|%j|%T|%M|%q|%r|%P|%D|%L" 2>/dev/null | sed -E 's/^([^|]*\|)(hf-export-|nel-eval)/\1AUXJOB:\2/' > "$CACHE/sq_raw.txt"
+grep '|AUXJOB:' "$CACHE/sq_raw.txt" | awk -F'|' '{split($2,a,":"); printf "  aux: %s %s %s %s %s\n",$1,a[2],$3,$4,$6}' | sort -k3 | head -40
+echo "arm_jobs=$(grep -vc AUXJOB "$CACHE/sq_raw.txt") running=$(grep -v AUXJOB "$CACHE/sq_raw.txt" | grep -c '|RUNNING|') pending=$(grep -v AUXJOB "$CACHE/sq_raw.txt" | grep -c '|PENDING|') held=$(grep -v AUXJOB "$CACHE/sq_raw.txt" | grep -c JobHeld) aux_export_eval=$(grep -c AUXJOB "$CACHE/sq_raw.txt")"
+grep -v AUXJOB "$CACHE/sq_raw.txt" | awk -F'|' '$3!="RUNNING"{printf "  queued: %s %s %s qos=%s part=%s nodes=%s reason=%s start_in=%s\n",$1,$2,$3,$5,$7,$8,$6,$9}'
 
-grep -v nel-eval-harbor "$CACHE/sq_raw.txt" | cut -d'|' -f1,2 | while IFS='|' read -r jid exp; do
+grep -v AUXJOB "$CACHE/sq_raw.txt" | cut -d'|' -f1,2 | while IFS='|' read -r jid exp; do
   jid=$(echo "$jid" | tr -d ' '); af="$CACHE/audit_${jid}.txt"
   if [ ! -s "$af" ] || ! grep -q 'source: driver_command.sh' "$af" 2>/dev/null; then bash "$CACHE/audit_flags.sh" "$jid" > "$af" 2>&1; echo "--- flag audit (first read or pre-start render) $jid $(arm_letter "$exp")"; cat "$af"; else echo "audit $jid $(arm_letter "$exp"): $(grep VERDICT "$af" | sed 's/^ *//')"; fi
 done
-grep -v nel-eval-harbor "$CACHE/sq_raw.txt" | awk -F'|' '$3=="RUNNING"' | while IFS='|' read -r jid exp st el qos rsn part nn tl; do
+grep -v AUXJOB "$CACHE/sq_raw.txt" | awk -F'|' '$3=="RUNNING"' | while IFS='|' read -r jid exp st el qos rsn part nn tl; do
   jid=$(echo "$jid" | tr -d ' '); el=$(echo "$el" | tr -d ' ')
   echo "=== chain $(arm_letter "$exp")  job $jid  elapsed $el  left $tl  $part/$qos  nodes $nn"
   ld=$(ls -dt "$R/$exp/ray_logs/${jid}-logs" "$R/$exp/ray_logs/${jid}-"[0-9]*"-logs" 2>/dev/null | head -1)

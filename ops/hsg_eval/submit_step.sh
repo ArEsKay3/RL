@@ -25,12 +25,12 @@ if grep -l -F "$CHECKPOINT" "$JOB_DIR"/step_*-eval-submission.log "$OUT_ROOT"/*/
   echo "An existing submission references $CHECKPOINT; refusing duplicate" >&2; exit 1
 fi
 python3 -I "$TEMPLATE/verify_export.py" "$CHECKPOINT"
-"$UV" run --quiet --no-progress --no-project --env-file "$ENV_FILE" -- \
+"$UV" run --quiet --no-progress --no-project --python "$VENV/bin/python" --env-file "$ENV_FILE" -- \
   "$VENV/bin/python" -c 'import boto3; boto3.client("sts", region_name="us-east-2").get_caller_identity(); print("Exact launcher env AWS STS: OK")'
 CFG="$JOB_DIR/${ARM}_step${STEP}_config.yaml"
 python3 "$TEMPLATE/derive_config.py" "$SOURCE_CONFIG" "$CFG" "$CHECKPOINT" "$MODEL_NAME" "$OUT_ROOT" "$MINE/cache" "$ARM" "$HOSTNAME_OVERRIDE"
 diff "$SOURCE_CONFIG" "$CFG" > "$JOB_DIR/step_${STEP}-config.diff" || true
 export NEMO_EVALUATOR_TRUST_PRE_CMD=1 NEMO_EVALUATOR_TRUST_UNLISTED_TASKS=1
 touch "$JOB_DIR/step_${STEP}-eval-attempted"
-"$UV" run --quiet --no-progress --no-project --env-file "$ENV_FILE" -- \
+"$UV" run --quiet --no-progress --no-project --python "$VENV/bin/python" --env-file "$ENV_FILE" -- \
   "$VENV/bin/nel" eval run "$CFG" 2>&1 | tee "$JOB_DIR/step_${STEP}-eval-submission.log"

@@ -8,5 +8,5 @@ ENV_FILE="${ENV_FILE:-/lustre/fsw/portfolios/nemotron/projects/nemotron_n3_post/
 test -d "$RUN_DIR"; test -s "$ENV_FILE"
 [ "$(find "$RUN_DIR" -maxdepth 2 -name .shard_done | wc -l)" -eq 10 ] || { echo "not all 10 shards done"; exit 1; }
 if [ -s "$RUN_DIR/report.md" ]; then echo "report already present: $RUN_DIR/report.md"; cat "$RUN_DIR/report.md"; exit 0; fi
-cd /tmp && "$HOME/.local/bin/uv" run --quiet --no-progress --no-project --env-file "$ENV_FILE" -- "$VENV/bin/nel" eval merge "$RUN_DIR"
+cd /tmp && "$HOME/.local/bin/uv" run --quiet --no-progress --no-project --python "$VENV/bin/python" --env-file "$ENV_FILE" -- "$VENV/bin/nel" eval merge "$RUN_DIR"
 test -s "$RUN_DIR/report.md" && cat "$RUN_DIR/report.md"

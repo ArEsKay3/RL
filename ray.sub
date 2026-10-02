@@ -1003,7 +1003,13 @@ SANDBOX_PORT="${NEMO_SKILLS_SANDBOX_PORT:-6000}"
 
 SANDBOX_BASE_PORT="${SANDBOX_BASE_PORT:-6001}"
 if [[ -n "${SANDBOX_CONTAINER:-}" ]] && [[ -n "${SANDBOX_COMMAND:-}" ]]; then
-  SANDBOX_MOUNTS="$SANDBOX_PORTS_DIR:$SANDBOX_PORTS_DIR"
+  {
+    cat /etc/hosts
+    for _i in "${!nodes_array[@]}"; do
+      echo "${ip_addresses_array[$_i]} ${nodes_array[$_i]}"
+    done
+  } > "$SANDBOX_PORTS_DIR/hosts"
+  SANDBOX_MOUNTS="$SANDBOX_PORTS_DIR:$SANDBOX_PORTS_DIR,$SANDBOX_PORTS_DIR/hosts:/etc/hosts"
   if [[ -n "${SANDBOX_EXTRA_MOUNTS:-}" ]]; then
     SANDBOX_MOUNTS="${SANDBOX_EXTRA_MOUNTS},${SANDBOX_MOUNTS}"
   fi

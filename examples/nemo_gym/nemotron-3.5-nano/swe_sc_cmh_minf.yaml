@@ -5,6 +5,7 @@ defaults: swe_sc_cmh_stream4.yaml
 policy:
   generation:
     backend: "megatron"
+    refit_transport: null
     port_range_low: 11001
     port_range_high: 15000
     mcore_generation_config:

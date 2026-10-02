@@ -11,3 +11,6 @@ VHnC nano35-swe-v2-from0-parity-minf-noprefix-hsg-r2-20260930 V-HSG-noprefix-r2:
 VHnC2 nano35-swe-v2-from0-parity-minf-noprefix-hsg-r2-seed1234-20260930 V-HSG2-noprefix-r2: same, seed 1234
 VHnC3 nano35-swe-v2-from0-parity-minf-noprefix-hsg-r2-seed4321-20260930 V-HSG3-noprefix-r2: same, seed 4321
 WH nano35-swe-main915-64n-vllm-20260930 W-HSG: vLLM from scratch, NeMo RL main 09-24 stack, masking off, HSG
+U06v42 nano35-swe-nrl0906upstream-64n-vllm-hsg-seed42-20261002 NRL0906-vLLM-HSG seed 42: vLLM from scratch, NeMo RL 09-06 upstream stack, HSG
+U06v1234 nano35-swe-nrl0906upstream-64n-vllm-hsg-seed1234-20261002 NRL0906-vLLM-HSG seed 1234: vLLM from scratch, NeMo RL 09-06 upstream stack, HSG
+U06v4321 nano35-swe-nrl0906upstream-64n-vllm-hsg-seed4321-20261002 NRL0906-vLLM-HSG seed 4321: vLLM from scratch, NeMo RL 09-06 upstream stack, HSG

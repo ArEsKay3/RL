@@ -8,7 +8,7 @@ hsg=collections.defaultdict(dict)
 for r in csv.DictReader(open(f"{L}/hsg_loopshare.csv")):
     if int(r["rows"])==512: hsg[r["arm"]][int(r["step"])]=float(r["joint_pct"])
 hf={(r["arm"],r["step"]):r.get("harness_fail",0) for r in json.load(open(f"{L}/hsg_rollout_stats.json")) if r["rows"]==512}
-SER=[("VHnC","V-HSG-noprefix-r2 (parity MINF, seed 42)","#d62728",2.6,hsg),("VHnC2","V-HSG2-noprefix-r2 (seed 1234)","#ff7f0e",2.6,hsg),("VHnC3","V-HSG3-noprefix-r2 (seed 4321)","#9467bd",2.6,hsg),("WH","W-HSG (vLLM, NeMo RL main stack, HSG)","#1a9850",2.6,hsg),
+SER=[("VHnC","V-HSG-noprefix-r2 (parity MINF, seed 42)","#d62728",2.6,hsg),("VHnC2","V-HSG2-noprefix-r2 (seed 1234)","#ff7f0e",2.6,hsg),("VHnC3","V-HSG3-noprefix-r2 (seed 4321)","#9467bd",2.6,hsg),("WH","W-HSG (vLLM, NeMo RL main stack, HSG)","#1a9850",2.6,hsg),("U06v42","NRL0906-vLLM-HSG (vLLM, NeMo RL 09-06 upstream, seed 42)","#08519c",2.6,hsg),("U06v1234","NRL0906-vLLM-HSG seed 1234","#6baed6",2.6,hsg),("U06v4321","NRL0906-vLLM-HSG seed 4321","#c6dbef",2.6,hsg),
      ("V","chain V (CMH parity MINF)","#e377c2",1.3,cmp),("P4","chain P'''' (CMH MINF keep-prefix)","#8c564b",1.3,cmp),("J","chain J (CMH MINF clean)","#2ca02c",1.3,cmp),
      ("G","chain G (CMH MINF poisoned)","#000000",1.3,cmp),("A","run A (CMH vLLM)","#1f77b4",1.3,cmp),("Q4","chain Q'''' (CMH vLLM, no prefix cache)","#17becf",1.3,cmp)]
 fig,ax=plt.subplots(figsize=(13,6.2),dpi=150)

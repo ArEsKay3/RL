@@ -1,0 +1,13 @@
+# Forward-kernel parity plus standalone vLLM sampling and OpenAI response parsing.
+# Requires the companion Megatron-LM ksanthanam/vllm-postprocessing branch.
+defaults: swe_sc_cmh_parity_minf.yaml
+
+policy:
+  generation:
+    mcore_generation_config:
+      parsers: []
+      vllm_postprocessing:
+        enabled: true
+        reasoning_parser: nano_v3
+        tool_parser: qwen3_coder
+        enable_auto_tools: true

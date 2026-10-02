@@ -377,6 +377,11 @@ policy:
         release_after_refit: false
         shard_expert_weights: false
     mcore_generation_config:
+      vllm_postprocessing:
+        enabled: false  # Standalone vLLM 0.25.1 sampling and non-streaming OpenAI response parsing.
+        reasoning_parser: null  # nano_v3, deepseek_r1, nemotron_v3, qwen3, or null.
+        tool_parser: null  # qwen3_coder, qwen3_xml, or null.
+        enable_auto_tools: false  # Required when a tool parser is selected.
       max_model_len: ${policy.max_total_sequence_length}
       cuda_graph_impl: "local"  # CUDA-graph implementation. Options: "none", "local", "transformer_engine", "full_iteration".
       inference_cuda_graph_scope: "block"  # Inference CUDA-graph scope. Options: "none", "layer", "block".

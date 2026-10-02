@@ -264,6 +264,11 @@ policy:
     stop_token_ids: null
     stop_strings: null
     mcore_generation_config:
+      vllm_postprocessing:
+        enabled: false  # Standalone vLLM 0.25.1 sampling and non-streaming OpenAI response parsing.
+        reasoning_parser: null  # nano_v3, deepseek_r1, nemotron_v3, qwen3, or null.
+        tool_parser: null  # qwen3_coder, qwen3_xml, or null.
+        enable_auto_tools: false  # Required when a tool parser is selected.
       buffer_size_gb: 20
       buffer_guaranteed_fraction: 0.1
       num_cuda_graphs: 16

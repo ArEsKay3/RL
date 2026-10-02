@@ -113,11 +113,11 @@ grep -v AUXJOB "$CACHE/sq_raw.txt" | awk -F'|' '$3=="RUNNING"' | while IFS='|' r
     echo "  resume(SC): restoring=$(grep -c 'Restoring dataloader state' "$sc") skip_replay=$(grep -c 'Skipping replay buffer restore' "$sc") regenerated=$(grep -c 'regenerated .* pending prompt' "$sc")"
   fi
   [ -n "$sc" ] && echo "  last train step: $(grep -aoE 'train step [0-9]+/' "$sc" | tail -1)  failures: rollout-dump=$(grep -c '\[rollout-dump\] FAILED' "$sc") token-dump=$(grep -c '\[token-dump\] FAILED' "$sc") died=$(grep -v MasterConfig "$sc" | grep -ciE 'actor.*(died|dead)|RayActorError')"
-  echo "  newest dumps: $(ls -t --time-style=+%H:%M "$R/$exp/dumps/rollouts" -l 2>/dev/null | awk 'NR>1&&NR<4{printf "%s@%s(%s) ", $7,$6,$5}')"
+  echo "  newest dumps: $(timeout 20 ls -t --time-style=+%H:%M "$R/$exp/dumps/rollouts" -l 2>/dev/null | awk 'NR>1&&NR<4{printf "%s@%s(%s) ", $7,$6,$5}')"
   # cross-tick delta: automatic liveness verdict, no manual resampling needed
   now=$(date +%s)
   # grep -c exits 1 on a zero count, so capture plainly and normalise rather than using || echo
-  dbytes=$(du -sb "$R/$exp/dumps/rollouts" 2>/dev/null | cut -f1); dbytes=${dbytes:-0}
+  dbytes=$(timeout 20 du -sb "$R/$exp/dumps/rollouts" 2>/dev/null | cut -f1); dnote=""
   bars=0; [ -f "$drv" ] && bars=$(grep -c 'Collecting rollouts:' "$drv" 2>/dev/null); bars=${bars:-0}
   # replay arms emit no Gym bars, so track driver size and token-dump count as engine-agnostic signals
   dsize=$( [ -f "$drv" ] && stat -c %s "$drv" 2>/dev/null ); dsize=${dsize:-0}
@@ -126,15 +126,16 @@ grep -v AUXJOB "$CACHE/sq_raw.txt" | awk -F'|' '$3=="RUNNING"' | while IFS='|' r
   if [ -s "$stf" ]; then
     read -r p_now p_bytes p_bars p_ck p_dsize p_toks < "$stf"
     p_dsize=${p_dsize:-0}; p_toks=${p_toks:-0}
+    [ -z "$dbytes" ] && { dbytes=$p_bytes; dnote=" (dump stat timed out, bytes carried)"; }
     dt=$(( now - p_now ))
-    echo "  delta over ${dt}s: dump_bytes=+$(( dbytes - p_bytes )) gym_bars=+$(( bars - p_bars )) driver_bytes=+$(( dsize - p_dsize )) token_dumps=+$(( toks - p_toks )) checkpoint=${p_ck}->${ck}"
+    echo "  delta over ${dt}s:${dnote} dump_bytes=+$(( dbytes - p_bytes )) gym_bars=+$(( bars - p_bars )) driver_bytes=+$(( dsize - p_dsize )) token_dumps=+$(( toks - p_toks )) checkpoint=${p_ck}->${ck}"
     if [ "$(( dbytes - p_bytes ))" -eq 0 ] && [ "$(( bars - p_bars ))" -eq 0 ] && [ "$(( dsize - p_dsize ))" -eq 0 ] && [ "$(( toks - p_toks ))" -eq 0 ] && [ "$ck" = "$p_ck" ] && [ "$dt" -ge 1200 ]; then
       echo "  *** NO PROGRESS on any signal for ${dt}s - investigate before any cancel ***"
     fi
   else
     echo "  delta: first observation, no baseline yet"
   fi
-  echo "$now $dbytes $bars $ck $dsize $toks" > "$stf"
+  echo "$now ${dbytes:-0} $bars $ck $dsize $toks" > "$stf"
   echo "  rungs: $(ls -1 "$R/$exp/checkpoints" 2>/dev/null | grep '^step_' | sort -t_ -k2 -n | tr '\n' ' ')"
   case "$exp" in
     *-from0-nvshmem-keepprefix-minf-*)

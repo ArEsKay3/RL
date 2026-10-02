@@ -30,13 +30,6 @@ from megatron.core.inference.config import (
     PrefixCachingCoordinatorPolicy,
 )
 
-try:
-    from megatron.core.inference.config import (
-        AsyncScheduleMode,
-    )
-except ImportError:
-    AsyncScheduleMode = None
-
 # These two are carried by the Megatron-LM fork the MINF arm bind-mounts, not
 # necessarily by whatever megatron-core the container/mount in use ships. A
 # vLLM arm never reaches the MINF generation path, but it still imports this

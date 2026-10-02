@@ -3102,5 +3102,37 @@
 "gen_p90": 75389,
 "gen_max": 167755,
 "total_p50": 98926
+},
+{
+"arm": "U06v42",
+"step": 1,
+"rows": 32,
+"groups": 2,
+"reward": 0.2188,
+"harness_fail": 0,
+"restart_dup_rows": 0,
+"truncated": 0,
+"turns_p50": 41,
+"gen_mean": 10908,
+"gen_p50": 9517,
+"gen_p90": 17362,
+"gen_max": 30072,
+"total_p50": 43887
+},
+{
+"arm": "U06v42",
+"step": 2,
+"rows": 32,
+"groups": 2,
+"reward": 0.9688,
+"harness_fail": 0,
+"restart_dup_rows": 0,
+"truncated": 0,
+"turns_p50": 30,
+"gen_mean": 6239,
+"gen_p50": 6112,
+"gen_p90": 8305,
+"gen_max": 10763,
+"total_p50": 44439
 }
 ]

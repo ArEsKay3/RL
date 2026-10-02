@@ -16,6 +16,7 @@ from typing import Any, Literal, NotRequired, Optional, TypedDict, cast
 
 from nemo_rl.models.generation.interfaces import GenerationConfig
 from nemo_rl.models.policy import PolicyConfig
+from nemo_rl.utils.vllm_postprocessing_config import VllmPostprocessingConfig
 
 
 class MCoreGenerationSpecificArgs(TypedDict):
@@ -28,6 +29,10 @@ class MCoreGenerationSpecificArgs(TypedDict):
 
     expose_http_server: bool
     parsers: list[str]
+    # Calls vendored vLLM 0.25.1 sampling and OpenAI response code. No vLLM
+    # installation is needed. HTTP parsing requires the companion Megatron hook.
+    # Defaults are defined by VllmPostprocessingConfig; disabled by default.
+    vllm_postprocessing: NotRequired[VllmPostprocessingConfig]
 
     buffer_size_gb: int
     block_size_tokens: int

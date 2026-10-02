@@ -224,3 +224,112 @@ To add a new generation backend:
 4. Register your backend with the system (if needed) to make it accessible.
 
 This modular design allows for easy extension with new backends while maintaining a consistent interface for the rest of the system.
+
+### Standalone vLLM post-processing with Megatron
+
+Enable `policy.generation.mcore_generation_config.vllm_postprocessing.enabled`
+to run Megatron forward passes with the vendored vLLM **0.25.1** native sampler
+and OpenAI Chat Completions response formatter. This is independent of
+`inference_vllm_parity`, which selects the forward-pass kernels. Both can be
+enabled together. There is no vLLM installation or dependency-extra change.
+
+For the Nemotron SWE recipe:
+
+```yaml
+policy:
+  megatron_cfg:
+    model_overrides:
+      inference_vllm_parity: true
+  generation:
+    backend: megatron
+    mcore_generation_config:
+      num_speculative_tokens: 0
+      expose_http_server: true
+      parsers: []
+      vllm_postprocessing:
+        enabled: true
+        reasoning_parser: nano_v3
+        tool_parser: qwen3_coder
+        enable_auto_tools: true
+```
+
+`examples/nemo_gym/nemotron-3.5-nano/swe_sc_cmh_parity_postprocessing.yaml`
+inherits the existing forward-parity recipe and enables these options.
+
+The HTTP frontend needs the companion
+[`ArEsKay3/Megatron-LM:ksanthanam/vllm-postprocessing`](https://github.com/ArEsKay3/Megatron-LM/tree/ksanthanam/vllm-postprocessing)
+branch (commit `fbe6d22`, based on `d37db1077`). It adds a picklable response-formatter callback to
+each frontend process. Mount that checkout in the same place as the existing
+forward-parity fork. Startup fails with a named error if the callback is absent
+or legacy `parsers` are still configured. The companion branch also allows the
+adapter's derived inference context through Megatron's CUDA-graph type check.
+Eager sampler-only use does not need the HTTP hook. The forward-parity kernels and their staging requirements
+are unchanged.
+
+`NRL_MINF_LOGPROBS_MODE=raw_logprobs` returns unmodified-model log probabilities;
+`processed_logprobs` returns probabilities after temperature and top-k/top-p.
+Set the same mode in the vLLM comparison arm. The enabled mode supersedes
+`NRL_MINF_SAMPLING_BACKEND` and prints its selection at startup. It removes
+Megatron's vocabulary padding before sampling and computing log probabilities.
+It supports joint top-k/top-p, greedy and mixed batches, gathered prefill rows,
+and materializing either all logits or only last-token logits.
+
+Megatron continues to own scheduling, KV caches, detokenization, chat templates,
+and stop handling. The formatter calls the copied vLLM parsing and response code,
+and preserves NeMo-Gym's token IDs, generation log probabilities and epoch fields.
+The standard response uses vLLM's `reasoning` field. Parser state is created per
+request. The supported parser names are listed in the exemplar configuration.
+
+This mode currently supports **non-streaming `/v1/chat/completions`**, ordinary
+sampling, and sampled-token log probabilities (`top_logprobs: 0`). It rejects
+streaming, speculative decoding, top-N HTTP log probabilities (Megatron's current
+wire format loses their token IDs), per-request seeds, penalties, and constrained
+logit processing instead of silently substituting Megatron behavior. It does not
+add guided decoding for required/named tool choices. Parsed tool choices use the
+same vLLM code on the text the model actually emitted.
+
+The copied native sampler uses Megatron's engine generator through vLLM's seeded
+sampling interface. Same-seed end-to-end token identity across different batching
+and request schedules is not guaranteed. For comparisons, align logits,
+parameters, RNG state, and the native vLLM sampling path. CPU adapter and parser
+tests do not replace a GPU end-to-end parity run.
+
+See [the vendored source manifest and regeneration instructions](../../nemo_rl/_vendor/vllm/README.md)
+for the upstream hashes and the boundary between copied code and compatibility
+code. Run the CPU checks with:
+
+```bash
+uv run --group test python -m pytest --noconftest -q tests/unit/models/generation/test_vllm_postprocessing.py
+```
+
+On a CUDA host, `tests/unit/models/generation/test_vllm_postprocessing_cuda.py`
+checks both filtering dispatch paths at batch sizes 1, 8 and 16 with a 131072-token
+vocabulary. For an inference-only SWE-bench trial, start a Megatron generation
+server with the recipe above and replay recorded conversation histories:
+
+```bash
+uv run --no-sync python tools/vllm_postprocessing/replay_swe.py \
+  --url http://HOST:PORT/v1 --traces /path/to/minimax_traces \
+  --sessions 0 1 32 --output /path/to/results --concurrency 8
+```
+
+The client saves requests, responses, trace hashes and a validation summary. It
+replays early, middle and final turns with recorded and stochastic sampling
+parameters, checking token/logprob lengths, finite sampled log probabilities,
+usage and parsed messages. Later turns retain their recorded history; generated
+commands are not executed. This is an inference smoke test, not a SWE-bench score.
+
+Hardware validation on 2026-10-02 (Slurm job `4176866`, completed with exit code
+0) used four GB300 GPUs, the existing step-18 checkpoint, TP4/EP1/ETP4, forward
+parity, CUDA graphs, and prefix caching. All 36 selected SWE-bench requests passed:
+
+| Logprob mode | Requests | Generated tokens | Prompt length range |
+| --- | ---: | ---: | ---: |
+| raw_logprobs | 18 | 6,389 | 8,477–40,954 |
+| processed_logprobs | 18 | 9,213 | 8,477–40,954 |
+
+Every prompt token count matched its recorded trace. All responses had aligned,
+finite sampled-token log probabilities and parsed reasoning. The traces had no
+API tool schemas; a separate request derived from the same SWE case supplied an
+`execute_bash` schema and passed tool-call JSON, finish-reason and logprob checks.
+The four CUDA sampler tests also passed, including expanded-prefill dispatch.

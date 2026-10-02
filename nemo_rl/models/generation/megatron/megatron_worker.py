@@ -18,7 +18,7 @@ import os
 import threading
 import time
 import warnings
-from typing import AsyncGenerator, Optional
+from typing import TYPE_CHECKING, AsyncGenerator, Optional
 
 import requests
 import torch
@@ -89,6 +89,10 @@ from nemo_rl.models.megatron.memory_saver import (
     resume_inference_weights,
 )
 from nemo_rl.utils.nsys import wrap_with_nvtx_name
+from nemo_rl.utils.vllm_postprocessing_config import VllmPostprocessingConfig
+
+if TYPE_CHECKING:
+    from nemo_rl.utils.vllm_postprocessing import VllmResponseFormatter
 
 # Prefix-affinity routing is the better default whenever there is a prefix cache to
 # route on: on a 16-engine SWE-RL run it moved the prefill skip rate from 59-63% to
@@ -181,6 +185,32 @@ class MegatronGenerationMixin:
         )
         from megatron.core.utils import get_attr_wrapped_model
 
+        postprocessing = VllmPostprocessingConfig.model_validate(
+            mcore_generation_config.get("vllm_postprocessing") or {}
+        )
+        parity_kwargs = {}
+        if postprocessing.enabled:
+            # Keep the vendored sampler and parser imports out of the default path.
+            from nemo_rl.models.generation.megatron.vllm_sampling import (
+                VllmInferenceContext,
+                VllmTextGenerationController,
+            )
+
+            if mcore_generation_config["num_speculative_tokens"]:
+                raise ValueError("vLLM post-processing requires num_speculative_tokens=0")
+            if mcore_generation_config["parsers"]:
+                raise ValueError(
+                    "vLLM post-processing owns response parsing: set mcore_generation_config.parsers=[] "
+                    "and select reasoning_parser/tool_parser under vllm_postprocessing"
+                )
+            DynamicInferenceContext = VllmInferenceContext
+            TextGenerationController = VllmTextGenerationController
+            # Bridge's provider retains the HF vocabulary size; the built model
+            # has the TP-padded size. vLLM samples only the former.
+            parity_kwargs["unpadded_vocab_size"] = self.megatron_cfg.model.vocab_size
+            if mcore_generation_config["expose_http_server"]:
+                self._vllm_response_formatter(postprocessing)
+
         gen_model = self._gen_model()
         pg_collection = get_attr_wrapped_model(gen_model, "pg_collection")
 
@@ -262,8 +292,11 @@ class MegatronGenerationMixin:
             # without a rebuild, so the two kernels can be compared on the same
             # model. Note mcore silently falls back to torch (with a warning) if
             # flashinfer is requested but not installed.
-            sampling_backend=os.environ.get(
-                "NRL_MINF_SAMPLING_BACKEND", "flashinfer"
+            # The vLLM controller replaces this initial sampler before engine
+            # startup. Older Megatron configs only accept torch/flashinfer here.
+            sampling_backend=(
+                "torch" if postprocessing.enabled
+                else os.environ.get("NRL_MINF_SAMPLING_BACKEND", "flashinfer")
             ),
             use_synchronous_zmq_collectives=True,
             materialize_only_last_token_logits=materialize_only_last_token_logits,
@@ -322,7 +355,7 @@ class MegatronGenerationMixin:
             ]
 
         self.inference_context = DynamicInferenceContext(
-            gen_model.config, inference_config
+            gen_model.config, inference_config, **parity_kwargs
         )
         self.inference_wrapped_model = GPTInferenceWrapper(
             gen_model, self.inference_context
@@ -330,6 +363,7 @@ class MegatronGenerationMixin:
         text_generation_controller = TextGenerationController(
             inference_wrapped_model=self.inference_wrapped_model,
             tokenizer=self.megatron_tokenizer,
+            **parity_kwargs,
         )
         self.dynamic_inference_engine = DynamicInferenceEngine(
             text_generation_controller, self.inference_context
@@ -338,6 +372,29 @@ class MegatronGenerationMixin:
         self._inference_engine_initialized = True
         self._inference_engine_asleep = True
         print(f"[Rank {self.rank}] Initialized persistent inference engine")
+        if postprocessing.enabled:
+            print(f"[Rank {self.rank}] Using standalone vLLM 0.25.1 post-processing")
+
+    def _vllm_response_formatter(
+        self, config: VllmPostprocessingConfig
+    ) -> "VllmResponseFormatter":
+        """Validate the companion Megatron hook before frontend processes start."""
+        # Optional response formatting uses vendored parsing code, no vLLM runtime.
+        from megatron.core.inference.text_generation_server.dynamic_text_gen_server.text_generation_server import (
+            start_text_gen_server,
+        )
+        from megatron.core.utils import accepts_parameter
+
+        from nemo_rl.utils.vllm_postprocessing import VllmResponseFormatter
+
+        if not accepts_parameter(start_text_gen_server, "response_formatter"):
+            raise RuntimeError(
+                "vLLM OpenAI parsing requires the companion Megatron-LM "
+                "ksanthanam/vllm-postprocessing branch; see docs/design-docs/generation.md"
+            )
+        formatter = VllmResponseFormatter(self.tokenizer, config)
+        formatter.validate()
+        return formatter
 
     async def _start_inference_coordinator(self):
         """Start the inference coordinator and engine loop."""
@@ -434,6 +491,14 @@ class MegatronGenerationMixin:
         gen_cfg = self.cfg["generation"]["mcore_generation_config"]
         coordinator_policy = _resolve_coordinator_policy(gen_cfg)
 
+        postprocessing = VllmPostprocessingConfig.model_validate(
+            gen_cfg.get("vllm_postprocessing") or {}
+        )
+        formatter_kwargs = (
+            {"response_formatter": self._vllm_response_formatter(postprocessing)}
+            if postprocessing.enabled else {}
+        )
+
         ip = _get_node_ip_local()
         # Seed the port draw per DP rank. The default generator is seeded per run,
         # so every rank produces the same candidate sequence; ranks sharing a node
@@ -465,6 +530,7 @@ class MegatronGenerationMixin:
             # granularity and must match the engine's.
             block_size_tokens=gen_cfg["block_size_tokens"],
             prefix_caching_coordinator_policy=coordinator_policy,
+            **formatter_kwargs,
         )
 
         base_url = f"http://{ip}:{free_port}/v1"

@@ -1,0 +1,1018 @@
+{
+  "version": "0.25.1",
+  "upstream": "https://github.com/vllm-project/vllm/tree/v0.25.1",
+  "files": {
+    "v1/sample/logits_processor/state.py": {
+      "sha256": "a96411f14362c45f839e181dcb3ac01d5b880812bccb3552fc17863b219f44ac",
+      "url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.25.1/vllm/v1/sample/logits_processor/state.py"
+    },
+    "v1/sample/metadata.py": {
+      "sha256": "6582cfe1a240c7ddb975f0ef6dd7dcd28dcf0fc7670394390250013977aa7ffd",
+      "url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.25.1/vllm/v1/sample/metadata.py"
+    },
+    "v1/sample/ops/topk_topp_sampler.py": {
+      "sha256": "35b9a1ffeb1e50b73b0ddd1ffc0f968910ee21cf9cc5455dd879fde547b6ddc1",
+      "url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.25.1/vllm/v1/sample/ops/topk_topp_sampler.py"
+    },
+    "v1/sample/sampler.py": {
+      "sha256": "1a2f18ddc91c89f3744ab5a93624be056bf20b7a8b2e6e13d0236182718a2253",
+      "url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.25.1/vllm/v1/sample/sampler.py"
+    },
+    "v1/sample/ops/topk_topp_triton.py": {
+      "sha256": "58f7bc2ab7ae0c18f79c41672134b574b7aa8c654ecccaa46655a6962375c68e",
+      "url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.25.1/vllm/v1/sample/ops/topk_topp_triton.py"
+    },
+    "logprobs.py": {
+      "sha256": "8aa02890e5f4a5d8b35cff4668bba2993604b206c5e2aae14aedd0f552712bd0",
+      "url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.25.1/vllm/logprobs.py"
+    },
+    "entrypoints/chat_utils.py": {
+      "sha256": "9561cf04c61d3a5910fe24db7db0dbbc88578094e3d0d7692e6abde5ea83ab8e",
+      "url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.25.1/vllm/entrypoints/chat_utils.py"
+    },
+    "entrypoints/openai/engine/protocol.py": {
+      "sha256": "beab4f1a827b40963762a035bf2a955dc095a918c4293c3f1963f58b5e2562fa",
+      "url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.25.1/vllm/entrypoints/openai/engine/protocol.py"
+    },
+    "entrypoints/openai/chat_completion/protocol.py": {
+      "sha256": "ce7d0f91bbbe883c94e9a9257704365e943d0088d6c9fddd67e2fdecf9effbe7",
+      "url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.25.1/vllm/entrypoints/openai/chat_completion/protocol.py"
+    },
+    "tool_parsers/utils.py": {
+      "sha256": "1e43768164c8907b29afd601ae7df09bf23418062a60a3e02da522810e31e10f",
+      "url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.25.1/vllm/tool_parsers/utils.py"
+    },
+    "reasoning/abs_reasoning_parsers.py": {
+      "sha256": "fdf327eb25a035d91c7f64705c43edff20f0d24116d0373a6fbe29295c546623",
+      "url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.25.1/vllm/reasoning/abs_reasoning_parsers.py"
+    },
+    "reasoning/basic_parsers.py": {
+      "sha256": "2270653840ec1c7a82a60989938ea46c36ecb9d476d20e781a9212dd9cae2cc6",
+      "url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.25.1/vllm/reasoning/basic_parsers.py"
+    },
+    "reasoning/deepseek_r1_reasoning_parser.py": {
+      "sha256": "164fb1b442e89dcde07531690c1aafa510b5f34d018c235388c4913e2e6fd57b",
+      "url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.25.1/vllm/reasoning/deepseek_r1_reasoning_parser.py"
+    },
+    "tool_parsers/abstract_tool_parser.py": {
+      "sha256": "eb209e6e7210d8516d973080eab3915b2a3988eea71fd4d013e02a063cae21c8",
+      "url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.25.1/vllm/tool_parsers/abstract_tool_parser.py"
+    },
+    "parser/utils.py": {
+      "sha256": "1d428ea72905c649741b87b7ceeececd6cd061a7a453421546259a056b868b70",
+      "url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.25.1/vllm/parser/utils.py"
+    },
+    "parser/abstract_parser.py": {
+      "sha256": "fd4eb7a64ea97f59cfaec2b08c359fb460daa06e4ac5b42906b6877b34360859",
+      "url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.25.1/vllm/parser/abstract_parser.py"
+    },
+    "parser/engine/events.py": {
+      "sha256": "493543e5832b721c67640c09a6ad664823423a98afe0bb53ba78518608047f0a",
+      "url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.25.1/vllm/parser/engine/events.py"
+    },
+    "parser/engine/parser_engine_config.py": {
+      "sha256": "0854bd50b239b3b5286f56e9254851f224822bf0e942c99f1fe3dabf3c2035a7",
+      "url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.25.1/vllm/parser/engine/parser_engine_config.py"
+    },
+    "parser/engine/incremental_lexer.py": {
+      "sha256": "c58797ba16d60a6a4db365dc678b38b756df83eea566c6e34dac2785f55c4cce",
+      "url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.25.1/vllm/parser/engine/incremental_lexer.py"
+    },
+    "parser/engine/token_id_scanner.py": {
+      "sha256": "c9db6d6a29865d65ba1adc523015488aad4d7dbef46b7539041e9efbe81bd034",
+      "url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.25.1/vllm/parser/engine/token_id_scanner.py"
+    },
+    "parser/engine/streaming_parser_engine.py": {
+      "sha256": "4ac9135e12f286d32f5d8725630b49a54b68d902815ad598923f7130d0899e0b",
+      "url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.25.1/vllm/parser/engine/streaming_parser_engine.py"
+    },
+    "parser/engine/parser_engine.py": {
+      "sha256": "886bf6293b6b4cd082882e883c4c3d1ff16597500ed741f871a4ae67826db178",
+      "url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.25.1/vllm/parser/engine/parser_engine.py"
+    },
+    "parser/qwen3.py": {
+      "sha256": "8c1e6ca9c6e2269a252cde2430bc49827a358cfd2707cdd4351f865838931858",
+      "url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.25.1/vllm/parser/qwen3.py"
+    },
+    "parser/nemotron_v3.py": {
+      "sha256": "9d77b45debb4fb820cc448dfbeeccb53b384f8124b0ef6627ddba9777dcfa6df",
+      "url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.25.1/vllm/parser/nemotron_v3.py"
+    },
+    "parser/engine/adapters.py": {
+      "sha256": "dc1c1317dbfb298e54b8d94ca0e66d2b0cb1e481c35cdcc60a815284bd8a6ef7",
+      "url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.25.1/vllm/parser/engine/adapters.py"
+    },
+    "outputs.py": {
+      "sha256": "991c0960770a619066ccbf469cc08ce1e9523e7fe19e3a116c4cd13c1e1750a0",
+      "url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.25.1/vllm/outputs.py"
+    },
+    "entrypoints/generate/base/serving.py": {
+      "sha256": "89f2315780eb70a8df89cc01917faf364c7bbdd885ba6a998856ae6337b2cbcf",
+      "url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.25.1/vllm/entrypoints/generate/base/serving.py"
+    },
+    "entrypoints/serve/utils/tool_calls_utils.py": {
+      "sha256": "8439c3798fefaecd689f499b48ed4e151fff104b4c92c992ce4455ded25cb186",
+      "url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.25.1/vllm/entrypoints/serve/utils/tool_calls_utils.py"
+    },
+    "entrypoints/openai/chat_completion/serving.py": {
+      "sha256": "6239fae503211193942d0e2037f7b0edcf71ed70271604701283bfc0453d202b",
+      "url": "https://raw.githubusercontent.com/vllm-project/vllm/v0.25.1/vllm/entrypoints/openai/chat_completion/serving.py"
+    }
+  },
+  "generated": {
+    "sampling.py": {
+      "sha256": "7a4c5a3feee4c9935d1a751c3bf792ad50203573d51cb0cde10ff6540b8b5aad",
+      "fragments": [
+        {
+          "source": "v1/sample/logits_processor/state.py",
+          "start": 148,
+          "end": 165,
+          "sha256": "4264c9c56e4dbcdb62b5056e5ff844ce1bb16296caa5af2ada9243bc514fb0b9"
+        },
+        {
+          "source": "v1/sample/metadata.py",
+          "start": 14,
+          "end": 55,
+          "sha256": "4d22e4d3555f3f903ff10527ba73630bfcc37fe096d4973e529f388c3516164a"
+        },
+        {
+          "source": "v1/sample/ops/topk_topp_sampler.py",
+          "start": 123,
+          "end": 145,
+          "sha256": "b613c466eb110d8209b02aa4982c34a200c9e11094ba04cdaad75361c539f9c2"
+        },
+        {
+          "source": "v1/sample/ops/topk_topp_sampler.py",
+          "start": 345,
+          "end": 360,
+          "sha256": "60c8be4d014fc3d040f9a4d4418226e6d8c6749be6252491845b36e6173e249c"
+        },
+        {
+          "source": "v1/sample/ops/topk_topp_sampler.py",
+          "start": 363,
+          "end": 404,
+          "sha256": "d6bcc4924866e6b9b049a7a908d77a07d396fa38d1bdb5334fc98ac55067365e"
+        },
+        {
+          "source": "v1/sample/ops/topk_topp_sampler.py",
+          "start": 407,
+          "end": 427,
+          "sha256": "e13faa4d396c7384e3ca924cfac996334f89e9cb41f82d69dc2ffd6e50c18dc3"
+        },
+        {
+          "source": "v1/sample/ops/topk_topp_sampler.py",
+          "start": 430,
+          "end": 434,
+          "sha256": "21b9786131a52891a3a3815f9ab1a9f2404263be7af9c6126dd79a970f6395fb"
+        },
+        {
+          "source": "v1/sample/ops/topk_topp_sampler.py",
+          "start": 437,
+          "end": 443,
+          "sha256": "53a46c5e52ef512041be8cbaf0d865f1c3b5bd3729417f855d3c1cdc63df9914"
+        },
+        {
+          "source": "v1/sample/ops/topk_topp_sampler.py",
+          "start": 446,
+          "end": 468,
+          "sha256": "a4883663c20ffd12f57bc4dc87b47deafc8c6760dc434c17d0d3218e0096c559"
+        },
+        {
+          "source": "v1/sample/sampler.py",
+          "start": 17,
+          "end": 17,
+          "sha256": "5ed6d570582bf02031f61de1a73c19bdc8f579aa4c8cb61f66e23d2d4749f2b2"
+        },
+        {
+          "source": "v1/sample/sampler.py",
+          "start": 227,
+          "end": 237,
+          "sha256": "af7dc4abe8390de38d7c169820c701e8285f8e051bc0d970a0c1a37ec16c9258"
+        },
+        {
+          "source": "v1/sample/sampler.py",
+          "start": 239,
+          "end": 241,
+          "sha256": "4144b7144598181545db9d1b4b8cc662d0a3d780ddb16b57876fb6e9727c35a6"
+        },
+        {
+          "source": "v1/sample/sampler.py",
+          "start": 243,
+          "end": 302,
+          "sha256": "34cbd3ac6a6b3757f9c3d163077b09ee90411871423ee7e5da35430a37a06a19"
+        },
+        {
+          "source": "v1/sample/sampler.py",
+          "start": 304,
+          "end": 306,
+          "sha256": "f1ef98f331367a1968ba9f11b928860a53963edd868c3209f07695fe61fb92a8"
+        }
+      ]
+    },
+    "topk_topp_triton.py": {
+      "sha256": "4bba1a0850881550a93954ec1002dad1be4c78f67ed4b98bf986194012c7a5ae",
+      "import_rewrites_only": true
+    },
+    "protocol.py": {
+      "sha256": "5928c1bab4320f445a30f2698cfbf09a78cbb5aecd26918fccafa2ff39ed5703",
+      "fragments": [
+        {
+          "source": "logprobs.py",
+          "start": 12,
+          "end": 24,
+          "sha256": "a7c3b0a647edbebc9f11d41d19238cc35425418c6ae30646d6f525110f4d63f2"
+        },
+        {
+          "source": "entrypoints/chat_utils.py",
+          "start": 1964,
+          "end": 1969,
+          "sha256": "4f6dae3d3902e07828a57b1aba7667259c425128f8171c094bd66a4e327d40ed"
+        },
+        {
+          "source": "entrypoints/openai/engine/protocol.py",
+          "start": 25,
+          "end": 25,
+          "sha256": "4821a575dba723c303c8d4c67ce9c8670a4ddeaf7086a2470a36d28c799effd0"
+        },
+        {
+          "source": "entrypoints/openai/engine/protocol.py",
+          "start": 28,
+          "end": 57,
+          "sha256": "81d0718d5c16a84a083af909717de31bcebcddb185f91088650f2d411f4843df"
+        },
+        {
+          "source": "entrypoints/openai/engine/protocol.py",
+          "start": 60,
+          "end": 64,
+          "sha256": "1adb0e1768eb3b5dcdd6e2b7db811cf0e9c0cef85bc3570be84c793540106a94"
+        },
+        {
+          "source": "entrypoints/openai/engine/protocol.py",
+          "start": 67,
+          "end": 68,
+          "sha256": "f1f4d6edb0702588e90da81ae1fb7a0f2fed66359bd7814f5599e2b0c97db189"
+        },
+        {
+          "source": "entrypoints/openai/engine/protocol.py",
+          "start": 102,
+          "end": 108,
+          "sha256": "5b8ba735a0b570e0653d19975539eebe3268c2735328e5d48637c371df22bb1b"
+        },
+        {
+          "source": "entrypoints/openai/engine/protocol.py",
+          "start": 111,
+          "end": 115,
+          "sha256": "9b67622bf6cdc5da42660bafe2442936f036b4b320144ad10d5c95187a21b2d1"
+        },
+        {
+          "source": "entrypoints/openai/engine/protocol.py",
+          "start": 118,
+          "end": 123,
+          "sha256": "94415b2493ad49ab6c05fe6ef9ae1900786066ccdc21fef3650e1908d582da65"
+        },
+        {
+          "source": "entrypoints/openai/engine/protocol.py",
+          "start": 126,
+          "end": 128,
+          "sha256": "09f6b081aa068b25900133fefdd5cd79371f7848f9b998da761f4ee4fcaa133a"
+        },
+        {
+          "source": "entrypoints/openai/engine/protocol.py",
+          "start": 249,
+          "end": 251,
+          "sha256": "98968632d5f2ec116332d1595c5aca792ca3c9f01a0c09d8dcb4edc93f919345"
+        },
+        {
+          "source": "entrypoints/openai/engine/protocol.py",
+          "start": 254,
+          "end": 268,
+          "sha256": "713eb8655e4b8640395ff178ffdc36339e3be7b98dcc57d2b390d8542b21d496"
+        },
+        {
+          "source": "entrypoints/openai/engine/protocol.py",
+          "start": 318,
+          "end": 324,
+          "sha256": "a10b1c5bfaa8636432660400d18ce5499430df9498e4c9a6787c67677d19c032"
+        },
+        {
+          "source": "entrypoints/openai/engine/protocol.py",
+          "start": 327,
+          "end": 330,
+          "sha256": "ba771835992dc850f29d7a4ca5aa3be39ff55de224cfd2a85da1de8b4aa2952d"
+        },
+        {
+          "source": "entrypoints/openai/engine/protocol.py",
+          "start": 333,
+          "end": 335,
+          "sha256": "66308bc44084d2a69c4a5a7dc1b81e5b7e6f057577ff9b38d8179cb2d9e2145f"
+        },
+        {
+          "source": "entrypoints/openai/engine/protocol.py",
+          "start": 339,
+          "end": 343,
+          "sha256": "3f4f722ae1fd741fd4e97409db305e52d744febdedeeb8b1bd1f35900e7b1387"
+        },
+        {
+          "source": "entrypoints/openai/engine/protocol.py",
+          "start": 346,
+          "end": 355,
+          "sha256": "271ca266534d2cbf31e2219e1eec8d9c12dcae6f871ae2ee1346d80822596199"
+        },
+        {
+          "source": "entrypoints/openai/engine/protocol.py",
+          "start": 358,
+          "end": 369,
+          "sha256": "c73e1ca313d8b07bb0d22f4b7d2208ee6bc147266066a5659ab58d4fc97649ec"
+        },
+        {
+          "source": "entrypoints/openai/engine/protocol.py",
+          "start": 372,
+          "end": 377,
+          "sha256": "3b2b11650cbcab67028578c727b458ff12e0f61112a8d2e62302818dc5b89d78"
+        },
+        {
+          "source": "entrypoints/openai/chat_completion/protocol.py",
+          "start": 58,
+          "end": 75,
+          "sha256": "f248cd4b2207d818fe94f9c590a6a7ce2da24e3f1ffd7c330006287d53162bed"
+        },
+        {
+          "source": "entrypoints/openai/chat_completion/protocol.py",
+          "start": 78,
+          "end": 81,
+          "sha256": "611e3bc29d8290e791d6cc3b5bcc6396e450b7082c07735d0567287215db9d4f"
+        },
+        {
+          "source": "entrypoints/openai/chat_completion/protocol.py",
+          "start": 84,
+          "end": 88,
+          "sha256": "90669a2a805e5ea4a35d14643522005c84e9219fb0d6444349c6aca3b1c4c5e9"
+        },
+        {
+          "source": "entrypoints/openai/chat_completion/protocol.py",
+          "start": 91,
+          "end": 92,
+          "sha256": "3ca7a0cefa2977b4b294f2b107c1bb24e02ffb77baa660187ce4ff93b0b8092e"
+        },
+        {
+          "source": "entrypoints/openai/chat_completion/protocol.py",
+          "start": 95,
+          "end": 115,
+          "sha256": "2a14fbc16120e1cff5420a6a6c758ab531bb41394936180dc0ba02f33b0a72a9"
+        },
+        {
+          "source": "entrypoints/openai/chat_completion/protocol.py",
+          "start": 118,
+          "end": 137,
+          "sha256": "0fdf5d3d76a5b03e8036e85aab8a824220ddfdc407e551b51b74fde1d5bcf6a9"
+        },
+        {
+          "source": "entrypoints/openai/chat_completion/protocol.py",
+          "start": 140,
+          "end": 147,
+          "sha256": "5b3e5b9cfb17c87291546523bf19bfba406fb96a5846f9c100840077e11e9d15"
+        },
+        {
+          "source": "entrypoints/openai/chat_completion/protocol.py",
+          "start": 168,
+          "end": 184,
+          "sha256": "a3ca0b92cade65e6761da20ed826150b244199b6d020c8025986320ea9ad044a"
+        },
+        {
+          "source": "entrypoints/openai/chat_completion/protocol.py",
+          "start": 187,
+          "end": 188,
+          "sha256": "e6993fcfbb0ae8b6fdc8be23aaf9e8d092f1565e56d9cb35d9367a699fb236b4"
+        },
+        {
+          "source": "entrypoints/openai/chat_completion/protocol.py",
+          "start": 191,
+          "end": 193,
+          "sha256": "c63986479800dda0aeb6b5db94cede0048aed074e08c32cdd0894c71b0db4358"
+        },
+        {
+          "source": "entrypoints/openai/chat_completion/protocol.py",
+          "start": 199,
+          "end": 199,
+          "sha256": "00a5bea49074a99e0695fcf606053f822115fbf3dfcadece6cb684596bb590ae"
+        },
+        {
+          "source": "entrypoints/openai/chat_completion/protocol.py",
+          "start": 200,
+          "end": 200,
+          "sha256": "96764a01a42d8967993bcff8129b8ee072f8a88c3e7c6f60ed2755dcad747554"
+        },
+        {
+          "source": "entrypoints/openai/chat_completion/protocol.py",
+          "start": 203,
+          "end": 203,
+          "sha256": "89c72b06b3f3fe4ef4465383dadca034d27e1d312df5c866e87e493daa31f59b"
+        },
+        {
+          "source": "entrypoints/openai/chat_completion/protocol.py",
+          "start": 204,
+          "end": 204,
+          "sha256": "22ed3f971f88986e4c98a0d2482919b39bcf895e03da37823119889aa8ad324b"
+        },
+        {
+          "source": "entrypoints/openai/chat_completion/protocol.py",
+          "start": 211,
+          "end": 211,
+          "sha256": "74daf5a40903d6c8bf8e8caa9b4f31372817a413570de05054f391ec7e0569a9"
+        },
+        {
+          "source": "entrypoints/openai/chat_completion/protocol.py",
+          "start": 216,
+          "end": 216,
+          "sha256": "dfb55977265798f5b60c9525fd024d37e391be4f5bd57e8609d3dbf14ddc18ea"
+        },
+        {
+          "source": "entrypoints/openai/chat_completion/protocol.py",
+          "start": 217,
+          "end": 217,
+          "sha256": "c0756463df773a18f934003e4035d01f714c887abbc3e8e3f2ec849e96f5c1a4"
+        },
+        {
+          "source": "entrypoints/openai/chat_completion/protocol.py",
+          "start": 220,
+          "end": 220,
+          "sha256": "c5bb1c508682e084ee8ba091d065186e94a4e71fb464ad844ae593ed6a04194a"
+        },
+        {
+          "source": "entrypoints/openai/chat_completion/protocol.py",
+          "start": 221,
+          "end": 227,
+          "sha256": "20f8e78ed2b534ca15bae3d0954c1ee8d6089acd89cd4004415fe8b503ac08c2"
+        },
+        {
+          "source": "entrypoints/openai/chat_completion/protocol.py",
+          "start": 242,
+          "end": 242,
+          "sha256": "64ffb0094e6812157b43f310df351b46ef167ee0bdc680c4371dea6120a0d037"
+        },
+        {
+          "source": "entrypoints/openai/chat_completion/protocol.py",
+          "start": 243,
+          "end": 243,
+          "sha256": "2067715a00e721be6f89ee2733734f32235271be7c9bd3e38284e9b64c25ac04"
+        },
+        {
+          "source": "entrypoints/openai/chat_completion/protocol.py",
+          "start": 275,
+          "end": 281,
+          "sha256": "c542397cdfc44dedc3e2903717264d51c19c39b4ec69cc9f337a1d0cc68df73a"
+        },
+        {
+          "source": "entrypoints/openai/chat_completion/protocol.py",
+          "start": 282,
+          "end": 289,
+          "sha256": "b2408469b27cd4e909f17aa77366ba7458472c697216ea67c7b118f39008ebd4"
+        },
+        {
+          "source": "entrypoints/openai/chat_completion/protocol.py",
+          "start": 290,
+          "end": 299,
+          "sha256": "d9f0f6745190141354c0b008afa9e9f97831e984e1a8d0e0d8ca90361fc233a2"
+        },
+        {
+          "source": "entrypoints/openai/chat_completion/protocol.py",
+          "start": 329,
+          "end": 335,
+          "sha256": "a623b44ad8f6149b8fc136d76f9b39de0867d73ce60017b81ad1969e51a787c5"
+        },
+        {
+          "source": "entrypoints/openai/chat_completion/protocol.py",
+          "start": 370,
+          "end": 377,
+          "sha256": "0d854abcfc2e817f8275d65e0d4b9a18ae1a84b0f6316e14e43ee785411c3d9c"
+        },
+        {
+          "source": "entrypoints/openai/chat_completion/protocol.py",
+          "start": 378,
+          "end": 387,
+          "sha256": "de79f3af6e4a9a9204a4037624d1f73eba91c7726ba3f7eb40d757addaeae495"
+        },
+        {
+          "source": "entrypoints/openai/chat_completion/protocol.py",
+          "start": 403,
+          "end": 411,
+          "sha256": "c8ceb668848ee98456a24cffb19e697daa35e6cca7b9c600d3b251ecf7d12152"
+        },
+        {
+          "source": "entrypoints/openai/chat_completion/protocol.py",
+          "start": 743,
+          "end": 773,
+          "sha256": "62822f35b075a769b3adb3ae75078838a2a44a96a731d565a3145024b744c2ec"
+        },
+        {
+          "source": "entrypoints/openai/chat_completion/protocol.py",
+          "start": 816,
+          "end": 899,
+          "sha256": "8c98f87d9f614c73a6ba58d686b30b146b09a81e07dc06e1db27c9fcbeadf367"
+        },
+        {
+          "source": "entrypoints/openai/chat_completion/protocol.py",
+          "start": 901,
+          "end": 909,
+          "sha256": "a4bd7635cdc110f7387e3e752d8d859c14a6c087aeb829b4765027d7b5584df7"
+        }
+      ]
+    },
+    "parsers.py": {
+      "sha256": "ec20ab6c10a21b72b75afaf9695723faa8a013ca8ac5e4fcfc0a3a21a46d5b06",
+      "fragments": [
+        {
+          "source": "tool_parsers/utils.py",
+          "start": 33,
+          "end": 33,
+          "sha256": "ae53746991247b701aeccee22cdb9a9c9ee2fc11e65c6fbedee90e818f9fff20"
+        },
+        {
+          "source": "tool_parsers/utils.py",
+          "start": 38,
+          "end": 41,
+          "sha256": "22195911eec8a4877ad1482b56f8fed652477e7f85fa6133c4e7d6d3289dddb2"
+        },
+        {
+          "source": "tool_parsers/utils.py",
+          "start": 151,
+          "end": 162,
+          "sha256": "c5d8916e4cf339f176da738a98aa466e548e9b3391e41056d0ebb07085bcd9d2"
+        },
+        {
+          "source": "tool_parsers/utils.py",
+          "start": 171,
+          "end": 171,
+          "sha256": "c61198e6a8f49770057e26aa222206b2815b47049eee5c581cf9f69ebfc6fb75"
+        },
+        {
+          "source": "tool_parsers/utils.py",
+          "start": 174,
+          "end": 177,
+          "sha256": "d17f67c6e452a3d2be3f0302dea4b5e1b7b4e4b6d9bdd7c959fffe7072ba7839"
+        },
+        {
+          "source": "tool_parsers/utils.py",
+          "start": 180,
+          "end": 181,
+          "sha256": "ec635e50f86d3353db035a78c6dea9917369b6e6e91e5f585fc2c21340162d55"
+        },
+        {
+          "source": "tool_parsers/utils.py",
+          "start": 184,
+          "end": 200,
+          "sha256": "053c3165c9b772e34a43661c1968d502dd914c0e1e2866cb53bedf77440a0871"
+        },
+        {
+          "source": "tool_parsers/utils.py",
+          "start": 256,
+          "end": 257,
+          "sha256": "403a3dc1e1b27c49d3ce01af7d2f41dce80caa27dc7201a2cbedc8dd9385a1c9"
+        },
+        {
+          "source": "tool_parsers/utils.py",
+          "start": 260,
+          "end": 268,
+          "sha256": "bb536eaebab5198b98bad8d659c7b43274c8fe786eda8513bd0d97b75684b4d1"
+        },
+        {
+          "source": "tool_parsers/utils.py",
+          "start": 271,
+          "end": 289,
+          "sha256": "cdb30dd1f6b5cbac43623cc44f9282320312f1b02b30d2c53e73c3f727f08e6f"
+        },
+        {
+          "source": "tool_parsers/utils.py",
+          "start": 292,
+          "end": 310,
+          "sha256": "c1ef148ab4422239c7a9a28b58096067c87878d9eb1dc3cbe1b9583d58934f7e"
+        },
+        {
+          "source": "tool_parsers/utils.py",
+          "start": 620,
+          "end": 663,
+          "sha256": "280ad5d3a9c2f188a31df6400c3d449e4b2d6444fac20a1718f14b2e0503d8d1"
+        },
+        {
+          "source": "tool_parsers/utils.py",
+          "start": 666,
+          "end": 690,
+          "sha256": "43771f68b3f4f8143631a7436d7549a0aac115468cd5d99ec928b8b6659c97b1"
+        },
+        {
+          "source": "tool_parsers/utils.py",
+          "start": 693,
+          "end": 777,
+          "sha256": "d90506303d911bc129405257f6aefab9ed6a7aaaca94495cd614861f8c887050"
+        },
+        {
+          "source": "reasoning/abs_reasoning_parsers.py",
+          "start": 26,
+          "end": 210,
+          "sha256": "1daa45698a060106e6f338bdcdf3a5dfbaf3c590f2df00548e37802b3595e8d9"
+        },
+        {
+          "source": "reasoning/basic_parsers.py",
+          "start": 18,
+          "end": 201,
+          "sha256": "91c188f05c6fe4d664fb70e57ff6801c311e9ba498ef6c21d821b5f24f6cea76"
+        },
+        {
+          "source": "reasoning/deepseek_r1_reasoning_parser.py",
+          "start": 10,
+          "end": 67,
+          "sha256": "7f969e637bfbec68b8674dc653e21ec988a279e028cf57d759ed728ff62c57d1"
+        },
+        {
+          "source": "tool_parsers/abstract_tool_parser.py",
+          "start": 43,
+          "end": 220,
+          "sha256": "5707b37cb725f0ef832c7a96127b071c870ed8a84531e494ba65e68cadf84e4d"
+        },
+        {
+          "source": "parser/utils.py",
+          "start": 16,
+          "end": 23,
+          "sha256": "1a10b1b58677cafaa3e8f8fd02c5f9e3792083ddf8187db3e11a1087324caa64"
+        },
+        {
+          "source": "parser/utils.py",
+          "start": 26,
+          "end": 33,
+          "sha256": "5ea4c1321cb2691c4d51c9390a0effd27ee71b5eb2bfd68c5617bc758938ac29"
+        },
+        {
+          "source": "parser/utils.py",
+          "start": 36,
+          "end": 52,
+          "sha256": "e5b8c2981d695a9ba0f4463bb5c22af0b3cae026264e6d671cc8e7803eadcd50"
+        },
+        {
+          "source": "parser/utils.py",
+          "start": 55,
+          "end": 65,
+          "sha256": "357ff5b216750a0a6e4dc82be4680ba1e570097ed2ffb6bac06d64524740d338"
+        },
+        {
+          "source": "parser/abstract_parser.py",
+          "start": 44,
+          "end": 83,
+          "sha256": "08c386df56904be0cb088c5c0f4b1816f852a2889ffd01974b09606599754514"
+        },
+        {
+          "source": "parser/abstract_parser.py",
+          "start": 86,
+          "end": 368,
+          "sha256": "8d7335a6e3d85e91ded7a286f76a249709d5222aa0822ee5807473b2f3ca7e13"
+        },
+        {
+          "source": "parser/abstract_parser.py",
+          "start": 371,
+          "end": 958,
+          "sha256": "81927c07939f691e80fba1eeb3f42bd18008c3883e381e783e1a1b63dc930882"
+        },
+        {
+          "source": "parser/engine/events.py",
+          "start": 11,
+          "end": 19,
+          "sha256": "ddd68a2a4f39589c4e97aceeaeed00e3985685ca34d54f064b1f0773d975cfab"
+        },
+        {
+          "source": "parser/engine/events.py",
+          "start": 22,
+          "end": 26,
+          "sha256": "316399a12ac74ff9388dec61ce1625d3ca793b6ca93b75654f6588eb28d3473e"
+        },
+        {
+          "source": "parser/engine/parser_engine_config.py",
+          "start": 28,
+          "end": 34,
+          "sha256": "7bc291b1de9962587e788d3f59ba0376a03d0a43795d33dcde8888c743978e9d"
+        },
+        {
+          "source": "parser/engine/parser_engine_config.py",
+          "start": 37,
+          "end": 41,
+          "sha256": "6b86b3aad73a2f4993cbcbd883908c331a758029d0341d6e5252f00bc0b8599f"
+        },
+        {
+          "source": "parser/engine/parser_engine_config.py",
+          "start": 44,
+          "end": 108,
+          "sha256": "8380469f977b6b3676055f9a1d5befa8a59dc334fca80c1e8226c679aed2e60e"
+        },
+        {
+          "source": "parser/engine/incremental_lexer.py",
+          "start": 12,
+          "end": 12,
+          "sha256": "a66ebdd62ad683a3d7ac929c0e59061cc76968c16e0bccb3a54b09d0a1068fe2"
+        },
+        {
+          "source": "parser/engine/incremental_lexer.py",
+          "start": 15,
+          "end": 20,
+          "sha256": "5375d09ea90a34b80d1f7d15b8fd5a7ad5426b1626a481d6cf0f20f69009a895"
+        },
+        {
+          "source": "parser/engine/incremental_lexer.py",
+          "start": 23,
+          "end": 26,
+          "sha256": "bda3f91b172e05b9773171d41fcb75a04643d057163f10084d2f22c66c1fbf66"
+        },
+        {
+          "source": "parser/engine/incremental_lexer.py",
+          "start": 29,
+          "end": 77,
+          "sha256": "d45e956324c2f54ca9fd7ca55011ad83c4c4a9fd4ed4e2985fb8b543b375a013"
+        },
+        {
+          "source": "parser/engine/incremental_lexer.py",
+          "start": 80,
+          "end": 211,
+          "sha256": "f1b34d0c4bf7e1680b73bfce07b60ddf08c8303ba0d36b97e5a4e0ece4eaadd2"
+        },
+        {
+          "source": "parser/engine/incremental_lexer.py",
+          "start": 214,
+          "end": 223,
+          "sha256": "856b589f54fbcfb967dbece1187c1666e342ac1d92fa1b8b099e56bf666a03e7"
+        },
+        {
+          "source": "parser/engine/token_id_scanner.py",
+          "start": 11,
+          "end": 11,
+          "sha256": "03457e7bc3c4a60ec79124b92db7829f9b239af53a54d232a5130821db6569a4"
+        },
+        {
+          "source": "parser/engine/token_id_scanner.py",
+          "start": 14,
+          "end": 16,
+          "sha256": "88d4181b48334901f0ed45a48ce43c4bfde3c7a0bc7b07347a9bfbe01eb2d35b"
+        },
+        {
+          "source": "parser/engine/token_id_scanner.py",
+          "start": 19,
+          "end": 23,
+          "sha256": "dd358d7cd651699a160653f47ab020dca157622e9480ba2ec4f5d3945db7bfe5"
+        },
+        {
+          "source": "parser/engine/token_id_scanner.py",
+          "start": 26,
+          "end": 26,
+          "sha256": "4c0fe6b92d4265345f11037d7b791cc9ab682b775ae223360264769d11d4d316"
+        },
+        {
+          "source": "parser/engine/token_id_scanner.py",
+          "start": 29,
+          "end": 296,
+          "sha256": "7fcb22c201234e58eee5f05fc8f475e31a76902a47ddb4faa805491cd7785a35"
+        },
+        {
+          "source": "parser/engine/streaming_parser_engine.py",
+          "start": 33,
+          "end": 36,
+          "sha256": "67cf9faf135091d2716c1d96029aeda428f656750f0757840523a3a60622779b"
+        },
+        {
+          "source": "parser/engine/streaming_parser_engine.py",
+          "start": 39,
+          "end": 86,
+          "sha256": "3b8b4ccff9f1b7630719599c866cd225ee59f3a23b669a45f9b860f2007ee3e3"
+        },
+        {
+          "source": "parser/engine/streaming_parser_engine.py",
+          "start": 89,
+          "end": 472,
+          "sha256": "d5945a00ddc5a2c99571f846e1ef685fa7d399c432954189925143c09660075d"
+        },
+        {
+          "source": "parser/engine/parser_engine.py",
+          "start": 45,
+          "end": 45,
+          "sha256": "4821a575dba723c303c8d4c67ce9c8670a4ddeaf7086a2470a36d28c799effd0"
+        },
+        {
+          "source": "parser/engine/parser_engine.py",
+          "start": 48,
+          "end": 76,
+          "sha256": "85434fb2d2067be31e3e918fdd3044d4d1e11a0a6de29d2bd164580dc5b05467"
+        },
+        {
+          "source": "parser/engine/parser_engine.py",
+          "start": 79,
+          "end": 1089,
+          "sha256": "04736a701ad76c1545b700ab86ded3c159dfc73a05a3379060c67621699025bb"
+        },
+        {
+          "source": "parser/qwen3.py",
+          "start": 41,
+          "end": 41,
+          "sha256": "50d25b7f815623f3c0ddf6c530fe8e4029182696e99697f7c37dedc55467ba0a"
+        },
+        {
+          "source": "parser/qwen3.py",
+          "start": 42,
+          "end": 42,
+          "sha256": "d2c1cd816e66e7382bbf4f09d10d8d503c99ad497c48fe531a7b7bd6115f0cc5"
+        },
+        {
+          "source": "parser/qwen3.py",
+          "start": 43,
+          "end": 43,
+          "sha256": "eb6366bb7f3637f910f3e57674adeb8af8ca73e2b7d3ae266fc5251ba484d80b"
+        },
+        {
+          "source": "parser/qwen3.py",
+          "start": 44,
+          "end": 44,
+          "sha256": "daa14293988dd8a2cac2fcc73d8b323039413eabe7c83ac3db8ec9c2327e62b2"
+        },
+        {
+          "source": "parser/qwen3.py",
+          "start": 45,
+          "end": 45,
+          "sha256": "e77c3ce96a53989c2c240e9f39501954081c4cd6f604a78a71b330228978123f"
+        },
+        {
+          "source": "parser/qwen3.py",
+          "start": 46,
+          "end": 46,
+          "sha256": "c1f970a3621141938ad339cc68869248e896794f7bf479ff58615d0ef45ce7be"
+        },
+        {
+          "source": "parser/qwen3.py",
+          "start": 47,
+          "end": 47,
+          "sha256": "a908cbe20ae95f78e324942a2580be51395ae4eef7dba8425aebc47c462d7f71"
+        },
+        {
+          "source": "parser/qwen3.py",
+          "start": 48,
+          "end": 48,
+          "sha256": "0a95f92d4e8bcfe15fc28a70370340a25f67d44357f5d943efdd1610a786bb24"
+        },
+        {
+          "source": "parser/qwen3.py",
+          "start": 50,
+          "end": 55,
+          "sha256": "ab49b94df1efcf8563e93b036ef08bb755768e84ec6816af5e78243078890347"
+        },
+        {
+          "source": "parser/qwen3.py",
+          "start": 56,
+          "end": 56,
+          "sha256": "32acf9a96cdee2321abaad924a08531dc2ba108462bc7d7df959198c2d46cfa1"
+        },
+        {
+          "source": "parser/qwen3.py",
+          "start": 59,
+          "end": 76,
+          "sha256": "bec9c0a5427e099e7567e98a283dd1d7893792b470edd1125294ed97958c4bcf"
+        },
+        {
+          "source": "parser/qwen3.py",
+          "start": 79,
+          "end": 189,
+          "sha256": "9e6df9cf0178d99b11bbb88f75070b2dac4e6eb5072ddf67d1718b9d13c53fe7"
+        },
+        {
+          "source": "parser/qwen3.py",
+          "start": 192,
+          "end": 267,
+          "sha256": "bffd7118a620045d338317176c8bb8da788bd52b012814d11ae61c7b681a0b94"
+        },
+        {
+          "source": "parser/nemotron_v3.py",
+          "start": 33,
+          "end": 39,
+          "sha256": "3bdf3ea50602922987a9d1128e6f4e57dd5ea9ce47c52c2057d5905a5359131a"
+        },
+        {
+          "source": "parser/nemotron_v3.py",
+          "start": 42,
+          "end": 113,
+          "sha256": "0e6f60244c08936d0a6734576e008801d1301bf0b44d993b7a6348e0b944f107"
+        },
+        {
+          "source": "parser/engine/adapters.py",
+          "start": 35,
+          "end": 125,
+          "sha256": "e9761b8529947a3b6938dbf479bb1e8ef281dadeeacfc5b54b17d107462472de"
+        },
+        {
+          "source": "parser/engine/adapters.py",
+          "start": 128,
+          "end": 190,
+          "sha256": "dffbc6cc69b7cf54697baa48773d2131742f3085b59aadead784296e04a20f2d"
+        },
+        {
+          "source": "parser/engine/adapters.py",
+          "start": 193,
+          "end": 210,
+          "sha256": "512e1d237f8beea5a76abcb6ebd8fe2db1be8a106ca2ac78968b066b1dd302bd"
+        }
+      ]
+    },
+    "response.py": {
+      "sha256": "9b96498f80f969b1fed65933d7c8e69242b3e953a8ccef75ea44046ce2419f66",
+      "fragments": [
+        {
+          "source": "outputs.py",
+          "start": 18,
+          "end": 18,
+          "sha256": "4821a575dba723c303c8d4c67ce9c8670a4ddeaf7086a2470a36d28c799effd0"
+        },
+        {
+          "source": "outputs.py",
+          "start": 21,
+          "end": 63,
+          "sha256": "8ecc13a0ab86fc24b3a7c19a5449be19028cd9c41f6115fdb46777bca81d953d"
+        },
+        {
+          "source": "outputs.py",
+          "start": 85,
+          "end": 188,
+          "sha256": "6bf50b167eac70d1c59d85f8ceb2847d11717f755331e89cdbca9e05a26e23ad"
+        },
+        {
+          "source": "entrypoints/generate/base/serving.py",
+          "start": 40,
+          "end": 40,
+          "sha256": "4821a575dba723c303c8d4c67ce9c8670a4ddeaf7086a2470a36d28c799effd0"
+        },
+        {
+          "source": "entrypoints/generate/base/serving.py",
+          "start": 170,
+          "end": 177,
+          "sha256": "a89140fc600bb40515697515439739c59f7fe52de38ef8ef8ce9258317e84631"
+        },
+        {
+          "source": "entrypoints/generate/base/serving.py",
+          "start": 252,
+          "end": 270,
+          "sha256": "9479161a7a4b43068b29ba2baf7091f4929446948919135ac5f8c7b65db846f6"
+        },
+        {
+          "source": "entrypoints/generate/base/serving.py",
+          "start": 273,
+          "end": 274,
+          "sha256": "a38f57719b0ed563f3e8e7217b00f7c19632355bb4ad6196df29a7030cfca414"
+        },
+        {
+          "source": "entrypoints/generate/base/serving.py",
+          "start": 305,
+          "end": 317,
+          "sha256": "73efd9eb75b8998ba8dde92a182671ea46eb10256d63de214dd381d16802eca9"
+        },
+        {
+          "source": "entrypoints/serve/utils/tool_calls_utils.py",
+          "start": 12,
+          "end": 16,
+          "sha256": "574893cda47f9631773dd53817f973cc1cfd7533bae9e75b230d1a3f4228c519"
+        },
+        {
+          "source": "entrypoints/serve/utils/tool_calls_utils.py",
+          "start": 19,
+          "end": 37,
+          "sha256": "493094c23233cd8c05867dca4a8cf903ced272328b900f2b9e6c629e2b42c5a5"
+        },
+        {
+          "source": "entrypoints/openai/chat_completion/serving.py",
+          "start": 70,
+          "end": 70,
+          "sha256": "4821a575dba723c303c8d4c67ce9c8670a4ddeaf7086a2470a36d28c799effd0"
+        },
+        {
+          "source": "entrypoints/openai/chat_completion/serving.py",
+          "start": 90,
+          "end": 103,
+          "sha256": "20360200ab755d9cfccba2141509a668fef9f51273e274ebf0c0f07f2d31f227"
+        },
+        {
+          "source": "entrypoints/openai/chat_completion/serving.py",
+          "start": 403,
+          "end": 406,
+          "sha256": "fc52e1d75e2c13d2b716fbc717a6b095d79117c926a4cd59985ff8471955963b"
+        },
+        {
+          "source": "entrypoints/openai/chat_completion/serving.py",
+          "start": 826,
+          "end": 1091,
+          "sha256": "087979f49a77cb4b8ff4d8fdc0bd93654f2c3a088a4b610be7aaf401a9bc1fd9"
+        },
+        {
+          "source": "entrypoints/openai/chat_completion/serving.py",
+          "start": 1093,
+          "end": 1115,
+          "sha256": "8f2250e64770c476acb668dfc9207994a1c476bde5012b32e6286728cfe82ff8"
+        },
+        {
+          "source": "entrypoints/openai/chat_completion/serving.py",
+          "start": 1117,
+          "end": 1179,
+          "sha256": "8e2ff2e650c81d8804f19a79afe4ff9030a076de3c079574d7ba3b724811bc0b"
+        }
+      ]
+    }
+  }
+}

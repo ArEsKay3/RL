@@ -1,3 +1,6 @@
+# Preserve byte-for-byte upstream fragments and their manifest hashes.
+exclude: '^nemo_rl/_vendor/vllm/(sampling|topk_topp_triton|protocol|parsers|response)\.py$'
+
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.4.0

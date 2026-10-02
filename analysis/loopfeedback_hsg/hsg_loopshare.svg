@@ -205,11 +205,13 @@
 <circle cx="770.0" cy="263.9" r="4" fill="#a63603" stroke="#a63603" stroke-width="2"/>
 <line x1="785" y1="248" x2="815" y2="248" stroke="#a63603" stroke-width="3"/><text x="822" y="252">V-HSG3-noprefix-r2 (seed 4321)</text>
 <line x1="785" y1="266" x2="815" y2="266" stroke="#1a9850" stroke-width="3"/><text x="822" y="270">W-HSG (vLLM, NeMo RL main stack, HSG)</text>
-<polyline fill="none" stroke="#08519c" stroke-width="3" points="60.0,439.0 78.2,470.0 96.4,428.0 114.6,457.1"/>
+<polyline fill="none" stroke="#08519c" stroke-width="3" points="60.0,439.0 78.2,470.0 96.4,428.0 114.6,457.1 132.8,449.3 151.0,454.8"/>
 <circle cx="60.0" cy="439.0" r="4" fill="#08519c" stroke="#08519c" stroke-width="2"/>
 <circle cx="78.2" cy="470.0" r="4" fill="#08519c" stroke="#08519c" stroke-width="2"/>
 <circle cx="96.4" cy="428.0" r="4" fill="#08519c" stroke="#08519c" stroke-width="2"/>
 <circle cx="114.6" cy="457.1" r="4" fill="#08519c" stroke="#08519c" stroke-width="2"/>
+<circle cx="132.8" cy="449.3" r="4" fill="#08519c" stroke="#08519c" stroke-width="2"/>
+<circle cx="151.0" cy="454.8" r="4" fill="#08519c" stroke="#08519c" stroke-width="2"/>
 <line x1="785" y1="284" x2="815" y2="284" stroke="#08519c" stroke-width="3"/><text x="822" y="288">NRL0906-vLLM-HSG (vLLM, NeMo RL 09-06 upstream, seed 42)</text>
 <polyline fill="none" stroke="#6baed6" stroke-width="3" points="60.0,464.2 78.2,450.1 96.4,429.2 114.6,456.0"/>
 <circle cx="60.0" cy="464.2" r="4" fill="#6baed6" stroke="#6baed6" stroke-width="2"/>

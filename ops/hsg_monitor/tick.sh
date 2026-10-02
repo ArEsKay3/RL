@@ -61,6 +61,8 @@ arm_letter() {
     *-cmh-64n-minf)                          echo "main chain (MINF from scratch, original)";;
     vparity-stage-hsg*)                      echo "? (vLLM-parity HSG staging job, not an arm)";;
     *-parity-minf-smoke-hsg-*)               echo "? (vLLM-parity HSG smoke, not a lettered arm)";;
+    nano35-swe-nrl0906upstream*smoke*)       echo "? (nrl0906upstream stack smoke, not a lettered arm; Latest Main Runner session)";;
+    nano35-swe-nrl0906upstream*)             echo "? (nrl0906upstream stack run, letter pending rkirby)";;
     nano35-swe-nrl0921saumishr*smoke*)       echo "? (nrl0921saumishr stack smoke, branch rkirby/swe-stack/20260921-saumishr, not a lettered arm; Latest Main Runner session)";;
     nano35-swe-nrl0921saumishr*)             echo "? (nrl0921saumishr stack run, letter pending rkirby)";;
     *smoke-hsg*)                             echo "? (HSG smoke, not a lettered arm)";;

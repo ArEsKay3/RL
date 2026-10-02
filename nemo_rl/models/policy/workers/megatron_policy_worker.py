@@ -654,6 +654,8 @@ class MegatronPolicyWorkerImpl(
         # [(mcore_param_name, estimated_memory), ...]
         # Note: here param name is local param name, with local layer number and
         # local expert id etc.
+        self._generation_refit_state_dict_info = None
+        self._generation_nccl_reshard_groups = None
         self.refit_conversion_tasks = None
         self.refit_conversion_tasks_current_index = None
         self.refit_param_info_mcore = None
@@ -3069,6 +3071,13 @@ class MegatronPolicyWorkerImpl(
         # those tensors for CPU storage, so the checkpoint references would keep
         # the old CUDA storage alive and defeat the offload.
         self.finalize_async_save()
+        if (
+            self.cfg["generation"].get("refit_transport") == "nccl_reshard"
+            and self.cfg["generation"].get("backend") == "megatron"
+            and self.should_disable_forward_pre_hook
+            and self._forward_pre_hook_enabled()
+        ):
+            self._disable_forward_pre_hook_until_next_train_step(param_sync=True)
 
         no_grad = torch.no_grad()
         no_grad.__enter__()

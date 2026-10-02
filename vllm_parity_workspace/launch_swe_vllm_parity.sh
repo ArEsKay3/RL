@@ -51,7 +51,19 @@ export TRAIN_ENTRYPOINT='--no-sync ./examples/run_grpo_single_controller.py'
 export WANDB_PROJ="${WANDB_PROJ:-ultra-v3-swe-e2e-convergence}"
 export SLURM_COMMENT='{"OccupiedIdleGPUsJobReaper":{"exemptIdleTimeMins":"240","reason":"data_loading","description":"Async GRPO SWE: train GPUs idle during long agentic rollout collection (can exceed 3h) and per-step validation"}}'
 
-export CONFIG_PATH=examples/nemo_gym/nemotron-3.5-nano/swe_sc_cmh_parity_minf.yaml
+NCCL_RESHARD="${NCCL_RESHARD:-0}"
+if [[ "${NCCL_RESHARD}" == "1" ]]; then
+  # The container's Bridge predates the local-view / streaming-import APIs.
+  # Mount patched Python sources only, preserving the separate parity MCore mount.
+  BRIDGE_TREE="${BRIDGE_TREE:-${WORKTREE}/3rdparty/Megatron-Bridge-workspace/Megatron-Bridge}"
+  [[ -f "${BRIDGE_TREE}/src/megatron/bridge/models/conversion/param_mapping.py" ]] || {
+    echo "ERROR: BRIDGE_TREE must point to the patched Megatron-Bridge checkout" >&2; exit 1; }
+  grep -q 'def local_hf_param_specs' "${BRIDGE_TREE}/src/megatron/bridge/models/conversion/param_mapping.py" || {
+    echo "ERROR: apply the Bridge refit backport to BRIDGE_TREE first" >&2; exit 1; }
+  export CONFIG_PATH=examples/nemo_gym/nemotron-3.5-nano/swe_sc_cmh_parity_minf_nccl_reshard.yaml
+else
+  export CONFIG_PATH=examples/nemo_gym/nemotron-3.5-nano/swe_sc_cmh_parity_minf.yaml
+fi
 export NVSHMEM_MAX_CTAS="${NVSHMEM_MAX_CTAS:-2}"
 export NRL_MINF_SAMPLING_BACKEND="${NRL_MINF_SAMPLING_BACKEND:-torch}"
 export NRL_MINF_LOGPROBS_MODE="${NRL_MINF_LOGPROBS_MODE:-raw_logprobs}"
@@ -144,6 +156,9 @@ EXTRA_MOUNTS="${EXTRA_MOUNTS},${MINE}/runs:${MINE}/runs"
 EXTRA_MOUNTS="${EXTRA_MOUNTS},${MINE}/persistent_cache:${MINE}/persistent_cache"
 EXTRA_MOUNTS="${EXTRA_MOUNTS},${HF_HOME}:${HF_HOME}"
 EXTRA_MOUNTS="${EXTRA_MOUNTS},${MLM_TREE}:${MLM_MOUNT_TARGET}"
+if [[ "${NCCL_RESHARD}" == "1" ]]; then
+  EXTRA_MOUNTS="${EXTRA_MOUNTS},${BRIDGE_TREE}/src:/opt/nemo-rl/3rdparty/Megatron-Bridge-workspace/Megatron-Bridge/src"
+fi
 EXTRA_MOUNTS="${EXTRA_MOUNTS},${WORKTREE}/nemo_rl/models/generation/megatron/megatron_worker.py:/opt/nemo-rl/nemo_rl/models/generation/megatron/megatron_worker.py"
 EXTRA_MOUNTS="${EXTRA_MOUNTS},${WORKTREE}/nemo_rl/models/generation/megatron/config.py:/opt/nemo-rl/nemo_rl/models/generation/megatron/config.py"
 EXTRA_MOUNTS="${EXTRA_MOUNTS},${PARITY_PTH}:${MW_SITE_PACKAGES}/zz_parity_paths.pth"

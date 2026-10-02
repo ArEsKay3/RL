@@ -89,10 +89,21 @@ class NcclReshardWeightSynchronizer(WeightSynchronizer):
         return {
             "tp_size": megatron_cfg.get("tensor_model_parallel_size", 1),
             "ep_size": megatron_cfg.get("expert_model_parallel_size", 1),
+            "etp_size": megatron_cfg.get("expert_tensor_parallel_size", 1)
+            or megatron_cfg.get("tensor_model_parallel_size", 1),
             "pp_size": megatron_cfg.get("pipeline_model_parallel_size", 1),
         }
 
     def _gen_parallelism(self) -> dict[str, int]:
+        if self._generation.cfg.get("backend") == "megatron":
+            megatron_cfg = self._generation.effective_megatron_cfg(self._policy.cfg)
+            return {
+                "tp_size": megatron_cfg.get("tensor_model_parallel_size", 1),
+                "ep_size": megatron_cfg.get("expert_model_parallel_size", 1),
+                "etp_size": megatron_cfg.get("expert_tensor_parallel_size", 1)
+                or megatron_cfg.get("tensor_model_parallel_size", 1),
+                "pp_size": megatron_cfg.get("pipeline_model_parallel_size", 1),
+            }
         vllm_cfg = self._policy.cfg["generation"].get("vllm_cfg", {})
         return {
             "tp_size": vllm_cfg.get("tensor_parallel_size", 1),

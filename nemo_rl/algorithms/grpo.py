@@ -1538,7 +1538,11 @@ def setup(
 
         check_nccl_reshard_refit_support(master_config)
 
-    if generation_config.get("refit_transport") is not None and backend != "vllm":
+    if (
+        generation_config.get("refit_transport") is not None
+        and backend != "vllm"
+        and not (backend == "megatron" and nccl_reshard_refit_enabled)
+    ):
         raise NotImplementedError(
             "Non-default refit transports are only supported for the vLLM "
             f"generation backend, but policy.generation.backend={backend!r}. "

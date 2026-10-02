@@ -12,13 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from contextlib import nullcontext
+from contextlib import AbstractContextManager, nullcontext
 from typing import Any, Optional
 
 import ray
 
 from nemo_rl.utils.timer import Timer
 from nemo_rl.weight_sync.interfaces import WeightSynchronizer
+from nemo_rl.weight_sync.nccl_reshard_weight_synchronizer import (
+    NcclReshardWeightSynchronizer,
+)
 
 
 class MegatronWeightSynchronizer(WeightSynchronizer):
@@ -58,6 +61,15 @@ class MegatronWeightSynchronizer(WeightSynchronizer):
         self._train_cluster = train_cluster
         self._inference_cluster = inference_cluster
         self._refit_backend: Optional[str] = None
+        self._transport: Optional[WeightSynchronizer] = None
+        if generation.cfg.get("refit_transport") == "nccl_reshard":
+            if colocated:
+                raise ValueError(
+                    "nccl_reshard requires non-colocated Megatron generation"
+                )
+            self._transport = NcclReshardWeightSynchronizer(
+                policy, generation, train_cluster, inference_cluster
+            )
         self._stale = True
 
     def init_communicator(self) -> None:
@@ -67,6 +79,9 @@ class MegatronWeightSynchronizer(WeightSynchronizer):
         nothing to wire.
         """
         if self._colocated:
+            return
+        if self._transport is not None:
+            self._transport.init_communicator()
             return
         ip, port = self._train_cluster.get_master_address_and_port()
         print(f"Using ip: {ip}, port: {port} for collective communication", flush=True)
@@ -124,6 +139,17 @@ class MegatronWeightSynchronizer(WeightSynchronizer):
             if timer is not None
             else nullcontext()
         )
+        if self._transport is not None:
+            self._transport.sync_weights(timer=timer, kv_scales=kv_scales)
+        else:
+            self._sync_native(timer_context)
+
+        self._generation.prepare_for_generation(tags=["kv_cache"])
+        self._generation.resume_after_refit()
+        self._stale = False
+        return {}
+
+    def _sync_native(self, timer_context: AbstractContextManager) -> None:
         with timer_context:
             futures_train = self._policy.swap_weights_via_reshard(is_source=True)
             futures_inference = self._generation.update_weights_from_collective()
@@ -136,11 +162,6 @@ class MegatronWeightSynchronizer(WeightSynchronizer):
                     "refit copy service or a problem within the generation "
                     "backend.\n"
                 )
-
-        self._generation.prepare_for_generation(tags=["kv_cache"])
-        self._generation.resume_after_refit()
-        self._stale = False
-        return {}
 
     @property
     def is_stale(self) -> bool:

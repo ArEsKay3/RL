@@ -130,6 +130,15 @@ class MegatronGeneration(GenerationInterface):
         # `self._policy_config` keeps a reference to the full PolicyConfig.
         self._policy_config = config
         self.cfg: MCoreGenerationConfig = config["generation"]
+        if self.cfg.get("refit_transport") == "nccl_reshard":
+            if policy is not None:
+                raise ValueError(
+                    "nccl_reshard requires non-colocated Megatron generation"
+                )
+            if self.cfg["mcore_generation_config"].get("refit_backend") is not None:
+                raise ValueError(
+                    "Set mcore_generation_config.refit_backend=null for nccl_reshard"
+                )
         # Populated after the first prepare_for_generation (which starts the HTTP server).
         self.dp_openai_server_base_urls: list[Optional[str]] = []
         # Installed by setup via create_weight_synchronizer.
@@ -193,12 +202,51 @@ class MegatronGeneration(GenerationInterface):
         Returns:
             List of Ray ObjectRefs for the collective init futures.
         """
+        if self.cfg.get("refit_transport") == "nccl_reshard":
+            return self.worker_group.run_all_workers_single_data(
+                "init_nccl_reshard_collective_generation",
+                ip=ip,
+                port=port,
+                world_size=world_size,
+                train_world_size=train_world_size,
+            )
         return self._policy.init_collective_mcore_generation(
             ip,
             port,
             world_size,
             rank_offset=train_world_size,
             refit_backend=refit_backend,
+        )
+
+    def init_nccl_reshard_comm_group(
+        self,
+        *,
+        pp_ips: list[str],
+        pp_ports: list[int],
+        pp_size: int,
+        train_ranks_per_stage: int,
+        sub_world_size: int,
+    ) -> list[ray.ObjectRef]:
+        return self.worker_group.run_all_workers_single_data(
+            "init_nccl_reshard_comm_groups_generation",
+            pp_ips=pp_ips,
+            pp_ports=pp_ports,
+            pp_size=pp_size,
+            train_ranks_per_stage=train_ranks_per_stage,
+            sub_world_size=sub_world_size,
+        )
+
+    def prepare_nccl_reshard_refit_info(self, refit_info: dict[str, Any]) -> None:
+        ray.get(
+            self.worker_group.run_all_workers_single_data(
+                "_prepare_destination_nccl_reshard_refit_info",
+                refit_info=refit_info,
+            )
+        )
+
+    def nccl_reshard_refit(self) -> list[ray.ObjectRef]:
+        return self.worker_group.run_all_workers_single_data(
+            "_destination_nccl_reshard_refit"
         )
 
     def update_weights_from_collective(self) -> list[ray.ObjectRef]:

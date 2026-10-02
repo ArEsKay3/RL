@@ -63,7 +63,7 @@ class MCoreGenerationSpecificArgs(TypedDict):
     enable_prefix_caching: bool
     invalidate_prefix_cache_on_weight_update: NotRequired[bool]
 
-    refit_backend: Literal["gloo", "nccl", "nvshmem"]
+    refit_backend: Literal["gloo", "nccl", "nvshmem"] | None
     num_speculative_tokens: int
 
     mamba_inference_ssm_states_dtype: NotRequired[str]

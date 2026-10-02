@@ -18,7 +18,9 @@ import os
 import threading
 import time
 import warnings
-from typing import AsyncGenerator, Optional
+from collections import Counter, OrderedDict
+from dataclasses import dataclass, replace
+from typing import Any, AsyncGenerator, Optional
 
 import requests
 import torch
@@ -60,6 +62,8 @@ def _require_cost_policy():
             "prefix_caching_cost_policy from the config."
         )
     return PrefixCachingCostPolicy
+
+
 from megatron.core.inference.engines.dynamic_engine import EngineState
 from megatron.core.inference.sampling_params import SamplingParams
 from megatron.core.resharding.copy_services.gloo_copy_service import GlooCopyService
@@ -89,6 +93,16 @@ from nemo_rl.models.megatron.memory_saver import (
     resume_inference_weights,
 )
 from nemo_rl.utils.nsys import wrap_with_nvtx_name
+from nemo_rl.utils.packed_tensor import packed_broadcast_consumer
+from nemo_rl.weight_sync.nccl_reshard_utils import (
+    _INDIVIDUAL_EXPERT_RE,
+    _STR_TO_DTYPE,
+    HFToLocalParamMap,
+    LocalParamSpec,
+    RefitCtx,
+    is_nccl_reshard_param,
+    restore_refit_info_placements,
+)
 
 # Prefix-affinity routing is the better default whenever there is a prefix cache to
 # route on: on a 16-engine SWE-RL run it moved the prefill skip rate from 59-63% to
@@ -104,7 +118,9 @@ _DEFAULT_COORDINATOR_POLICY = "longest_prefix"
 _DEFAULT_CUDA_GRAPH_SIZING = "hybrid"
 
 
-def _resolve_coordinator_policy(mcore_generation_config) -> PrefixCachingCoordinatorPolicy:
+def _resolve_coordinator_policy(
+    mcore_generation_config,
+) -> PrefixCachingCoordinatorPolicy:
     """Effective DP-coordinator routing policy for this generation config.
 
     Resolved in one place so the engine and the HTTP frontends cannot disagree:
@@ -252,7 +268,11 @@ class MegatronGenerationMixin:
             # that was 62% of prefill steps and 88% of prefill time. Absent from config,
             # leave mcore's default alone rather than inventing one here.
             **(
-                {"cuda_graph_max_tokens": mcore_generation_config["cuda_graph_max_tokens"]}
+                {
+                    "cuda_graph_max_tokens": mcore_generation_config[
+                        "cuda_graph_max_tokens"
+                    ]
+                }
                 if "cuda_graph_max_tokens" in mcore_generation_config
                 else {}
             ),
@@ -262,9 +282,7 @@ class MegatronGenerationMixin:
             # without a rebuild, so the two kernels can be compared on the same
             # model. Note mcore silently falls back to torch (with a warning) if
             # flashinfer is requested but not installed.
-            sampling_backend=os.environ.get(
-                "NRL_MINF_SAMPLING_BACKEND", "flashinfer"
-            ),
+            sampling_backend=os.environ.get("NRL_MINF_SAMPLING_BACKEND", "flashinfer"),
             use_synchronous_zmq_collectives=True,
             materialize_only_last_token_logits=materialize_only_last_token_logits,
             enable_chunked_prefill=enable_chunked_prefill,
@@ -275,7 +293,9 @@ class MegatronGenerationMixin:
             prefix_caching_coordinator_policy=_resolve_coordinator_policy(
                 mcore_generation_config
             ),
-            prefix_caching_mamba_gb=mcore_generation_config.get("prefix_caching_mamba_gb", 50),
+            prefix_caching_mamba_gb=mcore_generation_config.get(
+                "prefix_caching_mamba_gb", 50
+            ),
             prefix_caching_routing_alpha=0.5,
             prefix_caching_eviction_policy=PrefixCachingEvictionPolicy.LRU,
             prefix_cache_ttl_seconds=mcore_generation_config.get(
@@ -293,7 +313,11 @@ class MegatronGenerationMixin:
                 else {}
             ),
             **(
-                {"prefix_caching_load_beta": mcore_generation_config["prefix_caching_load_beta"]}
+                {
+                    "prefix_caching_load_beta": mcore_generation_config[
+                        "prefix_caching_load_beta"
+                    ]
+                }
                 if "prefix_caching_load_beta" in mcore_generation_config
                 else {}
             ),
@@ -883,8 +907,488 @@ class MegatronGenerationMixin:
         return results
 
 
+@dataclass
+class _MegatronRefitTask:
+    """A Bridge import task and its mutable inference destination."""
+
+    conversion_task: Any
+    destination: Any
+    target_id: int
+
+    @property
+    def param_name(self) -> str:
+        return self.conversion_task.param_name
+
+    @property
+    def cache_key(self) -> tuple[int | None, str]:
+        """Stable identity across Bridge task rebuilds."""
+        return (
+            self.conversion_task.vp_stage,
+            self.conversion_task.global_param_name,
+        )
+
+    @property
+    def dependencies(self) -> tuple[str, ...]:
+        return self.conversion_task.hf_param_names
+
+    @property
+    def expected_shape(self) -> torch.Size:
+        return torch.Size(self.destination.shape)
+
+
+@dataclass
+class _MegatronBulkRefitPiece:
+    """One HF-local shard and the Megatron destination region it populates."""
+
+    task: _MegatronRefitTask
+    spec: Any
+    shape: torch.Size
+    dtype: torch.dtype
+    device: torch.device
+    destination: torch.Tensor | None
+
+
 class MegatronGenerationRefitMixin:
     """Refit collective, weight transfer, and engine suspend/resume around refits."""
+
+    def init_nccl_reshard_collective_generation(
+        self,
+        ip: str,
+        port: int,
+        world_size: int,
+        *,
+        train_world_size: int,
+    ) -> None:
+        """Join the existing vLLM-style misc NCCL group after the train ranks."""
+        from nemo_rl.distributed.stateless_process_group import StatelessProcessGroup
+
+        torch.cuda.empty_cache()
+        self.model_update_group = StatelessProcessGroup(
+            master_address=ip,
+            port=port,
+            rank=train_world_size + self.rank,
+            world_size=world_size,
+        )
+        self.model_update_group.init_nccl_communicator(
+            device=torch.cuda.current_device()
+        )
+
+    def init_nccl_reshard_comm_groups_generation(
+        self,
+        *,
+        pp_ips: list[str],
+        pp_ports: list[int],
+        pp_size: int,
+        train_ranks_per_stage: int,
+        sub_world_size: int,
+    ) -> None:
+        """Join each training pipeline stage's bulk NCCL communicator."""
+        from nemo_rl.distributed.stateless_process_group import StatelessProcessGroup
+
+        self._generation_nccl_reshard_groups = {}
+        for stage in range(pp_size):
+            group = StatelessProcessGroup(
+                master_address=pp_ips[stage],
+                port=pp_ports[stage],
+                rank=train_ranks_per_stage + self.rank,
+                world_size=sub_world_size,
+            )
+            group.init_nccl_communicator(device=torch.cuda.current_device())
+            self._generation_nccl_reshard_groups[stage] = group
+
+    def _commit_megatron_bulk_refit_piece(
+        self,
+        piece: _MegatronBulkRefitPiece,
+        tensor: torch.Tensor,
+    ) -> None:
+        if tensor.shape != piece.shape:
+            raise ValueError(
+                f"Shape mismatch for bulk refit weight {piece.spec.name!r}"
+            )
+        piece.spec.select(piece.destination).copy_(tensor)
+
+    def _build_destination_hf_to_local_param_map(
+        self,
+        refit_info: dict[str, Any],
+        tasks: list[_MegatronRefitTask],
+    ) -> HFToLocalParamMap:
+        """Map canonical HF FFN shards onto local Megatron destinations."""
+        pieces: dict[str, _MegatronBulkRefitPiece] = {}
+
+        def add_piece(task: _MegatronRefitTask, spec: Any) -> None:
+            if spec.name in pieces:
+                raise RuntimeError(
+                    f"Duplicate Megatron M-to-N target for {spec.name!r}."
+                )
+            destination = task.destination
+            dtype = task.destination.dtype
+            pieces[spec.name] = _MegatronBulkRefitPiece(
+                task=task,
+                spec=spec,
+                shape=spec.selected_shape(task.expected_shape),
+                dtype=dtype,
+                device=task.destination.device,
+                destination=destination,
+            )
+
+        for task in tasks:
+            for spec in task.conversion_task.local_hf_param_specs():
+                if is_nccl_reshard_param(spec.name):
+                    add_piece(task, spec)
+
+        expert_pieces: dict[
+            tuple[str, str], list[tuple[int, _MegatronBulkRefitPiece]]
+        ] = {}
+        for name, piece in pieces.items():
+            match = _INDIVIDUAL_EXPERT_RE.match(name)
+            if match:
+                expert_pieces.setdefault((match.group(1), match.group(3)), []).append(
+                    (int(match.group(2)), piece)
+                )
+
+        def grouped_spec(
+            grouped: tuple[_MegatronBulkRefitPiece, ...],
+        ) -> LocalParamSpec:
+            first = grouped[0]
+
+            def pre(_base: Any) -> RefitCtx:
+                return RefitCtx(
+                    buf=torch.empty(
+                        (len(grouped), *first.shape),
+                        dtype=first.dtype,
+                        device=first.device,
+                    )
+                )
+
+            def post(ctx: RefitCtx) -> None:
+                for received, piece in zip(ctx.buf.unbind(0), grouped, strict=True):
+                    self._commit_megatron_bulk_refit_piece(piece, received)
+
+            return LocalParamSpec(base=None, pre=pre, post=post)
+
+        def direct_spec(piece: _MegatronBulkRefitPiece) -> LocalParamSpec:
+            assert piece.destination is not None
+
+            def pre(base: torch.Tensor) -> RefitCtx:
+                return RefitCtx(buf=piece.spec.select(base))
+
+            return LocalParamSpec(base=piece.destination, pre=pre)
+
+        specs = {}
+        for layer_name in refit_info["layer_names"]:
+            for param_info in refit_info["per_layer_params"][layer_name]:
+                name = param_info["name"]
+                grouped_proj = param_info.get("grouped_expert_proj")
+                if grouped_proj is not None:
+                    prefix = name.rsplit(f".{grouped_proj}.weight", 1)[0]
+                    grouped = tuple(
+                        piece
+                        for _, piece in sorted(
+                            expert_pieces.get((prefix, grouped_proj), [])
+                        )
+                    )
+                    if not grouped:
+                        raise ValueError(
+                            f"No local Megatron experts map to M-to-N weight {name!r}."
+                        )
+                    specs[name] = grouped_spec(grouped)
+                    continue
+
+                piece = pieces.get(name)
+                if piece is None:
+                    raise ValueError(
+                        f"No local Megatron destination maps to M-to-N weight {name!r}."
+                    )
+                specs[name] = direct_spec(piece)
+
+        return HFToLocalParamMap(specs=specs)
+
+    def _build_generation_refit_tasks(
+        self,
+    ) -> tuple[list[torch.nn.Module], list[_MegatronRefitTask]]:
+        """Resolve Bridge import tasks against the persistent inference model."""
+        model_chunks = (
+            list(self.model) if isinstance(self.model, (list, tuple)) else [self.model]
+        )
+        conversion_tasks = self.megatron_bridge.get_conversion_tasks(model_chunks)
+        tasks: list[_MegatronRefitTask] = []
+        for conversion_task in conversion_tasks:
+            if conversion_task is None or conversion_task.megatron_module is None:
+                continue
+            destination = conversion_task.param_weight
+            if destination is None:
+                raise RuntimeError(
+                    f"Bridge task {conversion_task.param_name!r} has no destination."
+                )
+            tasks.append(
+                _MegatronRefitTask(
+                    conversion_task=replace(conversion_task, param_weight=None),
+                    destination=destination,
+                    target_id=id(destination),
+                )
+            )
+
+        if not tasks:
+            raise RuntimeError("Megatron Bridge produced no local refit tasks.")
+        return model_chunks, tasks
+
+    def _install_generation_refit_plan(
+        self,
+        *,
+        model_chunks: list[torch.nn.Module],
+        tasks: list[_MegatronRefitTask],
+        state_dict_info: dict[str, Any],
+    ) -> None:
+        """Install the packed-broadcast subset of a Bridge receive plan."""
+        if not state_dict_info:
+            raise ValueError(
+                "Megatron packed refit requires non-empty state_dict_info."
+            )
+
+        required_names = {name for task in tasks for name in task.dependencies}
+        missing_names = sorted(required_names.difference(state_dict_info))
+        if missing_names:
+            preview = ", ".join(missing_names[:20])
+            raise ValueError(
+                "Megatron refit metadata is missing Bridge inputs: "
+                f"{preview}{' ...' if len(missing_names) > 20 else ''}"
+            )
+
+        self._generation_refit_model_chunks = model_chunks
+        self._generation_refit_tasks = tasks
+        self._generation_refit_dependency_counts = Counter(
+            name for task in tasks for name in task.dependencies
+        )
+        self._generation_refit_state_dict_info = state_dict_info
+
+    @torch.no_grad()
+    def _prepare_destination_nccl_reshard_refit_info(
+        self, refit_info: dict[str, Any]
+    ) -> None:
+        """Prepare Megatron as the destination of NCCL M-to-N reshard refit."""
+        refit_info = restore_refit_info_placements(refit_info)
+        model_chunks, tasks = self._build_generation_refit_tasks()
+        bulk_map = self._build_destination_hf_to_local_param_map(refit_info, tasks)
+
+        misc_meta = refit_info.get("misc_meta", {})
+        misc_state_dict_info = {
+            name: (tuple(meta["shape"]), _STR_TO_DTYPE[meta["dtype"]])
+            for name, meta in misc_meta.items()
+        }
+        misc_tasks = [
+            task
+            for task in tasks
+            if set(task.dependencies).issubset(misc_state_dict_info)
+        ]
+        self._install_generation_refit_plan(
+            model_chunks=model_chunks,
+            tasks=misc_tasks,
+            state_dict_info=misc_state_dict_info,
+        )
+        self.nccl_reshard_refit_info = refit_info
+        self.hf_to_local_param_map = bulk_map
+
+    @torch.no_grad()
+    def _destination_nccl_reshard_refit(self) -> bool:
+        """Receive bulk FFN shards via M-to-N, then import packed misc weights."""
+
+        # Keep this transport import local: xferdtensor probes the optional
+        # nccl.m2n extension at import time.
+        from nemo_rl.weight_sync.xferdtensor import DTensorRef, xferdtensor
+
+        def receive_one(param_info: dict[str, Any], group: Any, stream: Any) -> None:
+            spec = self.hf_to_local_param_map.get(param_info["name"])
+            if spec is None:
+                raise RuntimeError(
+                    f"Megatron M-to-N refit has no destination for {param_info['name']!r}."
+                )
+            ctx = (
+                spec.pre(spec.base) if spec.pre is not None else RefitCtx(buf=spec.base)
+            )
+            destination = DTensorRef(ctx.buf, param_info["global_shape"])
+            xferdtensor(
+                None,
+                param_info["src_mesh_info"],
+                param_info["src_placements"],
+                destination,
+                param_info["dst_mesh_info"],
+                param_info["dst_placements"],
+                group,
+                stream,
+            )
+            if spec.post is not None:
+                spec.post(ctx)
+
+        stage_params: OrderedDict[int, list[dict[str, Any]]] = OrderedDict()
+        refit_info = self.nccl_reshard_refit_info
+        for layer_name in refit_info["layer_names"]:
+            for param_info in refit_info["per_layer_params"][layer_name]:
+                stage_params.setdefault(param_info.get("pp_stage", 0), []).append(
+                    param_info
+                )
+
+        num_streams = max(
+            1,
+            min(int(os.environ.get("NRL_REFIT_NUM_STREAMS", "2")), len(stage_params)),
+        )
+        streams = [torch.cuda.Stream() for _ in range(num_streams)]
+        events: dict[int, torch.cuda.Event] = {}
+        try:
+            for index, (stage, params) in enumerate(stage_params.items()):
+                previous_index = index - num_streams
+                if previous_index in events:
+                    events[previous_index].synchronize()
+                stage_stream = streams[index % num_streams]
+                with torch.cuda.stream(stage_stream):
+                    group = self._generation_nccl_reshard_groups[stage]
+                    for param_info in params:
+                        receive_one(param_info, group, stage_stream)
+                    event = torch.cuda.Event()
+                    event.record()
+                    events[index] = event
+
+            current_stream = torch.cuda.current_stream()
+            for event in events.values():
+                current_stream.wait_event(event)
+            current_stream.synchronize()
+            torch.cuda.empty_cache()
+            return self._update_destination_weights_from_collective()
+        finally:
+            for stream in streams:
+                stream.synchronize()
+
+    def _write_generation_refit_weight(
+        self, task: _MegatronRefitTask, converted_weight: torch.Tensor
+    ) -> None:
+        """Copy one converted weight into its persistent inference destination.
+
+        Preserve storage addresses referenced by already-captured CUDA graphs.
+
+        Args:
+            task: The Bridge import task owning the destination tensor.
+            converted_weight: The assembled weight in the destination's layout.
+
+        Raises:
+            ValueError: If the converted weight does not match the destination
+                shape, which means the refit plan and the model disagree.
+        """
+        if converted_weight.shape != task.expected_shape:
+            raise ValueError(
+                f"Shape mismatch for Megatron parameter {task.param_name!r}: "
+                f"expected {tuple(task.expected_shape)}, got {tuple(converted_weight.shape)}."
+            )
+
+        task.destination.copy_(converted_weight)
+
+    def _load_generation_refit_batch(
+        self, weights: list[tuple[str, torch.Tensor]]
+    ) -> None:
+        """Import every Bridge task whose HF inputs have now all arrived.
+
+        Called once per ``packed_broadcast_consumer`` batch. Weights arrive in
+        HF order, but a task may fuse several of them (gate/up, stacked
+        experts), so each tensor is buffered until its task's dependency count
+        reaches zero, then the task is converted and written in task order.
+        Buffered tensors record their producing stream so the conversion can
+        wait on it before reading across streams.
+
+        Args:
+            weights: ``(hf_name, tensor)`` pairs unpacked from this batch.
+        """
+        batch_stream = (
+            torch.cuda.current_stream() if weights and weights[0][1].is_cuda else None
+        )
+        for name, tensor in weights:
+            if self._generation_refit_remaining_dependencies.get(name, 0) > 0:
+                self._generation_refit_pending_weights[name] = tensor
+                if batch_stream is not None:
+                    self._generation_refit_pending_streams[name] = batch_stream
+
+        tasks = self._generation_refit_tasks
+        while self._generation_refit_task_index < len(tasks):
+            task = tasks[self._generation_refit_task_index]
+            if any(
+                name not in self._generation_refit_pending_weights
+                for name in task.dependencies
+            ):
+                break
+
+            # packed_broadcast_consumer alternates CUDA streams. A compound Bridge
+            # mapping can retain one input across a batch boundary, so make the
+            # current batch wait for the stream that received each retained input.
+            current_stream = (
+                torch.cuda.current_stream() if batch_stream is not None else None
+            )
+            for name in task.dependencies:
+                source_stream = self._generation_refit_pending_streams.get(name)
+                if current_stream is not None and source_stream is not None:
+                    current_stream.wait_stream(source_stream)
+
+            converted = next(
+                iter(
+                    self.megatron_bridge.stream_weights_hf_to_megatron(
+                        self._generation_refit_model_chunks,
+                        conversion_tasks=[task.conversion_task],
+                        hf_state_dict=self._generation_refit_pending_weights,
+                    )
+                ),
+                None,
+            )
+            if converted is None:
+                raise RuntimeError(
+                    f"Bridge produced no local value for {task.param_name!r}."
+                )
+            self._write_generation_refit_weight(task, converted.weight)
+
+            for name in task.dependencies:
+                self._generation_refit_remaining_dependencies[name] -= 1
+                if self._generation_refit_remaining_dependencies[name] == 0:
+                    del self._generation_refit_pending_weights[name]
+                    self._generation_refit_pending_streams.pop(name, None)
+            self._generation_refit_task_index += 1
+
+    @torch.no_grad()
+    def _update_destination_weights_from_collective(
+        self,
+    ) -> bool:
+        """Receive packed HF tensors and import them into the Megatron model."""
+
+        if self._generation_refit_state_dict_info is None:
+            raise RuntimeError(
+                "Megatron refit metadata is not prepared. Call prepare_refit_info first."
+            )
+
+        self._generation_refit_task_index = 0
+        self._generation_refit_pending_weights: dict[str, torch.Tensor] = {}
+        self._generation_refit_pending_streams: dict[str, torch.cuda.Stream] = {}
+        self._generation_refit_remaining_dependencies = Counter(
+            self._generation_refit_dependency_counts
+        )
+        try:
+            packed_broadcast_consumer(
+                iterator=iter(self._generation_refit_state_dict_info.items()),
+                group=self.model_update_group,
+                src=0,
+                post_unpack_func=self._load_generation_refit_batch,
+            )
+            if self._generation_refit_task_index != len(self._generation_refit_tasks):
+                task = self._generation_refit_tasks[self._generation_refit_task_index]
+                missing = [
+                    name
+                    for name in task.dependencies
+                    if name not in self._generation_refit_pending_weights
+                ]
+                raise RuntimeError(
+                    f"Megatron refit ended before {task.param_name!r}; "
+                    f"missing inputs: {missing}."
+                )
+
+            self.megatron_bridge.finalize_hf_import(self._generation_refit_model_chunks)
+            torch.cuda.synchronize()
+            return True
+        finally:
+            self._generation_refit_pending_weights.clear()
+            self._generation_refit_pending_streams.clear()
 
     def init_collective_mcore_generation(
         self,

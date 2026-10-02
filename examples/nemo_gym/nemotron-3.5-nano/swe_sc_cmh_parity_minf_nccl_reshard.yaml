@@ -1,0 +1,8 @@
+# M-to-N debug arm; keep the numerical-parity adapter and TP4/EP1/ETP4.
+defaults: swe_sc_cmh_parity_minf.yaml
+
+policy:
+  generation:
+    refit_transport: nccl_reshard
+    mcore_generation_config:
+      refit_backend: null

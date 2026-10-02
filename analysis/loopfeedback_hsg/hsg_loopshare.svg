@@ -211,9 +211,11 @@
 <circle cx="96.4" cy="428.0" r="4" fill="#08519c" stroke="#08519c" stroke-width="2"/>
 <circle cx="114.6" cy="457.1" r="4" fill="#08519c" stroke="#08519c" stroke-width="2"/>
 <line x1="785" y1="284" x2="815" y2="284" stroke="#08519c" stroke-width="3"/><text x="822" y="288">NRL0906-vLLM-HSG (vLLM, NeMo RL 09-06 upstream, seed 42)</text>
-<polyline fill="none" stroke="#6baed6" stroke-width="3" points="60.0,464.2 78.2,450.1"/>
+<polyline fill="none" stroke="#6baed6" stroke-width="3" points="60.0,464.2 78.2,450.1 96.4,429.2 114.6,456.0"/>
 <circle cx="60.0" cy="464.2" r="4" fill="#6baed6" stroke="#6baed6" stroke-width="2"/>
 <circle cx="78.2" cy="450.1" r="4" fill="#6baed6" stroke="#6baed6" stroke-width="2"/>
+<circle cx="96.4" cy="429.2" r="4" fill="#6baed6" stroke="#6baed6" stroke-width="2"/>
+<circle cx="114.6" cy="456.0" r="4" fill="#6baed6" stroke="#6baed6" stroke-width="2"/>
 <line x1="785" y1="302" x2="815" y2="302" stroke="#6baed6" stroke-width="3"/><text x="822" y="306">NRL0906-vLLM-HSG seed 1234</text>
 <line x1="785" y1="320" x2="815" y2="320" stroke="#c6dbef" stroke-width="3"/><text x="822" y="324">NRL0906-vLLM-HSG seed 4321</text>
 <polyline fill="none" stroke="#e377c2" stroke-width="1.5" points="60.0,436.6 78.2,468.4 96.4,425.0 114.6,440.1 132.8,447.1 151.0,436.6 169.2,396.4 187.4,366.2 205.6,457.5 223.8,458.3 242.1,436.9 260.3,451.8 278.5,457.1 296.7,437.0 314.9,444.5 333.1,438.4 351.3,439.6 369.5,470.0 387.7,371.2 405.9,464.0 424.1,459.1 442.3,429.9 460.5,470.0 478.7,464.2 496.9,465.5 515.1,470.0 533.3,470.0 551.5,470.0 569.7,458.5 587.9,438.0 606.2,458.7 624.4,466.8 642.6,470.0 660.8,463.5 679.0,470.0"/>

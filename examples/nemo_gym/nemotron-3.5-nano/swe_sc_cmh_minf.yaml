@@ -37,7 +37,7 @@ policy:
       kv_cache_management_mode: "persist"
       expose_http_server: true
       num_speculative_tokens: 0
-      refit_backend: "nccl"
+      refit_backend: "nvshmem"
       offload_policy_before_refit: false
       logging_step_interval: 100
       parsers:

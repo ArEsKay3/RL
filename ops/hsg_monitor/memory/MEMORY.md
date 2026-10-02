@@ -1,3 +1,4 @@
+- [V-HSG arms stopped 2026-10-01](feedback-vhsg-stopped-20261001.md) — rkirby 19:49 CDT: kill the V-HSG arms, owner stands down; all five jobs cancelled 19:50; final rolling ckpts seed42 34 / seed1234 49 / seed4321 39
 - [swe_main915 HSG workspace](swe-main915-hsg-workspace.md) — built 2026-10-01 on Lustre; trees pinned per HANDOFF; container rl-gym.69725534.sqsh; launch_swe_main915_hsg.sh; smokes 7600771 (vLLM) / 7600779 (MINF)
 - [Chain W HF rungs on HSG, evals prioritised](chainw-hf-rungs-on-hsg.md) — 2026-10-01: chain W rungs 5-35 hf/ copied to HSG (eval-only dir); Eval Runner says rkirby ordered chain W evals and paused the V-HSG-np-r2 evals
 - [SWE-Bench Verified evals of chain W on HSG](swe-verified-eval-chainW-hsg.md) — 2026-10-01: migrated HF rungs 5-35 under runs/nano35-swe-main915-64n-vllm-20260930, job dir chainW-main915-vllm-swe, V-HSG evals paused by rkirby for it

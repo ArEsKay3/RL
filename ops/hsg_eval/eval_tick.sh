@@ -40,8 +40,11 @@ for step in sorted(d, key=lambda s: int(s[5:])):
         if os.path.exists(p): ids |= set(open(p).read().split())
     live = sum(1 for i in ids if i in sq and sq[i] in ("RUNNING", "PENDING", "COMPLETING"))
     rows = 0
-    for f in glob.glob(f"{rd}/shard_*/harbor___swebench_verified_1_0/swebench-verified_1.0/verified_log.jsonl"):
-        rows += sum(1 for _ in open(f, errors="ignore"))
+    if "result" in r:
+        rows = r["result"]["pooled"]["rows"]
+    else:
+        for f in glob.glob(f"{rd}/shard_*/harbor___swebench_verified_1_0/swebench-verified_1.0/verified_log.jsonl"):
+            rows += sum(1 for _ in open(f, errors="ignore"))
     rep = "merged" if os.path.exists(f"{rd}/report.md") else ("MERGE NEEDED" if done == 10 else "-")
     if done == 10 and not os.path.exists(f"{rd}/report.md") and rows >= 2500:
         subprocess.run([f"{T}/merge_step.sh", rd], capture_output=True)

@@ -21,6 +21,8 @@ def verified(sd):
 
 rows = []
 for step in steps:
+    if "result" in d[step]:
+        continue
     rd = d[step]["run_dir"]; d[step].setdefault("resume_jobs", {})
     for s in range(10):
         sd = f"{rd}/shard_{s}"

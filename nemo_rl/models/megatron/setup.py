@@ -1939,6 +1939,15 @@ def _apply_performance_config(model_cfg: Any, config: PolicyConfig) -> None:
                 f"Invalid recompute_granularity: {granularity!r}. "
                 "Valid options are 'full' or 'selective'."
             )
+    else:
+        # A provider loaded from checkpoint metadata keeps the recompute it was saved with, e.g. an SFT
+        # run's selective recompute, which MCore rejects next to inference CUDA graphs. The dedicated
+        # non-colocated inference model always runs with activation_checkpointing=False, so clear
+        # recompute here as the colocated inference path does.
+        model_cfg.recompute_granularity = None
+        model_cfg.recompute_method = None
+        model_cfg.recompute_num_layers = None
+        model_cfg.recompute_modules = None
 
     # Activation function validation
     if not model_cfg.gated_linear_unit:

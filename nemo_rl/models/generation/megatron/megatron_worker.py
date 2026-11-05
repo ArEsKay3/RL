@@ -806,8 +806,10 @@ class MegatronGenerationMixin:
         future = asyncio.run_coroutine_threadsafe(
             self._wake_engine(), self._inference_loop
         )
+        # No torch.distributed barrier: UNPAUSING -> RUNNING already passes the
+        # engine's world barrier, and a RUNNING engine may have EP collectives in
+        # flight that a world NCCL barrier on the same GPUs deadlocks against.
         future.result()
-        torch.distributed.barrier()
         self._inference_engine_asleep = False
         print(f"[Rank {self.rank}] resumed inference engine")
 

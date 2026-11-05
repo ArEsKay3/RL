@@ -404,7 +404,10 @@ class MegatronGenerationMixin:
             self._wrapper_supports_modality(inference_wrapper_cls, modality)
             for modality in ("image", "video", "audio")
         ):
-            return model, None
+            # A multimodal container served text-only (no media wrapper) still runs
+            # its own forward through GPTInferenceWrapper, but engine set-up reads the
+            # language model's config and decoder (MambaInferenceStateConfig.from_model).
+            return getattr(model, "language_model", model), None
         return model.language_model, model
 
     def _vision_pixel_dtype(self) -> torch.dtype:

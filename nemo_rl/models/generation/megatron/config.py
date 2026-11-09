@@ -63,6 +63,7 @@ class MCoreGenerationSpecificArgs(TypedDict):
     Any fields not declared here but declared in the training-side config can be overwritten.
     For example, Megatron inference might want `transformer_impl: "inference_optimized"`,
     while Megatron training might want `transformer_impl: "transformer_engine"`.
+    `model_overrides` is merged key by key into the training-side `model_overrides`.
     """
 
     expose_http_server: bool
@@ -214,6 +215,13 @@ def merged_inference_megatron_cfg(policy_config: PolicyConfig) -> dict[str, Any]
         "activation_checkpointing": False,
         "context_parallel_size": 1,
     }
+    # model_overrides is itself a dict of Bridge model fields: an inference override of one
+    # field (e.g. switching off a training-only kernel) keeps the training model's others.
+    if "model_overrides" in overrides:
+        merged["model_overrides"] = {
+            **(policy_config["megatron_cfg"].get("model_overrides") or {}),
+            **(overrides["model_overrides"] or {}),
+        }
     # inference_optimized layers hard-require SP with TP>1. Raise with the
     # config key: the colocated build bypasses validate_and_set_config, so this
     # merge is the only spot the inference cfg gets a named error instead of a

@@ -296,6 +296,28 @@ def test_inference_optimized_pins_generation_etp_to_one() -> None:
 
 
 @pytest.mark.mcore
+def test_generation_model_overrides_merge_per_key() -> None:
+    """A generation-side model override replaces one key, not the whole dict."""
+    config = deepcopy(basic_megatron_test_config)
+    config["megatron_cfg"]["model_overrides"] = {
+        "gdp_cutedsl_kernel": True,
+        "hybrid_layer_pattern": "M*M",
+    }
+    config["generation"]["mcore_generation_config"]["model_overrides"] = {
+        "gdp_cutedsl_kernel": False
+    }
+
+    merged = merged_inference_megatron_cfg(config)
+
+    assert merged["model_overrides"] == {
+        "gdp_cutedsl_kernel": False,
+        "hybrid_layer_pattern": "M*M",
+    }
+    # The training-side dict is left untouched.
+    assert config["megatron_cfg"]["model_overrides"]["gdp_cutedsl_kernel"] is True
+
+
+@pytest.mark.mcore
 def test_inference_optimized_rejects_explicit_generation_etp_above_one() -> None:
     config = deepcopy(basic_megatron_test_config)
     config["generation"]["mcore_generation_config"]["transformer_impl"] = (
